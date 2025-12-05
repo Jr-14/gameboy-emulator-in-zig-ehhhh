@@ -9,7 +9,7 @@ pub fn main() !void {
     // I guess I can start with declaring 8 bit registers
     // Rather than using undefined, I think we can 0 out the bits. In my mind it makes sense maybe
     // Maybe a HashMap?
-    var registers = std.StringHashMap(i8).init(allocator);
+    var registers = std.StringHashMap(u8).init(allocator);
     defer registers.deinit();
 
     try registers.put("A", 0);
@@ -19,6 +19,18 @@ pub fn main() !void {
     try registers.put("E", 0);
     try registers.put("H", 0);
     try registers.put("L", 0);
+}
+
+pub fn decode(op_code: u8) []const u8 {
+    const s = switch (op_code) {
+        // NOP (No operation) Only advances the program counter by 1.
+        // Performs no other operations that would have an effect
+        0x00 => "NOP",
+        else => "S"
+    };
+    
+    return s;
+
 }
 
 // Legend
