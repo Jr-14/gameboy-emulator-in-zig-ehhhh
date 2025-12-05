@@ -3,8 +3,9 @@ const std = @import("std");
 pub fn main() !void {
     // I didn't know we need an allocation strategy in order to create a hashmap
     // It is indeed very interesting
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    const allocator = gpa.allocator();
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
     // I guess I can start with declaring 8 bit registers
     // Rather than using undefined, I think we can 0 out the bits. In my mind it makes sense maybe
     // Maybe a HashMap?
