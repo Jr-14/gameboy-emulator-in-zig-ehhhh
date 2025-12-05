@@ -1,46 +1,35 @@
-//! By convention, main.zig is where your main function lives in the case that
-//! you are building an executable. If you are making a library, the convention
-//! is to delete this file and start with root.zig instead.
-
-pub fn main() !void {
-    // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
-
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
-
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
-
-    try bw.flush(); // Don't forget to flush!
-}
-
-test "simple test" {
-    var list = std.ArrayList(i32).init(std.testing.allocator);
-    defer list.deinit(); // Try commenting this out and see if zig detects the memory leak!
-    try list.append(42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
-}
-
-test "use other module" {
-    try std.testing.expectEqual(@as(i32, 150), lib.add(100, 50));
-}
-
-test "fuzz example" {
-    const Context = struct {
-        fn testOne(context: @This(), input: []const u8) anyerror!void {
-            _ = context;
-            // Try passing `--fuzz` to `zig build test` and see if it manages to fail this test case!
-            try std.testing.expect(!std.mem.eql(u8, "canyoufindme", input));
-        }
-    };
-    try std.testing.fuzz(Context{}, Context.testOne, .{});
-}
-
 const std = @import("std");
 
-/// This imports the separate module containing `root.zig`. Take a look in `build.zig` for details.
-const lib = @import("gameboy_emulator_in_zig_ehhhh_lib");
+pub fn main() !void {
+    // I didn't know we need an allocation strategy in order to create a hashmap
+    // It is indeed very interesting
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    const allocator = gpa.allocator();
+    // I guess I can start with declaring 8 bit registers
+    // Rather than using undefined, I think we can 0 out the bits. In my mind it makes sense maybe
+    // Maybe a HashMap?
+    var registers = std.StringHashMap(i8).init(allocator);
+    defer registers.deinit();
+
+    try registers.put("A", 0);
+    try registers.put("B", 0);
+    try registers.put("C", 0);
+    try registers.put("D", 0);
+    try registers.put("E", 0);
+    try registers.put("H", 0);
+    try registers.put("L", 0);
+}
+
+// Legend
+// r8  - any of the 8-bit registers (A, B, C, D, E, H, L).
+// r16 - any of the general-purpose 16-bit registers (BC, DE, HL).
+// n8  - 8-bit integer constant (signed or unsigned, -128 to 255).
+// n16 - 16-bit integer constant (signed or unsigned, -32768 to 65535).
+// e8  - 8-bit signed offset (-128 to 127)
+// u3  - 3-bit unsigned bit index (0 to 7, with 0 as the least significant bit).
+// cc  - A condition code:
+//          Z   Execute if Z is set
+//          NZ  Execute if Z is not set
+//          C   Execute if C is set
+//          NC  Execute if C is not set
+// vec - an RST vector (0x00, 0x08, 0x10, 0x18, 0x20, 0x28, 0x30, and 0x38)

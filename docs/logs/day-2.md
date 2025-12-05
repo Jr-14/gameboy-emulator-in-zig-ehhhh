@@ -40,4 +40,5 @@ What I then find is this:
 The above is for the 6502 CPU, however, with this, I understand what now what I can start to emulate; the question now
 is how do I emulate the CPU?
 
+# Emulating The CPU
 
