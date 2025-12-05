@@ -42,3 +42,5 @@ is how do I emulate the CPU?
 
 # Emulating The CPU
 
+# Aside stuff
+- Learning about memory allocators [What's a Memory Allocator Anyway? - Benjamin Feng](https://www.youtube.com/watch?v=vHWiDx_l4V0)
