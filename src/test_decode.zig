@@ -18,9 +18,6 @@ test "decode and execute 0x00 [NOP]" {
     try expect(registers.E == 0);
     try expect(registers.H == 0);
     try expect(registers.L == 0);
-    try expect(registers.BC == 0);
-    try expect(registers.DE == 0);
-    try expect(registers.HL == 0);
 }
 
 test "decode and execute 0x01 [LD BC, d16]" {
@@ -33,30 +30,24 @@ test "decode and execute 0x01 [LD BC, d16]" {
 
     try expect(pc == 1);
     try expect(registers.A == 0);
-    try expect(registers.B == 0);
-    try expect(registers.C == 0);
+    try expect(registers.B == 0x15);
+    try expect(registers.C == 0xee);
     try expect(registers.D == 0);
     try expect(registers.E == 0);
     try expect(registers.H == 0);
     try expect(registers.L == 0);
-    try expect(registers.BC == 5614);
-    try expect(registers.DE == 0);
-    try expect(registers.HL == 0);
 
     // We will now load 100 which is 01100100 in binary and 0x64 in hex
     try main.decodeAndExecute([_]u8{0x01, 0x00, 0x64}, &registers, &pc);
 
     try expect(pc == 2);
     try expect(registers.A == 0);
-    try expect(registers.B == 0);
-    try expect(registers.C == 0);
+    try expect(registers.B == 0x00);
+    try expect(registers.C == 0x64);
     try expect(registers.D == 0);
     try expect(registers.E == 0);
     try expect(registers.H == 0);
     try expect(registers.L == 0);
-    try expect(registers.BC == 100);
-    try expect(registers.DE == 0);
-    try expect(registers.HL == 0);
 }
 
 test "decode and execute 0x03 [INC BC]" {
@@ -68,14 +59,11 @@ test "decode and execute 0x03 [INC BC]" {
     try expect(pc == 1);
     try expect(registers.A == 0);
     try expect(registers.B == 0);
-    try expect(registers.C == 0);
+    try expect(registers.C == 1);
     try expect(registers.D == 0);
     try expect(registers.E == 0);
     try expect(registers.H == 0);
     try expect(registers.L == 0);
-    try expect(registers.BC == 1);
-    try expect(registers.DE == 0);
-    try expect(registers.HL == 0);
 }
 
 test "decode and execute 0x04 [INC B]" {
@@ -92,9 +80,6 @@ test "decode and execute 0x04 [INC B]" {
     try expect(registers.E == 0);
     try expect(registers.H == 0);
     try expect(registers.L == 0);
-    try expect(registers.BC == 0);
-    try expect(registers.DE == 0);
-    try expect(registers.HL == 0);
 
     try main.decodeAndExecute([_]u8{0x04, 0x00, 0x00}, &registers, &pc);
     try main.decodeAndExecute([_]u8{0x04, 0x00, 0x00}, &registers, &pc);
@@ -107,9 +92,6 @@ test "decode and execute 0x04 [INC B]" {
     try expect(registers.E == 0);
     try expect(registers.H == 0);
     try expect(registers.L == 0);
-    try expect(registers.BC == 0);
-    try expect(registers.DE == 0);
-    try expect(registers.HL == 0);
 }
 
 test "decode and execute 0x05 [DEC B]" {

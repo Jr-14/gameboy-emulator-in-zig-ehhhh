@@ -12,9 +12,6 @@ const Register = struct {
     E: u8 = 0,
     H: u8 = 0,
     L: u8 = 0,
-    BC: u16 = 0,
-    DE: u16 = 0,
-    HL: u16 = 0,
 };
 
 pub fn main() !void {
@@ -32,9 +29,6 @@ pub fn createRegister() Register {
         .E = 0,
         .H = 0,
         .L = 0,
-        .BC = 0,
-        .DE = 0,
-        .HL = 0,
     };
 }
 
@@ -61,8 +55,8 @@ pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: *u32) !void {
         0x01 => {
             // Store it as it is, maybe we'll need to switch byte ordering at later stage
             // maybe during execution?
-            const shifted_byte: u16 = @intCast(first_byte);
-            registers.BC = (shifted_byte << 8) + second_byte;
+            registers.B = first_byte;
+            registers.C = second_byte;
             pc.* += 1;
         },
 
@@ -74,7 +68,12 @@ pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: *u32) !void {
         // INC BC
         // Increment the contents of register pair BC by 1
         0x03 => {
-            registers.BC += 1;
+            if (registers.C == 0xff) {
+                registers.C = 0;
+                registers.B += 1;
+            } else {
+                registers.C += 1;
+            }
             pc.* += 1;
         },
 
