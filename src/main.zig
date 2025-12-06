@@ -1,5 +1,10 @@
 const std = @import("std");
 
+const RegisterError = error{
+    RegisterNotFound
+};
+
+
 const Register = struct {
     A: u8 = 0,
     B: u8 = 0,
@@ -16,7 +21,7 @@ const Register = struct {
 pub fn main() !void {
     // We use to have a StringHashMap with allocated memory
     // but looking at it, structs are probably better
-    const register = createRegister();
+    // var register = createRegister();
 }
 
 pub fn createRegister() Register {
@@ -36,11 +41,7 @@ pub fn createRegister() Register {
 
 pub fn fetch() void {}
 
-const RegisterError = error{
-    RegisterNotFound
-};
-
-pub fn decode(word: [3]u8, registers: *Register, pc: u32) !u32 {
+pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: u32) !u32 {
     const op_code = word[0];
     // TODO:
     // actually decode it and not just return strings
@@ -73,13 +74,8 @@ pub fn decode(word: [3]u8, registers: *Register, pc: u32) !u32 {
         // TODO:
         // This has some flags? e.g. Z 0 8-bit -
         0x04 => {
-            const b = register.get("B");
-            if (b) |value| {
-                try register.put("B", value + 1);
-                return pc + 1;
-            } else {
-                return RegisterError.RegisterNotFound;
-            }
+            registers.B += 1;
+            return pc + 1;
         },
 
         // Decrement the contents of register B by 1
