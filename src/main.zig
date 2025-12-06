@@ -21,7 +21,14 @@ pub fn main() !void {
     try registers.put("L", 0);
 }
 
-pub fn decode(op_code: u8) []const u8 {
+pub fn fetch() void {}
+
+const RegisterError = error{
+    RegisterNotFound
+};
+
+pub fn decode(word: [3]u8, register: *std.StringHashMap(u8), pc: u32) !u32 {
+    const op_code = word[0];
     // TODO:
     // actually decode it and not just return strings
     // I guess for now to progress I can hand write in this massive switch
@@ -32,24 +39,35 @@ pub fn decode(op_code: u8) []const u8 {
     const s = switch (op_code) {
         // NOP (No operation) Only advances the program counter by 1.
         // Performs no other operations that would have an effect
-        0x00 => "NOP",
+        0x00 => pc + 1,
 
+        // LD BC, d16
         // Load the 2 bytes of immediate data into register pair BC
         // The first byte of immediate data is the lower byte (i.e. bits 0-7), and 
         // the second byte of immediate data is the higher byte (i.e., bits 8-15)
-        0x01 => "LD BC, d16",
+        0x01 => pc + 1,
 
+        // LD (BC), A
         // Store the contents of register A in the memory location specified by
         // register pair BC
-        0x02 => "LD (BC), A",
+        0x02 => pc + 1,
 
+        // INC BC
         // Increment the contents of register pair BC by 1
-        0x03 => "INC BC",
+        0x03 => pc + 1,
 
         // Increment the contents of register B by 1.
         // TODO:
         // This has some flags? e.g. Z 0 8-bit -
-        0x04 => "INC B",
+        0x04 => {
+            const b = register.get("B");
+            if (b) |value| {
+                try register.put("B", value + 1);
+                return pc + 1;
+            } else {
+                return RegisterError.RegisterNotFound;
+            }
+        },
 
         // Decrement the contents of register B by 1
         // TODO:
@@ -187,10 +205,11 @@ pub fn decode(op_code: u8) []const u8 {
 
         else => "S"
     };
-    
     return s;
-
 }
+
+pub fn execute() void {}
+
 
 // Legend
 // r8  - any of the 8-bit registers (A, B, C, D, E, H, L).
