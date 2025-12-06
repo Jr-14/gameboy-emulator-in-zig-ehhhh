@@ -1,17 +1,24 @@
 const std = @import("std");
 
-const RegisterError = error{
-    RegisterNotFound
-};
+const RegisterFile = struct {
+    A: u8 = 0, // Accumulator
+    F: u8 = 0, // Flags
 
-const Register = struct {
-    A: u8 = 0,
+    // General Purpose Registers
     B: u8 = 0,
     C: u8 = 0,
     D: u8 = 0,
     E: u8 = 0,
     H: u8 = 0,
     L: u8 = 0,
+
+    // Special Registers
+    IR: u8 = 0, // Instruction Register
+    IE: u8 = 0, // Interrupt Enable
+
+    // Others
+    PC: u16 = 0, // Program Counter
+    SP: u16 = 0, // Stack Pointer
 };
 
 pub fn main() !void {
@@ -20,21 +27,29 @@ pub fn main() !void {
     // var register = createRegister();
 }
 
-pub fn createRegister() Register {
-    return Register {
+pub fn createRegisterFile() RegisterFile {
+    return RegisterFile {
         .A = 0,
+        .F = 0,
+
         .B = 0,
         .C = 0,
         .D = 0,
         .E = 0,
         .H = 0,
         .L = 0,
+
+        .IR = 0,
+        .IE = 0,
+
+        .PC = 0,
+        .SP = 0,
     };
 }
 
 pub fn fetch() void {}
 
-pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: *u32) !void {
+pub fn decodeAndExecute(word: [3]u8, registers: *RegisterFile) !void {
     const op_code = word[0];
     const first_byte = word[1];
     const second_byte = word[2];
@@ -46,7 +61,7 @@ pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: *u32) !void {
     switch (op_code) {
         // NOP (No operation) Only advances the program counter by 1.
         // Performs no other operations that would have an effect
-        0x00 => pc.* += 1,
+        0x00 => registers.PC += 1,
 
         // LD BC, d16
         // Load the 2 bytes of immediate data into register pair BC
@@ -57,13 +72,13 @@ pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: *u32) !void {
             // maybe during execution?
             registers.B = first_byte;
             registers.C = second_byte;
-            pc.* += 1;
+            registers.PC += 1;
         },
 
         // LD (BC), A
         // Store the contents of register A in the memory location specified by
         // register pair BC
-        0x02 => pc.* += 1,
+        0x02 => registers.PC += 1,
 
         // INC BC
         // Increment the contents of register pair BC by 1
@@ -74,7 +89,7 @@ pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: *u32) !void {
             } else {
                 registers.C += 1;
             }
-            pc.* += 1;
+            registers.PC += 1;
         },
 
         // INC B
@@ -83,7 +98,7 @@ pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: *u32) !void {
         // This has some flags? e.g. Z 0 8-bit -
         0x04 => {
             registers.B += 1;
-            pc.* += 1;
+            registers.PC += 1;
         },
 
         // DEC B
@@ -92,7 +107,7 @@ pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: *u32) !void {
         // Flags: Z 1 8-bit -
         0x05 => {
             registers.B -= 1;
-            pc.* += 1;
+            registers.PC += 1;
         },
 
         // Load the 8-bit immediate operand d8 into register B.
@@ -223,7 +238,7 @@ pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: *u32) !void {
         // the carry flag are copied to bit 7.
         // 0x1f => "RRA",
 
-        else => pc.* += 1,
+        else => registers.PC += 1,
     }
 }
 
