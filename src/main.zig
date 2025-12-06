@@ -1,24 +1,37 @@
 const std = @import("std");
 
-pub fn main() !void {
-    // I didn't know we need an allocation strategy in order to create a hashmap
-    // It is indeed very interesting
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
-    defer arena.deinit();
-    const allocator = arena.allocator();
-    // I guess I can start with declaring 8 bit registers
-    // Rather than using undefined, I think we can 0 out the bits. In my mind it makes sense maybe
-    // Maybe a HashMap?
-    var registers = std.StringHashMap(u8).init(allocator);
-    defer registers.deinit();
+const Register = struct {
+    A: u8 = 0,
+    B: u8 = 0,
+    C: u8 = 0,
+    D: u8 = 0,
+    E: u8 = 0,
+    H: u8 = 0,
+    L: u8 = 0,
+    BD: u16 = 0,
+    DE: u16 = 0,
+    HL: u16 = 0,
+};
 
-    try registers.put("A", 0);
-    try registers.put("B", 0);
-    try registers.put("C", 0);
-    try registers.put("D", 0);
-    try registers.put("E", 0);
-    try registers.put("H", 0);
-    try registers.put("L", 0);
+pub fn main() !void {
+    // We use to have a StringHashMap with allocated memory
+    // but looking at it, structs are probably better
+    const register = createRegister();
+}
+
+pub fn createRegister() Register {
+    return Register {
+        .A = 0,
+        .B = 0,
+        .C = 0,
+        .D = 0,
+        .E = 0,
+        .H = 0,
+        .L = 0,
+        .BD = 0,
+        .DE = 0,
+        .HL = 0,
+    };
 }
 
 pub fn fetch() void {}
@@ -27,7 +40,7 @@ const RegisterError = error{
     RegisterNotFound
 };
 
-pub fn decode(word: [3]u8, register: *std.StringHashMap(u8), pc: u32) !u32 {
+pub fn decode(word: [3]u8, registers: *Register, pc: u32) !u32 {
     const op_code = word[0];
     // TODO:
     // actually decode it and not just return strings
