@@ -15,5 +15,7 @@ test "testing simple decode no op" {
 
     try registers.put("B", 0);
 
-    try expect(main.decode([_]u8{0x00, 0x00, 0x00}, &registers, pc) == 0);
+    const next_pc = try main.decode([_]u8{0x00, 0x00, 0x00}, &registers, pc);
+
+    try expect(next_pc == 1);
 }
