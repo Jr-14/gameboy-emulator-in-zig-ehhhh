@@ -131,3 +131,8 @@ So it looks like the following bits are in this order
 For example the number 197 base 10 is the binary `11000101`, however this is using the big endian system. Notice that
 the most significant byte is the very left number. If we were to use little endian, then the same number would be
 in reverse order `10100011`;
+
+# Moving Forward
+I think I should read the entirety of the [Game Boy: Complete Technical Reference](https://gekkio.fi/files/gb-docs/gbctr.pdf).
+It actually gave good insight to the inner workings of the CPU Core. :p
+
