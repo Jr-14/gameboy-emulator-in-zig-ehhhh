@@ -4,6 +4,8 @@ const RegisterError = error{
     RegisterNotFound
 };
 
+const BIT_SHIFT_8: u8 = 8;
+
 const Register = struct {
     A: u8 = 0,
     B: u8 = 0,
@@ -59,7 +61,10 @@ pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: *u32) !void {
         // The first byte of immediate data is the lower byte (i.e. bits 0-7), and 
         // the second byte of immediate data is the higher byte (i.e., bits 8-15)
         0x01 => {
-            registers.BC = (second_byte << 8) + first_byte;
+            // Store it as it is, maybe we'll need to switch byte ordering at later stage
+            // maybe during execution?
+            const shifted_byte: u16 = @intCast(first_byte);
+            registers.BC = (shifted_byte << 8) + second_byte;
             pc.* += 1;
         },
 

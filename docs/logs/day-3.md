@@ -128,4 +128,6 @@ I'm currently implementing the instruction LD BC, d16 with the following descrip
 
 So it looks like the following bits are in this order
 
-For example the number 394 base 10 is the binary 110001010, however this is using the big endian system
+For example the number 197 base 10 is the binary `11000101`, however this is using the big endian system. Notice that
+the most significant byte is the very left number. If we were to use little endian, then the same number would be
+in reverse order `10100011`;
