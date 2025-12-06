@@ -13,7 +13,7 @@ const Register = struct {
     E: u8 = 0,
     H: u8 = 0,
     L: u8 = 0,
-    BD: u16 = 0,
+    BC: u16 = 0,
     DE: u16 = 0,
     HL: u16 = 0,
 };
@@ -33,7 +33,7 @@ pub fn createRegister() Register {
         .E = 0,
         .H = 0,
         .L = 0,
-        .BD = 0,
+        .BC = 0,
         .DE = 0,
         .HL = 0,
     };
@@ -68,8 +68,12 @@ pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: u32) !u32 {
 
         // INC BC
         // Increment the contents of register pair BC by 1
-        0x03 => pc + 1,
+        0x03 => {
+            registers.BC += 1;
+            return pc + 1;
+        },
 
+        // INC B
         // Increment the contents of register B by 1.
         // TODO:
         // This has some flags? e.g. Z 0 8-bit -
