@@ -87,10 +87,14 @@ pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: *u32) !void {
             pc.* += 1;
         },
 
+        // DEC B
         // Decrement the contents of register B by 1
         // TODO:
         // Flags: Z 1 8-bit -
-        // 0x05 => "DEC B",
+        0x05 => {
+            registers.B -= 1;
+            pc.* += 1;
+        },
 
         // Load the 8-bit immediate operand d8 into register B.
         // 0x06 => "LD B, d8",
