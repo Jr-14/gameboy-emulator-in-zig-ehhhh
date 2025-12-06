@@ -4,7 +4,6 @@ const RegisterError = error{
     RegisterNotFound
 };
 
-
 const Register = struct {
     A: u8 = 0,
     B: u8 = 0,
@@ -41,36 +40,39 @@ pub fn createRegister() Register {
 
 pub fn fetch() void {}
 
-pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: u32) !u32 {
+pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: *u32) !void {
     const op_code = word[0];
+    const first_byte = word[1];
+    const second_byte = word[2];
     // TODO:
-    // actually decode it and not just return strings
-    // I guess for now to progress I can hand write in this massive switch
     // state all the different instructions for 8-bit opcodes
     //
     // TODO:
     // Look at 16-bit opcodes? Is this required?
-    const s = switch (op_code) {
+    switch (op_code) {
         // NOP (No operation) Only advances the program counter by 1.
         // Performs no other operations that would have an effect
-        0x00 => pc + 1,
+        0x00 => pc.* += 1,
 
         // LD BC, d16
         // Load the 2 bytes of immediate data into register pair BC
         // The first byte of immediate data is the lower byte (i.e. bits 0-7), and 
         // the second byte of immediate data is the higher byte (i.e., bits 8-15)
-        0x01 => pc + 1,
+        0x01 => {
+            registers.BC = (second_byte << 8) + first_byte;
+            pc.* += 1;
+        },
 
         // LD (BC), A
         // Store the contents of register A in the memory location specified by
         // register pair BC
-        0x02 => pc + 1,
+        0x02 => pc.* += 1,
 
         // INC BC
         // Increment the contents of register pair BC by 1
         0x03 => {
             registers.BC += 1;
-            return pc + 1;
+            pc.* += 1;
         },
 
         // INC B
@@ -79,7 +81,7 @@ pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: u32) !u32 {
         // This has some flags? e.g. Z 0 8-bit -
         0x04 => {
             registers.B += 1;
-            return pc + 1;
+            pc.* += 1;
         },
 
         // Decrement the contents of register B by 1
@@ -215,9 +217,8 @@ pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: u32) !u32 {
         // the carry flag are copied to bit 7.
         // 0x1f => "RRA",
 
-        else => pc + 1,
-    };
-    return s;
+        else => pc.* += 1,
+    }
 }
 
 pub fn execute() void {}

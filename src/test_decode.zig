@@ -3,12 +3,12 @@ const main = @import("main.zig");
 
 const expect = std.testing.expect;
 
-test "decode and execute 0x00 (NOP)" {
+test "decode and execute 0x00 [NOP]" {
     var registers = main.createRegister();
     var pc: u32 = 0;
 
-    pc = try main.decodeAndExecute([_]u8{0x00, 0x00, 0x00}, &registers, pc);
-    pc = try main.decodeAndExecute([_]u8{0x00, 0x00, 0x00}, &registers, pc);
+    try main.decodeAndExecute([_]u8{0x00, 0x00, 0x00}, &registers, &pc);
+    try main.decodeAndExecute([_]u8{0x00, 0x00, 0x00}, &registers, &pc);
 
     try expect(pc == 2);
     try expect(registers.A == 0);
@@ -23,11 +23,15 @@ test "decode and execute 0x00 (NOP)" {
     try expect(registers.HL == 0);
 }
 
-test "decode and execute 0x03 (INC BC)" {
+test "decode and execute 0x01 [LD BC, d16]" {
+
+}
+
+test "decode and execute 0x03 [INC BC]" {
     var registers = main.createRegister();
     var pc: u32 = 0;
 
-    pc = try main.decodeAndExecute([_]u8{0x03, 0x00, 0x00}, &registers, pc);
+    try main.decodeAndExecute([_]u8{0x03, 0x00, 0x00}, &registers, &pc);
 
     try expect(pc == 1);
     try expect(registers.A == 0);
@@ -46,7 +50,7 @@ test "decode and execute 0x04 (INC B)" {
     var registers = main.createRegister();
     var pc: u32 = 0;
 
-    pc = try main.decodeAndExecute([_]u8{0x04, 0x00, 0x00}, &registers, pc);
+    try main.decodeAndExecute([_]u8{0x04, 0x00, 0x00}, &registers, &pc);
 
     try expect(pc == 1);
     try expect(registers.A == 0);

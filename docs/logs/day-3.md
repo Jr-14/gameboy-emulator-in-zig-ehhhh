@@ -67,3 +67,65 @@ proper way
         }
     },
 ```
+
+# Structs and Pointers
+Now that I'm starting to get a feel for how zig does things, a struct is probably a better structure for referencing
+registers. I thought it was very odd how trying to find a register would fail since they're inside a HashMap, so a
+struct is a better datastructure for this.
+
+Defining a *type* of the struct. I don't know why we would use `const` for this.
+
+```zig
+const Register = struct {
+    A: u8 = 0,
+    B: u8 = 0,
+    C: u8 = 0,
+    D: u8 = 0,
+    E: u8 = 0,
+    H: u8 = 0,
+    L: u8 = 0,
+    BC: u16 = 0,
+    DE: u16 = 0,
+    HL: u16 = 0,
+};
+```
+
+And the usage
+
+```zig
+pub fn createRegister() Register {
+    return Register {
+        .A = 0,
+        .B = 0,
+        .C = 0,
+        .D = 0,
+        .E = 0,
+        .H = 0,
+        .L = 0,
+        .BC = 0,
+        .DE = 0,
+        .HL = 0,
+    };
+}
+```
+
+Dereferencing a pointer has a weird syntax. I just have to get used to it.
+
+```zig
+pub fn decodeAndExecute(word: [3]u8, registers: *Register, pc: *u32) !void {
+    // everything else ...
+    pc.* += 1;
+    // ...
+}
+```
+
+# Byte Ordering and Endianness
+I'm currently implementing the instruction LD BC, d16 with the following description
+
+*Load the 2 bytes of immediate data into register pair BC.*
+*The first byte of immediate data is the lower byte (i.e., bits 0-7), and the second byte of*
+*immediate data is the higher byte (i.e., bits 8-15).*
+
+So it looks like the following bits are in this order
+
+For example the number 394 base 10 is the binary 110001010, however this is using the big endian system
