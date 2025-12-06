@@ -4,8 +4,6 @@ const RegisterError = error{
     RegisterNotFound
 };
 
-const BIT_SHIFT_8: u8 = 8;
-
 const Register = struct {
     A: u8 = 0,
     B: u8 = 0,
