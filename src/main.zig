@@ -78,6 +78,8 @@ pub fn decodeAndExecute(word: [3]u8, registers: *RegisterFile) !void {
         // LD (BC), A
         // Store the contents of register A in the memory location specified by
         // register pair BC
+        // TODO:
+        // Implement logic
         0x02 => registers.PC += 1,
 
         // INC BC
@@ -110,12 +112,16 @@ pub fn decodeAndExecute(word: [3]u8, registers: *RegisterFile) !void {
             registers.PC += 1;
         },
 
+        // LD B, d8
         // Load the 8-bit immediate operand d8 into register B.
-        // 0x06 => "LD B, d8",
+        0x06 => {
+            registers.B = first_byte;
+            registers.PC += 1;
+        },
 
         // Rotate the contents of register A to the left. That is, the contents of bit 0
         // are copied to bit 1, and the previous contents of bit 1 (before the copy operation)
-        // are copied to bit 2. The same operation is repeated oin sequence for the rest
+        // are copied to bit 2. The same operation is repeated in sequence for the rest
         // of the register. The contents of bit 7 are placed in both the CY flag and bit 0 of
         // register A.
         // TODO:
@@ -126,7 +132,7 @@ pub fn decodeAndExecute(word: [3]u8, registers: *RegisterFile) !void {
         // immediate operand 16, and store the upper byte of SP at address a16 + 1.
         // 0x08 => "LD (a16), SP",
 
-        // Add the contents of register pair BC t othe contents of register pair HL, and
+        // Add the contents of register pair BC to the contents of register pair HL, and
         // store the results in register pair HL.
         // TODO:
         // Flags: - 0 16-bit 16-bit

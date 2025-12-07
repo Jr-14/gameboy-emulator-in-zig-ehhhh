@@ -105,3 +105,18 @@ test "decode and execute 0x05 [DEC B]" {
     try expect(registers.H == 0);
     try expect(registers.L == 0);
 }
+
+test "decode and execute 0x06 [LD B, d8]" {
+    var registers = main.createRegisterFile();
+
+    try main.decodeAndExecute([_]u8{0x06, 0xF1, 0x00}, &registers);
+
+    try expect(registers.PC == 1);
+    try expect(registers.A == 0);
+    try expect(registers.B == 0xf1);
+    try expect(registers.C == 0);
+    try expect(registers.D == 0);
+    try expect(registers.E == 0);
+    try expect(registers.H == 0);
+    try expect(registers.L == 0);
+}
