@@ -10,3 +10,5 @@ Will be going through this today along side with [GameBoy Memory Map](http://gam
 to implement memory. From my knowledge of OS, virtual memory is implemented via [page tables and
 page frames](https://www.baeldung.com/cs/virtual-pages-page-frames). I wonder how I'll be going to implement that
 
+Oh yea, I also managed to get myself the `.gb` file for tetris. I think it's a good idea to understand and disassemble
+this.
