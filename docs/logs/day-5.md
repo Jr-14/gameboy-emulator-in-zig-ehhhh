@@ -12,3 +12,7 @@ page frames](https://www.baeldung.com/cs/virtual-pages-page-frames). I wonder ho
 
 Oh yea, I also managed to get myself the `.gb` file for tetris. I think it's a good idea to understand and disassemble
 this.
+
+# Still part of Day 5 - December 16th 9.40PM
+So I only read like an hour-ish yesterday, will try to write some code with array memory. From GameBoy Memory Map, it
+has a 16bits addressable memory, how will I emulate that?

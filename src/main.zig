@@ -47,6 +47,14 @@ pub fn createRegisterFile() RegisterFile {
     };
 }
 
+const ARRAY_SIZE: u32 = 0xffff;
+
+pub fn initMemArray() [ARRAY_SIZE]u8 {
+    var arr: [ARRAY_SIZE]u8 = undefined;
+    @memset(&arr, 0);
+    return arr;
+}
+
 pub fn fetch() void {}
 
 pub fn decodeAndExecute(word: [3]u8, registers: *RegisterFile) !void {
