@@ -38,7 +38,7 @@ const RegisterReturn = union(Register) {
     SP: u8
 };
 
-const RegisterFile = struct {
+pub const RegisterFile = struct {
     A: u8 = 0, // Accumulator
     F: u8 = 0, // Flags
 
@@ -58,24 +58,40 @@ const RegisterFile = struct {
     PC: u16 = 0, // Program Counter
     SP: u16 = 0, // Stack Pointer
 
-    /// Get contents of a register
-    pub fn getContents(register: Register): RegisterReturn {
-    } ;
+    const Self = @This();
+
+    pub fn getBC(self: Self) u16 {
+        var bc: u16 = self.B;
+        bc = (bc << 8) + self.C;
+        return bc;
+    }
+
+    pub fn getDE(self: Self) u16 {
+        var de: u16 = self.D;
+        de = (de << 8) + self.E;
+        return de;
+    }
+
+    pub fn getHL(self: Self) u16 {
+        var hl: u16 = self.H;
+        hl = (hl << 8) + self.L;
+        return hl;
+    }
 };
 
 const ARRAY_SIZE: u32 = 0xffff;
 
-const Memory = struct {
+pub const Memory = struct {
     memory_array: [ARRAY_SIZE]u8 = undefined,
 
     const Self = @This();
 
     pub fn init() Self {
+        var memory: [ARRAY_SIZE]u8 = undefined;
+        @memset(&memory, 0);
         const self: Memory = .{
-            .memory_array = undefined,
+            .memory_array = memory,
         };
-        @memset(&self.memory_array, 0);
-
         return self;
     }
 };
@@ -84,26 +100,6 @@ pub fn main() !void {
     // We use to have a StringHashMap with allocated memory
     // but looking at it, structs are probably better
     // var register = createRegister();
-}
-
-pub fn createRegisterFile() RegisterFile {
-    return RegisterFile{
-        .A = 0,
-        .F = 0,
-
-        .B = 0,
-        .C = 0,
-        .D = 0,
-        .E = 0,
-        .H = 0,
-        .L = 0,
-
-        .IR = 0,
-        .IE = 0,
-
-        .PC = 0,
-        .SP = 0,
-    };
 }
 
 pub fn initMemArray() [ARRAY_SIZE]u8 {
@@ -143,7 +139,7 @@ pub fn decodeAndExecute(registers: *RegisterFile, memory: *Memory) !void {
         // TODO:
         // Implement logic
         0x02 => {
-            memory.memory_array[registers.A];
+            memory.memory_array[registers.getBC()] = registers.A;
             registers.PC += 1;
         },
         // INC BC

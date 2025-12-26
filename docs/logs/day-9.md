@@ -1,0 +1,36 @@
+# Day 9 - December 26th 7.30AM
+I learnt something pretty cool in zig and in programming in general. Take this example
+
+```zig
+pub const RegisterFile = struct {
+    // General Purpose Registers
+    B: u8 = 0,
+    C: u8 = 0,
+
+    const Self = @This();
+
+    pub fn getBC(self: Self) u16 {
+        const bc: u16 = (self.B << 8) + self.C;
+        return bc;
+    }
+};
+```
+
+This looks okay (to me at the time), but I get this error
+
+```
+src/main.zig:65:25: error: type 'u3' cannot represent integer value '8'
+        bc = (self.B << 8) + self.C;
+```
+
+What's actually happening under the hood is that I am bitshifting the value of `self.B` 8 bits to the left
+and mutating `self.B`. What I wanted was the value of `self.B` whilst preserver `self.B`.
+
+The fix is something more like this.
+
+```zig
+pub fn getBC(self: Self) u16 {
+    var bc: u16 = self.B;
+    bc = (bc << 8) + self.C;
+    return bc;
+```
