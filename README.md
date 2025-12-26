@@ -17,5 +17,5 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [Gameboy Complete Technical Reference](https://gekkio.fi/files/gb-docs/gbctr.pdf)
 - [RGBDS assembly reference](https://rgbds.gbdev.io/docs/v0.9.0/gbz80.7)
 - [Interactive Op code reference](https://meganesu.github.io/generate-gb-opcodes/)
-- [*The Pandocs*](https://gbdev.io/pandocs/)
+- [The Pandocs](https://gbdev.io/pandocs/)
 - [GameBoy Memory Map](http://gameboy.mongenel.com/dmg/asmmemmap.html)

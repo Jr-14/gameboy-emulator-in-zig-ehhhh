@@ -1,5 +1,43 @@
 const std = @import("std");
 
+const Register = enum {
+    A,
+    F,
+    B,
+    C,
+    D,
+    E,
+    H,
+    L,
+    AF,
+    BC,
+    DE,
+    HL,
+    IR,
+    IE,
+    PC,
+    SP,
+};
+
+const RegisterReturn = union(Register) {
+    A: u8,
+    F: u8,
+    B: u8,
+    C: u8,
+    D: u8,
+    E: u8,
+    H: u8,
+    L: u8,
+    AF: u16,
+    BC: u16,
+    DE: u16,
+    HL: u16,
+    IR: u8,
+    IE: u8,
+    PC: u8,
+    SP: u8
+};
+
 const RegisterFile = struct {
     A: u8 = 0, // Accumulator
     F: u8 = 0, // Flags
@@ -19,6 +57,27 @@ const RegisterFile = struct {
     // Others
     PC: u16 = 0, // Program Counter
     SP: u16 = 0, // Stack Pointer
+
+    /// Get contents of a register
+    pub fn getContents(register: Register): RegisterReturn {
+    } ;
+};
+
+const ARRAY_SIZE: u32 = 0xffff;
+
+const Memory = struct {
+    memory_array: [ARRAY_SIZE]u8 = undefined,
+
+    const Self = @This();
+
+    pub fn init() Self {
+        const self: Memory = .{
+            .memory_array = undefined,
+        };
+        @memset(&self.memory_array, 0);
+
+        return self;
+    }
 };
 
 pub fn main() !void {
@@ -28,7 +87,7 @@ pub fn main() !void {
 }
 
 pub fn createRegisterFile() RegisterFile {
-    return RegisterFile {
+    return RegisterFile{
         .A = 0,
         .F = 0,
 
@@ -47,8 +106,6 @@ pub fn createRegisterFile() RegisterFile {
     };
 }
 
-const ARRAY_SIZE: u32 = 0xffff;
-
 pub fn initMemArray() [ARRAY_SIZE]u8 {
     var arr: [ARRAY_SIZE]u8 = undefined;
     @memset(&arr, 0);
@@ -57,39 +114,38 @@ pub fn initMemArray() [ARRAY_SIZE]u8 {
 
 pub fn fetch() void {}
 
-pub fn decodeAndExecute(word: [3]u8, registers: *RegisterFile) !void {
-    const op_code = word[0];
-    const first_byte = word[1];
-    const second_byte = word[2];
+pub fn decodeAndExecute(registers: *RegisterFile, memory: *Memory) !void {
     // TODO:
     // state all the different instructions for 8-bit opcodes
     //
     // TODO:
     // Look at 16-bit opcodes? Is this required?
-    switch (op_code) {
+    switch (registers.IR) {
         // NOP (No operation) Only advances the program counter by 1.
         // Performs no other operations that would have an effect
         0x00 => registers.PC += 1,
 
         // LD BC, d16
         // Load the 2 bytes of immediate data into register pair BC
-        // The first byte of immediate data is the lower byte (i.e. bits 0-7), and 
+        // The first byte of immediate data is the lower byte (i.e. bits 0-7), and
         // the second byte of immediate data is the higher byte (i.e., bits 8-15)
-        0x01 => {
-            // Store it as it is, maybe we'll need to switch byte ordering at later stage
-            // maybe during execution?
-            registers.B = first_byte;
-            registers.C = second_byte;
-            registers.PC += 1;
-        },
+        // 0x01 => {
+        //     // Store it as it is, maybe we'll need to switch byte ordering at later stage
+        //     // maybe during execution?
+        //     registers.B = first_byte;
+        //     registers.C = second_byte;
+        //     registers.PC += 1;
+        // },
 
         // LD (BC), A
         // Store the contents of register A in the memory location specified by
         // register pair BC
         // TODO:
         // Implement logic
-        0x02 => registers.PC += 1,
-
+        0x02 => {
+            memory.memory_array[registers.A];
+            registers.PC += 1;
+        },
         // INC BC
         // Increment the contents of register pair BC by 1
         0x03 => {
@@ -122,10 +178,10 @@ pub fn decodeAndExecute(word: [3]u8, registers: *RegisterFile) !void {
 
         // LD B, d8
         // Load the 8-bit immediate operand d8 into register B.
-        0x06 => {
-            registers.B = first_byte;
-            registers.PC += 1;
-        },
+        // 0x06 => {
+        //     registers.B = first_byte;
+        //     registers.PC += 1;
+        // },
 
         // Rotate the contents of register A to the left. That is, the contents of bit 0
         // are copied to bit 1, and the previous contents of bit 1 (before the copy operation)
@@ -252,12 +308,13 @@ pub fn decodeAndExecute(word: [3]u8, registers: *RegisterFile) !void {
         // the carry flag are copied to bit 7.
         // 0x1f => "RRA",
 
+        // TODO
+        // We have to throw an error here to be exhaustive and have the correct error handling
         else => registers.PC += 1,
     }
 }
 
 pub fn execute() void {}
-
 
 // Legend
 // r8  - any of the 8-bit registers (A, B, C, D, E, H, L).
