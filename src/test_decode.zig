@@ -52,9 +52,51 @@ test "decode and execute 0x00 [NOP]" {
 //     try expect(registers.L == 0);
 // }
 
-// test "decode and execute 0x02 [LD (BC), A]" {
-//     var registers = main.createRegisterFile();
-// }
+// Store the contents of register A in the memory location specified by register pair BC
+test "decode and execute 0x02 [LD (BC), A]" {
+    var register = main.RegisterFile{
+        .IR = 0x02,
+        .A = 0x01,
+        .B = 0xff,
+        .C = 0xff,
+    };
+    var memory = main.Memory.init();
+
+    try main.decodeAndExecute(&register, &memory);
+
+    try expect(register.PC == 1);
+    try expect(register.B == 0xff);
+    try expect(register.C == 0xff);
+    try expect(register.A == 0x01);
+    try expect(memory.memory_array[0xffff] == 0x01);
+    try expect(memory.memory_array[0xfffe] == 0x00);
+
+    register.B = 0x00;
+    register.C = 0x00;
+
+    try main.decodeAndExecute(&register, &memory);
+
+    try expect(register.PC == 2);
+    try expect(register.B == 0x00);
+    try expect(register.C == 0x00);
+    try expect(register.A == 0x01);
+    try expect(memory.memory_array[0x0000] == 0x01);
+    try expect(memory.memory_array[0x0001] == 0x00);
+
+    register.B = 0x1a;
+    register.C = 0x56;
+    register.A = 0xfe;
+
+    try main.decodeAndExecute(&register, &memory);
+
+    try expect(register.PC == 3);
+    try expect(register.B == 0x1a);
+    try expect(register.C == 0x56);
+    try expect(register.A == 0xfe);
+    try expect(memory.memory_array[0x1a56] == 0xfe);
+    try expect(memory.memory_array[0x1a57] == 0x00);
+    try expect(memory.memory_array[0x1a55] == 0x00);
+}
 
 
 

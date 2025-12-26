@@ -62,7 +62,8 @@ pub const RegisterFile = struct {
 
     pub fn getBC(self: Self) u16 {
         var bc: u16 = self.B;
-        bc = (bc << 8) + self.C;
+        bc = (bc << 8) | self.C;
+        std.debug.print("bc is: {d}\n", .{ bc });
         return bc;
     }
 
@@ -79,7 +80,8 @@ pub const RegisterFile = struct {
     }
 };
 
-const ARRAY_SIZE: u32 = 0xffff;
+// 65,536 positions inlcuding 0x00 and 0xffff
+const ARRAY_SIZE: u32 = 0xffff + 1;
 
 pub const Memory = struct {
     memory_array: [ARRAY_SIZE]u8 = undefined,
@@ -100,12 +102,6 @@ pub fn main() !void {
     // We use to have a StringHashMap with allocated memory
     // but looking at it, structs are probably better
     // var register = createRegister();
-}
-
-pub fn initMemArray() [ARRAY_SIZE]u8 {
-    var arr: [ARRAY_SIZE]u8 = undefined;
-    @memset(&arr, 0);
-    return arr;
 }
 
 pub fn fetch() void {}
@@ -137,7 +133,7 @@ pub fn decodeAndExecute(registers: *RegisterFile, memory: *Memory) !void {
         // Store the contents of register A in the memory location specified by
         // register pair BC
         // TODO:
-        // Implement logic
+        // I may need to swap endianness as the CPU is little endian
         0x02 => {
             memory.memory_array[registers.getBC()] = registers.A;
             registers.PC += 1;
