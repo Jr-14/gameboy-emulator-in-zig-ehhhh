@@ -28,4 +28,5 @@ MemAddr | Stored?
 0x0006  | 00001001
 0x0007  | 10010101
 
-So now I have to read through the specs to determine how many bytes a memory location holds.
+So now I have to read through the specs to determine how many bytes a memory location holds. Alas there's no mention
+of how many bits/bytes a reference to memory address holds.
