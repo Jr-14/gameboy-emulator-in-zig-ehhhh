@@ -264,3 +264,27 @@ test "decode and execute 0x16 [LD D, d8]" {
     try expect(register.L == 0);
     try expect(register.IR == 0x010); // STOP
 }
+
+test "decode and execute 0x1e [LD E, d8]" {
+    var register = RegisterFile{
+        .PC = 0x0100,
+        .IR = 0x1e,
+    };
+
+    var memory = Memory.init();
+    memory.set(0x0100, 0x1e);
+    memory.set(0x0101, 0x67);
+    memory.set(0x0102, 0x10);
+
+    try main.decodeAndExecute(&register, &memory);
+
+    try expect(register.PC == 0x0102);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0);
+    try expect(register.E == 0x67);
+    try expect(register.H == 0);
+    try expect(register.L == 0);
+    try expect(register.IR == 0x010); // STOP
+}

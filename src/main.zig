@@ -308,8 +308,13 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // Flags: Z 1 8-bit -
         // 0x1d => "DEC E",
 
+        // LD E, d8
         // Load the 8-bit immediate operand d8 into register E.
-        // 0x1e => "LD E, d8",
+        0x1e => {
+            register.PC += 1;
+            register.E = memory.get(register.PC);
+            register.PC += 1;
+        },
 
         // Rotate the contents of register A to the right, through the carry (CY) flag. That is, the contents
         // of bit 7 are copied to bit 6, and the previous contents of bit 6 (before the copy) are copied to bit
