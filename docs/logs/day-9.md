@@ -39,17 +39,3 @@ And so I've somewhat implemented LD (BC), A - but I still need to consider littl
 
 **Total time: 90 minutes**
 
-# Day 9 Part 2 - December 26th 6.35PM
-I'm finally reading through the [GameBoy Memory Map](http://gameboy.mongenel.com/dmg/asmmemmap.html) and trying to
-understand the memory layout of the gameboy. I would have expected pandocs to contains this documentation.
-
-**9:35PM**
-I've started to read more of the pseudocode from the Complete Technical reference and it's helping a lot more now.
-I don't know why I didn't try to read and understand that first...
-
-I think implemented the 8 bits load is pretty doable now.
-
-Update - completed at December 27th *12:45AM*
-I implemented a lot of 8 bit load instructions. Forgot to update this log at least and how many minutes
-
-**Total time: 123 minutes**
