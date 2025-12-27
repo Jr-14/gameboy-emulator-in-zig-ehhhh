@@ -75,6 +75,16 @@ pub const RegisterFile = struct {
         return self.getBC();
     }
 
+    pub inline fn decBC(self: *Self) u16 {
+        if (self.C == 0x00) {
+            self.C = 0xff;
+            self.B -= 1;
+        } else {
+            self.C -= 1;
+        }
+        return self.getBC();
+    }
+
     pub inline fn getDE(self: Self) u16 {
         return (@as(u16, self.D) << 8) | self.E;
     }
@@ -89,6 +99,16 @@ pub const RegisterFile = struct {
             self.H += 1;
         } else {
             self.L += 1;
+        }
+        return self.getHL();
+    }
+
+    pub inline fn decHL(self: *Self) u16 {
+        if (self.L == 0x00) {
+            self.L = 0xff;
+            self.H -= 1;
+        } else {
+            self.L -= 1;
         }
         return self.getHL();
     }
@@ -369,6 +389,15 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         0x2e => {
             register.PC += 1;
             register.L = memory.get(register.PC);
+            register.PC += 1;
+        },
+
+        // LD (HL-), A
+        // Store the contents of register A into the memory location specified by register pair
+        // HL, and simultaneously decrement the contents of HL.
+        0x32 => {
+            memory.set(register.getHL(), register.A);
+            _ = register.decHL();
             register.PC += 1;
         },
 

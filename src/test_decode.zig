@@ -390,3 +390,29 @@ test "decode and execute 0x2e [LD L, d8]" {
     try expect(register.L == 0x1a);
     try expect(register.IR == 0x10);
 }
+
+test "decode and execute 0x32 [LD (HL-), A]" {
+    var register = RegisterFile{
+        .IR = 0x32,
+        .PC = 0x0100,
+        .A = 0xb4,
+        .H = 0x11,
+        .L = 0x22,
+    };
+
+    var memory = Memory.init();
+    memory.set(0x0100, 0x32);
+    memory.set(0x0101, 0x10);
+
+    try main.decodeAndExecute(&register, &memory);
+
+    try expect(register.A == 0xb4);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0x11);
+    try expect(register.L == 0x21);
+    try expect(register.IR == 0x10);
+    try expect(memory.get(0x1122) == 0xb4);
+}
