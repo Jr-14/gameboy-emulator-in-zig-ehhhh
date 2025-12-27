@@ -36,3 +36,5 @@ pub fn getBC(self: Self) u16 {
 ```
 
 And so I've somewhat implemented LD (BC), A - but I still need to consider little endian byte ordering.
+
+**Total time: 90 minutes**
