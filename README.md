@@ -47,3 +47,19 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x36 - LD (HL), d8
 - [x] 0x3a - LD A, (HL-)
 - [x] 0x3e - LD A, d8
+- [ ] 0x40 - LD B, B
+- [ ] 0x41 - LD B, C
+- [ ] 0x42 - LD B, B
+- [ ] 0x43 - LD B, D
+- [ ] 0x44 - LD B, H
+- [ ] 0x45 - LD B, L
+- [ ] 0x46 - LD B, (HL)
+- [ ] 0x47 - LD B, A
+- [ ] 0x48 - LD C, B
+- [ ] 0x49 - LD C, C
+- [ ] 0x4a - LD C, D
+- [ ] 0x4b - LD C, E
+- [ ] 0x4c - LD C, H
+- [ ] 0x4d - LD C, L
+- [ ] 0x4e - LD C, (HL)
+- [ ] 0x4f - LD C, A
