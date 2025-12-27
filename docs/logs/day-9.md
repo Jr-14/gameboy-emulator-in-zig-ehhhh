@@ -48,3 +48,8 @@ I've started to read more of the pseudocode from the Complete Technical referenc
 I don't know why I didn't try to read and understand that first...
 
 I think implemented the 8 bits load is pretty doable now.
+
+Update - completed at December 27th *12:45AM*
+I implemented a lot of 8 bit load instructions. Forgot to update this log at least and how many minutes
+
+**Total time: 123 minutes**
