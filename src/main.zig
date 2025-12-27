@@ -401,6 +401,15 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
         },
 
+        // LD (HL), d8
+        // Store the contents of 8-bit immediate operand d8 in the memory location
+        // specified by register pair HL.
+        0x36 => {
+            register.PC += 1;
+            memory.set(register.getHL(), memory.get(register.PC));
+            register.PC += 1;
+        },
+
         // TODO
         // We have to throw an error here to be exhaustive and have the correct error handling
         else => register.PC += 1,
