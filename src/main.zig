@@ -419,6 +419,14 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
         },
 
+        // LD A, d8
+        // Load the 8-bit immediate operand d8 into register A.
+        0x3e => {
+            register.PC += 1;
+            register.A = memory.get(register.PC);
+            register.PC += 1;
+        },
+
         // TODO
         // We have to throw an error here to be exhaustive and have the correct error handling
         else => register.PC += 1,
