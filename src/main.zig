@@ -322,6 +322,22 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // the carry flag are copied to bit 7.
         // 0x1f => "RRA",
 
+        // LD (HL+), A
+        // Store the contents of register A into the memory location specified by register pair
+        // HL, and simultaneously increment the contents of HL
+        0x22 => {
+            memory.set(register.getHL(), register.A);
+
+            if (register.L == 0xff) {
+                register.L = 0;
+                register.H += 1;
+            } else {
+                register.L += 1;
+            }
+
+            register.PC += 1;
+        },
+
         // TODO
         // We have to throw an error here to be exhaustive and have the correct error handling
         else => register.PC += 1,

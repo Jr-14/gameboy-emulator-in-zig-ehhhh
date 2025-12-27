@@ -39,7 +39,7 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x12 - LD (DE), A
 - [x] 0x16 - LD D, d8
 - [x] 0x1e - LD E, d8
-- [ ] 0x22 - LD (HL+), A
+- [x] 0x22 - LD (HL+), A
 - [ ] 0x26 - LD H, d8
 - [ ] 0x2a - LD A, (HL+)
 - [ ] 0x2e - LD L, d8
