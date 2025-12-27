@@ -64,12 +64,33 @@ pub const RegisterFile = struct {
         return (@as(u16, self.B) << 8) | self.C;
     }
 
+    pub inline fn incBC(self: *Self) u16 {
+        if (self.C == 0xff) {
+            self.C = 0;
+            self.B += 1;
+        } else {
+            self.C += 1;
+        }
+
+        return self.getBC();
+    }
+
     pub inline fn getDE(self: Self) u16 {
         return (@as(u16, self.D) << 8) | self.E;
     }
 
     pub inline fn getHL(self: Self) u16 {
         return (@as(u16, self.H) << 8) | self.L;
+    }
+
+    pub inline fn incHL(self: *Self) u16 {
+        if (self.L == 0xff) {
+            self.L = 0;
+            self.H += 1;
+        } else {
+            self.L += 1;
+        }
+        return self.getHL();
     }
 };
 
@@ -143,12 +164,7 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // INC BC
         // Increment the contents of register pair BC by 1
         0x03 => {
-            if (register.C == 0xff) {
-                register.C = 0;
-                register.B += 1;
-            } else {
-                register.C += 1;
-            }
+            _ = register.incBC();
             register.PC += 1;
         },
 
@@ -327,14 +343,7 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // HL, and simultaneously increment the contents of HL
         0x22 => {
             memory.set(register.getHL(), register.A);
-
-            if (register.L == 0xff) {
-                register.L = 0;
-                register.H += 1;
-            } else {
-                register.L += 1;
-            }
-
+            _ = register.incHL();
             register.PC += 1;
         },
 
@@ -343,6 +352,15 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         0x26 => {
             register.PC += 1;
             register.H = memory.get(register.PC);
+            register.PC += 1;
+        },
+
+        // LD A, (HL+)
+        // Load the contents of memory specified by register pair HL into register A, and simultaneously
+        // increment the contents of HL.
+        0x2a => {
+            register.A = memory.get(register.getHL());
+            _ = register.incHL();
             register.PC += 1;
         },
 
