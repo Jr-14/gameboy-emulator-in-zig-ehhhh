@@ -147,26 +147,27 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // Increment the contents of register B by 1.
         // TODO:
         // This has some flags? e.g. Z 0 8-bit -
-        0x04 => {
-            register.B += 1;
-            register.PC += 1;
-        },
+        // 0x04 => {
+        //     register.B += 1;
+        //     register.PC += 1;
+        // },
 
         // DEC B
         // Decrement the contents of register B by 1
         // TODO:
         // Flags: Z 1 8-bit -
-        0x05 => {
-            register.B -= 1;
-            register.PC += 1;
-        },
+        // 0x05 => {
+        //     register.B -= 1;
+        //     register.PC += 1;
+        // },
 
         // LD B, d8
         // Load the 8-bit immediate operand d8 into register B.
-        // 0x06 => {
-        //     register.B = first_byte;
-        //     register.PC += 1;
-        // },
+        0x06 => {
+            register.PC += 1;
+            register.B = memory.memory_array[register.PC];
+            register.PC += 1;
+        },
 
         // Rotate the contents of register A to the left. That is, the contents of bit 0
         // are copied to bit 1, and the previous contents of bit 1 (before the copy operation)
@@ -297,6 +298,8 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // We have to throw an error here to be exhaustive and have the correct error handling
         else => register.PC += 1,
     }
+
+    register.IR = memory.memory_array[register.PC];
 }
 
 pub fn execute() void {}

@@ -55,16 +55,20 @@ test "decode and execute 0x00 [NOP]" {
 // Store the contents of register A in the memory location specified by register pair BC
 test "decode and execute 0x02 [LD (BC), A]" {
     var register = main.RegisterFile{
+        .PC = 0x0100,
         .IR = 0x02,
         .A = 0x01,
         .B = 0xff,
         .C = 0xff,
     };
     var memory = main.Memory.init();
+    memory.memory_array[0x0100] = 0x02;
+    memory.memory_array[0x0101] = 0x02;
+    memory.memory_array[0x0102] = 0x02;
 
     try main.decodeAndExecute(&register, &memory);
 
-    try expect(register.PC == 1);
+    try expect(register.PC == 0x0101);
     try expect(register.B == 0xff);
     try expect(register.C == 0xff);
     try expect(register.A == 0x01);
@@ -76,7 +80,7 @@ test "decode and execute 0x02 [LD (BC), A]" {
 
     try main.decodeAndExecute(&register, &memory);
 
-    try expect(register.PC == 2);
+    try expect(register.PC == 0x0102);
     try expect(register.B == 0x00);
     try expect(register.C == 0x00);
     try expect(register.A == 0x01);
@@ -89,7 +93,7 @@ test "decode and execute 0x02 [LD (BC), A]" {
 
     try main.decodeAndExecute(&register, &memory);
 
-    try expect(register.PC == 3);
+    try expect(register.PC == 0x0103);
     try expect(register.B == 0x1a);
     try expect(register.C == 0x56);
     try expect(register.A == 0xfe);
@@ -157,18 +161,25 @@ test "decode and execute 0x02 [LD (BC), A]" {
 //     try expect(registers.H == 0);
 //     try expect(registers.L == 0);
 // }
-//
-// test "decode and execute 0x06 [LD B, d8]" {
-//     var registers = main.createRegisterFile();
-//
-//     try main.decodeAndExecute([_]u8{0x06, 0xF1, 0x00}, &registers);
-//
-//     try expect(registers.PC == 1);
-//     try expect(registers.A == 0);
-//     try expect(registers.B == 0xf1);
-//     try expect(registers.C == 0);
-//     try expect(registers.D == 0);
-//     try expect(registers.E == 0);
-//     try expect(registers.H == 0);
-//     try expect(registers.L == 0);
-// }
+
+test "decode and execute 0x06 [LD B, d8]" {
+    var register = main.RegisterFile{
+        .IR = 0x06,
+        .PC = 0x0100,
+    };
+    var memory = main.Memory.init();
+    memory.memory_array[0x0100] = 0xff;
+    memory.memory_array[0x0101] = 0x02;
+
+    try main.decodeAndExecute(&register, &memory);
+
+    try expect(register.PC == 0x0102);
+    try expect(register.A == 0);
+    try expect(register.B == 0x02);
+    try expect(register.C == 0);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0);
+    try expect(register.L == 0);
+    try expect(register.IR == 0x0000); // NOP
+}
