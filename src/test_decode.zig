@@ -315,3 +315,27 @@ test "decode and execute 0x22 [LD (HL+), A]" {
     try expect(register.IR == 0x10);
     try expect(memory.get(0x095d) == 0x9a);
 }
+
+test "decode and execute 0x26 [LD H, d8]" {
+    var register = RegisterFile{
+        .IR = 0x26,
+        .PC = 0x0100,
+    };
+
+    var memory = Memory.init();
+    memory.set(0x0100, 0x26);
+    memory.set(0x0101, 0x12);
+    memory.set(0x0102, 0x10);
+
+    try main.decodeAndExecute(&register, &memory);
+
+    try expect(register.PC == 0x0102);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0x12);
+    try expect(register.L == 0);
+    try expect(register.IR == 0x10);
+}
