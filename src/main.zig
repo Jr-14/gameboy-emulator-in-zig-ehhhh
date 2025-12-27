@@ -61,22 +61,15 @@ pub const RegisterFile = struct {
     const Self = @This();
 
     pub fn getBC(self: Self) u16 {
-        var bc: u16 = self.B;
-        bc = (bc << 8) | self.C;
-        std.debug.print("bc is: {d}\n", .{ bc });
-        return bc;
+        return (@as(u16, self.B) << 8) | self.C;
     }
 
     pub fn getDE(self: Self) u16 {
-        var de: u16 = self.D;
-        de = (de << 8) + self.E;
-        return de;
+        return (@as(u16, self.D) << 8) | self.E;
     }
 
     pub fn getHL(self: Self) u16 {
-        var hl: u16 = self.H;
-        hl = (hl << 8) + self.L;
-        return hl;
+        return (@as(u16, self.H) << 8) | self.L;
     }
 };
 
@@ -106,16 +99,16 @@ pub fn main() !void {
 
 pub fn fetch() void {}
 
-pub fn decodeAndExecute(registers: *RegisterFile, memory: *Memory) !void {
+pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
     // TODO:
     // state all the different instructions for 8-bit opcodes
     //
     // TODO:
     // Look at 16-bit opcodes? Is this required?
-    switch (registers.IR) {
+    switch (register.IR) {
         // NOP (No operation) Only advances the program counter by 1.
         // Performs no other operations that would have an effect
-        0x00 => registers.PC += 1,
+        0x00 => register.PC += 1,
 
         // LD BC, d16
         // Load the 2 bytes of immediate data into register pair BC
@@ -124,9 +117,9 @@ pub fn decodeAndExecute(registers: *RegisterFile, memory: *Memory) !void {
         // 0x01 => {
         //     // Store it as it is, maybe we'll need to switch byte ordering at later stage
         //     // maybe during execution?
-        //     registers.B = first_byte;
-        //     registers.C = second_byte;
-        //     registers.PC += 1;
+        //     register.B = first_byte;
+        //     register.C = second_byte;
+        //     register.PC += 1;
         // },
 
         // LD (BC), A
@@ -135,19 +128,19 @@ pub fn decodeAndExecute(registers: *RegisterFile, memory: *Memory) !void {
         // TODO:
         // I may need to swap endianness as the CPU is little endian
         0x02 => {
-            memory.memory_array[registers.getBC()] = registers.A;
-            registers.PC += 1;
+            memory.memory_array[register.getBC()] = register.A;
+            register.PC += 1;
         },
         // INC BC
         // Increment the contents of register pair BC by 1
         0x03 => {
-            if (registers.C == 0xff) {
-                registers.C = 0;
-                registers.B += 1;
+            if (register.C == 0xff) {
+                register.C = 0;
+                register.B += 1;
             } else {
-                registers.C += 1;
+                register.C += 1;
             }
-            registers.PC += 1;
+            register.PC += 1;
         },
 
         // INC B
@@ -155,8 +148,8 @@ pub fn decodeAndExecute(registers: *RegisterFile, memory: *Memory) !void {
         // TODO:
         // This has some flags? e.g. Z 0 8-bit -
         0x04 => {
-            registers.B += 1;
-            registers.PC += 1;
+            register.B += 1;
+            register.PC += 1;
         },
 
         // DEC B
@@ -164,15 +157,15 @@ pub fn decodeAndExecute(registers: *RegisterFile, memory: *Memory) !void {
         // TODO:
         // Flags: Z 1 8-bit -
         0x05 => {
-            registers.B -= 1;
-            registers.PC += 1;
+            register.B -= 1;
+            register.PC += 1;
         },
 
         // LD B, d8
         // Load the 8-bit immediate operand d8 into register B.
         // 0x06 => {
-        //     registers.B = first_byte;
-        //     registers.PC += 1;
+        //     register.B = first_byte;
+        //     register.PC += 1;
         // },
 
         // Rotate the contents of register A to the left. That is, the contents of bit 0
@@ -302,7 +295,7 @@ pub fn decodeAndExecute(registers: *RegisterFile, memory: *Memory) !void {
 
         // TODO
         // We have to throw an error here to be exhaustive and have the correct error handling
-        else => registers.PC += 1,
+        else => register.PC += 1,
     }
 }
 

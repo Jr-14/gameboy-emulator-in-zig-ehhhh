@@ -6,13 +6,13 @@ const expect = std.testing.expect;
 test "decode and execute 0x00 [NOP]" {
     var registers = main.RegisterFile{
         .IR = 0x00,
+        .PC = 0x0100
     };
     var memory = main.Memory.init();
 
     try main.decodeAndExecute(&registers, &memory);
-    try main.decodeAndExecute(&registers, &memory);
 
-    try expect(registers.PC == 2);
+    try expect(registers.PC == 0x0101);
     try expect(registers.A == 0);
     try expect(registers.B == 0);
     try expect(registers.C == 0);

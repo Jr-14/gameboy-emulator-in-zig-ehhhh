@@ -38,3 +38,7 @@ pub fn getBC(self: Self) u16 {
 And so I've somewhat implemented LD (BC), A - but I still need to consider little endian byte ordering.
 
 **Total time: 90 minutes**
+
+# Day 9 Part 2 - December 26th 6.35PM
+I'm finally reading through the [GameBoy Memory Map](http://gameboy.mongenel.com/dmg/asmmemmap.html) and trying to
+understand the memory layout of the gameboy. I would have expected pandocs to contains this documentation.
