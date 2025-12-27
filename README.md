@@ -19,3 +19,31 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [Interactive Op code reference](https://meganesu.github.io/generate-gb-opcodes/)
 - [The Pandocs](https://gbdev.io/pandocs/)
 - [GameBoy Memory Map](http://gameboy.mongenel.com/dmg/asmmemmap.html)
+
+# To Do
+## CPU Instructions
+
+**Miscellaneous instructions**
+- [x] 0x00 - NOP
+- [ ] 0x10 - STOP
+- [ ] 0x27 - DAA
+- [ ] 0x2f - CPL
+- [ ] 0x37 - SCF
+- [ ] 0x3f - CCF
+- [ ] 0x76 - HALT
+- [ ] 0xFB - EI
+
+**8-bit load instructions**
+- [x] 0x02 - LD (BC), A
+- [x] 0x06 - LD B, d8
+- [x] 0x12 - LD (DE), A
+- [x] 0x16 - LD D, d8
+- [ ] 0x1e - LD E, d8
+- [ ] 0x22 - LD (HL+), A
+- [ ] 0x26 - LD H, d8
+- [ ] 0x2a - LD A, (HL+)
+- [ ] 0x2e - LD L, d8
+- [ ] 0x32 - LD (HL-), A
+- [ ] 0x36 - LD (HL), d8
+- [ ] 0x3a - LD A, (HL-)
+- [ ] 0x3e - LD A, d8

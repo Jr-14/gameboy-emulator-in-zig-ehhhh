@@ -1,14 +1,17 @@
 const std = @import("std");
 const main = @import("main.zig");
 
+const Memory = main.Memory;
+const RegisterFile = main.RegisterFile;
+
 const expect = std.testing.expect;
 
 test "decode and execute 0x00 [NOP]" {
-    var registers = main.RegisterFile{
+    var registers = RegisterFile{
         .IR = 0x00,
         .PC = 0x0100
     };
-    var memory = main.Memory.init();
+    var memory = Memory.init();
 
     try main.decodeAndExecute(&registers, &memory);
 
@@ -54,17 +57,17 @@ test "decode and execute 0x00 [NOP]" {
 
 // Store the contents of register A in the memory location specified by register pair BC
 test "decode and execute 0x02 [LD (BC), A]" {
-    var register = main.RegisterFile{
+    var register = RegisterFile{
         .PC = 0x0100,
         .IR = 0x02,
         .A = 0x01,
         .B = 0xff,
         .C = 0xff,
     };
-    var memory = main.Memory.init();
-    memory.memory_array[0x0100] = 0x02;
-    memory.memory_array[0x0101] = 0x02;
-    memory.memory_array[0x0102] = 0x02;
+    var memory = Memory.init();
+    memory.set(0x0100, 0x02);
+    memory.set(0x0101, 0x02);
+    memory.set(0x0102, 0x02);
 
     try main.decodeAndExecute(&register, &memory);
 
@@ -72,8 +75,8 @@ test "decode and execute 0x02 [LD (BC), A]" {
     try expect(register.B == 0xff);
     try expect(register.C == 0xff);
     try expect(register.A == 0x01);
-    try expect(memory.memory_array[0xffff] == 0x01);
-    try expect(memory.memory_array[0xfffe] == 0x00);
+    try expect(memory.get(0xffff) == 0x01);
+    try expect(memory.get(0xfffe) == 0x00);
 
     register.B = 0x00;
     register.C = 0x00;
@@ -84,8 +87,8 @@ test "decode and execute 0x02 [LD (BC), A]" {
     try expect(register.B == 0x00);
     try expect(register.C == 0x00);
     try expect(register.A == 0x01);
-    try expect(memory.memory_array[0x0000] == 0x01);
-    try expect(memory.memory_array[0x0001] == 0x00);
+    try expect(memory.get(0x0000) == 0x01);
+    try expect(memory.get(0x0001) == 0x00);
 
     register.B = 0x1a;
     register.C = 0x56;
@@ -97,9 +100,9 @@ test "decode and execute 0x02 [LD (BC), A]" {
     try expect(register.B == 0x1a);
     try expect(register.C == 0x56);
     try expect(register.A == 0xfe);
-    try expect(memory.memory_array[0x1a56] == 0xfe);
-    try expect(memory.memory_array[0x1a57] == 0x00);
-    try expect(memory.memory_array[0x1a55] == 0x00);
+    try expect(memory.get(0x1a56) == 0xfe);
+    try expect(memory.get(0x1a57) == 0x00);
+    try expect(memory.get(0x1a55) == 0x00);
 }
 
 
@@ -163,13 +166,14 @@ test "decode and execute 0x02 [LD (BC), A]" {
 // }
 
 test "decode and execute 0x06 [LD B, d8]" {
-    var register = main.RegisterFile{
+    var register = RegisterFile{
         .IR = 0x06,
         .PC = 0x0100,
     };
-    var memory = main.Memory.init();
-    memory.memory_array[0x0100] = 0xff;
-    memory.memory_array[0x0101] = 0x02;
+
+    var memory = Memory.init();
+    memory.set(0x0100, 0xff);
+    memory.set(0x0101, 0x02);
 
     try main.decodeAndExecute(&register, &memory);
 
@@ -182,4 +186,81 @@ test "decode and execute 0x06 [LD B, d8]" {
     try expect(register.H == 0);
     try expect(register.L == 0);
     try expect(register.IR == 0x0000); // NOP
+}
+
+test "decode and execute 0x0e [LD C, d8]" {
+    var register = RegisterFile{
+        .IR = 0x0e,
+        .PC = 0x0100,
+    };
+
+    var memory = Memory.init();
+    memory.set(0x0100, 0x0e);
+    memory.set(0x0101, 0x12);
+    memory.set(0x0102, 0x10);
+
+    try main.decodeAndExecute(&register, &memory);
+
+    try expect(register.PC == 0x0102);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0x12);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0);
+    try expect(register.L == 0);
+    try expect(register.IR == 0x0010); // STOP
+}
+
+test "decode and execute 0x12 [LD (DE), A]" {
+    var register = RegisterFile{
+        .PC = 0x0100,
+        .IR = 0x12,
+        .D = 0x6e,
+        .E = 0x03,
+        .A = 0xbb,
+    };
+
+    var memory = Memory.init();
+    memory.set(0x0100, 0x12);
+    memory.set(0x0101, 0x10);
+
+    try main.decodeAndExecute(&register, &memory);
+
+    try expect(register.PC == 0x0101);
+    try expect(register.A == 0xbb);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0x6e);
+    try expect(register.E == 0x03);
+    try expect(register.H == 0);
+    try expect(register.L == 0);
+    try expect(register.IR == 0x10); // STOP
+    try expect(memory.get(0x6e03) == 0xbb);
+    try expect(memory.get(0x6e04) == 0);
+    try expect(memory.get(0x6e02) == 0);
+}
+
+test "decode and execute 0x16 [LD D, d8]" {
+    var register = RegisterFile{
+        .PC = 0x0100,
+        .IR = 0x16,
+    };
+
+    var memory = Memory.init();
+    memory.set(0x0100, 0x16);
+    memory.set(0x0101, 0x0b);
+    memory.set(0x0102, 0x10);
+
+    try main.decodeAndExecute(&register, &memory);
+
+    try expect(register.PC == 0x0102);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0x0b);
+    try expect(register.E == 0);
+    try expect(register.H == 0);
+    try expect(register.L == 0);
+    try expect(register.IR == 0x010); // STOP
 }

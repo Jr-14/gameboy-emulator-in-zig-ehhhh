@@ -46,3 +46,5 @@ understand the memory layout of the gameboy. I would have expected pandocs to co
 **9:35PM**
 I've started to read more of the pseudocode from the Complete Technical reference and it's helping a lot more now.
 I don't know why I didn't try to read and understand that first...
+
+I think implemented the 8 bits load is pretty doable now.

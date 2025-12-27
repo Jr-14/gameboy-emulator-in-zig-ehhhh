@@ -60,15 +60,15 @@ pub const RegisterFile = struct {
 
     const Self = @This();
 
-    pub fn getBC(self: Self) u16 {
+    pub inline fn getBC(self: Self) u16 {
         return (@as(u16, self.B) << 8) | self.C;
     }
 
-    pub fn getDE(self: Self) u16 {
+    pub inline fn getDE(self: Self) u16 {
         return (@as(u16, self.D) << 8) | self.E;
     }
 
-    pub fn getHL(self: Self) u16 {
+    pub inline fn getHL(self: Self) u16 {
         return (@as(u16, self.H) << 8) | self.L;
     }
 };
@@ -88,6 +88,14 @@ pub const Memory = struct {
             .memory_array = memory,
         };
         return self;
+    }
+
+    pub inline fn get(self: Self, index: u32) u8 {
+        return self.memory_array[index];
+    }
+
+    pub inline fn set(self: *Self, index: u32, value: u8) void {
+        self.memory_array[index] = value;
     }
 };
 
@@ -128,9 +136,10 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // TODO:
         // I may need to swap endianness as the CPU is little endian
         0x02 => {
-            memory.memory_array[register.getBC()] = register.A;
+            memory.set(register.getBC(), register.A);
             register.PC += 1;
         },
+
         // INC BC
         // Increment the contents of register pair BC by 1
         0x03 => {
@@ -165,7 +174,7 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // Load the 8-bit immediate operand d8 into register B.
         0x06 => {
             register.PC += 1;
-            register.B = memory.memory_array[register.PC];
+            register.B = memory.get(register.PC);
             register.PC += 1;
         },
 
@@ -204,8 +213,13 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // Flags: Z 1 8-bit -
         // 0x0d => "DEC C",
 
+        // LD C, d8
         // Load the 8-bit immediate operand d8 into register C
-        // 0x0e => "LD C, d8",
+        0x0e => {
+            register.PC += 1;
+            register.C = memory.get(register.PC);
+            register.PC += 1;
+        },
 
         // Rotate the contents of register A to the right. That is, the contents of bit 7 are
         // copied to bit 6, and the previous contents of bit 6 (before the copy) are copied to
@@ -235,8 +249,12 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // of immediate data is the higher byte (i.e., bits 8-15)
         // 0x11 => "LD DE, d16",
 
+        // LD (DE), A
         // Store the contents of register A in the memory location specified by register pair DE.
-        // 0x12 => "LD (DE), A",
+        0x12 => {
+            memory.set(register.getDE(), register.A);
+            register.PC += 1;
+        },
 
         // Increment the contents of register pair DE by 1.
         // 0x13 => "INC DE",
@@ -251,8 +269,13 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // Flags: Z 1 8-bit -
         // 0x15 => "DEC D",
 
+        // LD D, d8
         // Load the 8-bit immediate operand d8 into register D.
-        // 0x16 => "LD D, d8",
+        0x16 => {
+            register.PC += 1;
+            register.D = memory.get(register.PC);
+            register.PC += 1;
+        },
 
         // Rotate the contents of register A to the left, through the carry (CY) flag. That is, the
         // contents of bit 0 are copied to bit 1, and the previous contents of bit 1 (before the copy
@@ -299,7 +322,7 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         else => register.PC += 1,
     }
 
-    register.IR = memory.memory_array[register.PC];
+    register.IR = memory.get(register.PC);
 }
 
 pub fn execute() void {}
