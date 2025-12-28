@@ -55,7 +55,7 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x45 - LD B, L
 - [x] 0x46 - LD B, (HL)
 - [x] 0x47 - LD B, A
-- [ ] 0x48 - LD C, B
+- [x] 0x48 - LD C, B
 - [ ] 0x49 - LD C, C
 - [ ] 0x4a - LD C, D
 - [ ] 0x4b - LD C, E
