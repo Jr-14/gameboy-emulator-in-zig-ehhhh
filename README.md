@@ -79,3 +79,40 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x5d - LD E, L
 - [x] 0x5e - LD E, (HL)
 - [x] 0x5f - LD E, A
+- [ ] 0x60 - LD H, B
+- [ ] 0x61 - LD H, C
+- [ ] 0x62 - LD H, D
+- [ ] 0x63 - LD H, E
+- [ ] 0x64 - LD H, H
+- [ ] 0x65 - LD H, L
+- [ ] 0x66 - LD H, (HL)
+- [ ] 0x67 - LD H, A
+- [ ] 0x68 - LD L, B
+- [ ] 0x69 - LD L, C
+- [ ] 0x6a - LD L, D
+- [ ] 0x6b - LD L, E
+- [ ] 0x6c - LD L, H
+- [ ] 0x6d - LD L, L
+- [ ] 0x6e - LD L, (HL)
+- [ ] 0x6f - LD L, A
+- [ ] 0x70 - LD (HL), B
+- [ ] 0x71 - LD (HL), C
+- [ ] 0x72 - LD (HL), D
+- [ ] 0x73 - LD (HL), E
+- [ ] 0x74 - LD (HL), H
+- [ ] 0x75 - LD (HL), L
+- [ ] 0x77 - LD (HL), A
+- [ ] 0x78 - LD A, B
+- [ ] 0x79 - LD A, C
+- [ ] 0x7a - LD A, D
+- [ ] 0x7b - LD A, E
+- [ ] 0x7c - LD A, H
+- [ ] 0x7d - LD A, L
+- [ ] 0x7e - LD A, (HL)
+- [ ] 0x7f - LD A, A
+- [ ] 0xe0 - LD (a8), A
+- [ ] 0xe2 - LD (C), A
+- [ ] 0xea - LD (a16), A
+- [ ] 0xf0 - LD A, (a8)
+- [ ] 0xf2 - LD A, (C)
+- [ ] 0xfa - LD A, (a16)
