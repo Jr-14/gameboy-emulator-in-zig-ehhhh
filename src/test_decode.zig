@@ -712,3 +712,27 @@ test "decode and execute 0x48 [LD C, B]" {
     try expect(register.L == 0);
     try expect(register.IR == 0x10);
 }
+
+test "decode and execute 0x49 [LD C, C]" {
+    var register = RegisterFile{
+        .PC = 0x0100,
+        .IR = 0x49,
+        .C = 0x6e,
+    };
+
+    var memory = Memory.init();
+    memory.set(0x0100, 0x49);
+    memory.set(0x0101, 0x10);
+
+    try main.decodeAndExecute(&register, &memory);
+
+    try expect(register.PC == 0x0101);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0x6e);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0);
+    try expect(register.L == 0);
+    try expect(register.IR == 0x10);
+}
