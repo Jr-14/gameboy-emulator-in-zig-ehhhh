@@ -1,10 +1,10 @@
 const std = @import("std");
 const main = @import("main.zig");
 
+const expect = std.testing.expect;
+
 const Memory = main.Memory;
 const RegisterFile = main.RegisterFile;
-
-const expect = std.testing.expect;
 
 const STOP_OP_CODE: u8 = 0x010;
 
@@ -1190,6 +1190,32 @@ test "decode and execute 0x59 [LD E, C]" {
     try expect(register.C == 0x91);
     try expect(register.D == 0);
     try expect(register.E == 0x91);
+    try expect(register.H == 0);
+    try expect(register.L == 0);
+    try expect(register.IR == STOP_OP_CODE);
+}
+
+test "decode and execute 0x5a [LD E, D]" {
+    const op_code: u8 = 0x5a;
+    const start_mem_location: u16 = 0x0100;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+        .D = 0x84,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expect(register.PC == start_mem_location + 1);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0x84);
+    try expect(register.E == 0x84);
     try expect(register.H == 0);
     try expect(register.L == 0);
     try expect(register.IR == STOP_OP_CODE);
