@@ -553,10 +553,17 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
         },
 
-        // LD D, a
+        // LD D, A
         // Load the contents of register A into register D.
         0x57 => {
             register.D = register.A;
+            register.PC += 1;
+        },
+
+        // LD E, B
+        // Load the contents of register B into register E.
+        0x58 => {
+            register.E = register.B;
             register.PC += 1;
         },
 
