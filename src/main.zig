@@ -602,6 +602,14 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
         },
 
+        // LD E, (HL)
+        // Load the 8-bit contents of memory specified by register pair HL
+        // into register E.
+        0x5e => {
+            register.E = memory.get(register.getHL());
+            register.PC += 1;
+        },
+
         // TODO
         // We have to throw an error here to be exhaustive and have the correct error handling
         else => register.PC += 1,

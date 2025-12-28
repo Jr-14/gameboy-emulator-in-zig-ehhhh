@@ -1298,3 +1298,31 @@ test "decode and execute 0x5d [LD E, L]" {
     try expect(register.L == 0x5a);
     try expect(register.IR == STOP_OP_CODE);
 }
+
+test "decode and execute 0x5e [LD E, (HL)]" {
+    const op_code: u8 = 0x5e;
+    const start_mem_location: u16 = 0x0100;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+        .H = 0x0c,
+        .L = 0x49,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, STOP_OP_CODE);
+    memory.set(0x0c49, 0x3b);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expect(register.PC == start_mem_location + 1);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0);
+    try expect(register.E == 0x3b);
+    try expect(register.H == 0x0c);
+    try expect(register.L == 0x49);
+    try expect(register.IR == STOP_OP_CODE);
+}
