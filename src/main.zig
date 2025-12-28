@@ -1,43 +1,5 @@
 const std = @import("std");
 
-const Register = enum {
-    A,
-    F,
-    B,
-    C,
-    D,
-    E,
-    H,
-    L,
-    AF,
-    BC,
-    DE,
-    HL,
-    IR,
-    IE,
-    PC,
-    SP,
-};
-
-const RegisterReturn = union(Register) {
-    A: u8,
-    F: u8,
-    B: u8,
-    C: u8,
-    D: u8,
-    E: u8,
-    H: u8,
-    L: u8,
-    AF: u16,
-    BC: u16,
-    DE: u16,
-    HL: u16,
-    IR: u8,
-    IE: u8,
-    PC: u8,
-    SP: u8
-};
-
 pub const RegisterFile = struct {
     A: u8 = 0, // Accumulator
     F: u8 = 0, // Flags
