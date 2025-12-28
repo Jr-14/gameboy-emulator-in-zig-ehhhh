@@ -6,16 +6,24 @@ const RegisterFile = main.RegisterFile;
 
 const expect = std.testing.expect;
 
+const STOP_OP_CODE: u8 = 0x010;
+
 test "decode and execute 0x00 [NOP]" {
+    const op_code: u8 = 0x00;
+    const start_mem_location: u16 = 0x0100;
+
     var registers = RegisterFile{
-        .IR = 0x00,
-        .PC = 0x0100
+        .IR = op_code,
+        .PC = start_mem_location,
     };
+
     var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, STOP_OP_CODE);
 
     try main.decodeAndExecute(&registers, &memory);
 
-    try expect(registers.PC == 0x0101);
+    try expect(registers.PC == start_mem_location + 1);
     try expect(registers.A == 0);
     try expect(registers.B == 0);
     try expect(registers.C == 0);
@@ -23,7 +31,7 @@ test "decode and execute 0x00 [NOP]" {
     try expect(registers.E == 0);
     try expect(registers.H == 0);
     try expect(registers.L == 0);
-    try expect(registers.IR == 0x00);
+    try expect(registers.IR == STOP_OP_CODE);
 }
 
 // test "decode and execute 0x01 [LD BC, d16]" {
@@ -57,55 +65,73 @@ test "decode and execute 0x00 [NOP]" {
 
 // Store the contents of register A in the memory location specified by register pair BC
 test "decode and execute 0x02 [LD (BC), A]" {
+    const op_code: u8 = 0x02;
+    const start_mem_location: u16 = 0x0100;
+
     var register = RegisterFile{
-        .PC = 0x0100,
-        .IR = 0x02,
+        .PC = start_mem_location,
+        .IR = op_code,
         .A = 0x01,
         .B = 0xff,
         .C = 0xff,
     };
     var memory = Memory.init();
-    memory.set(0x0100, 0x02);
-    memory.set(0x0101, 0x02);
-    memory.set(0x0102, 0x02);
+    memory.set(0x0100, op_code);
+    memory.set(0x0101, op_code);
+    memory.set(0x0102, op_code);
+    memory.set(0x0103, STOP_OP_CODE);
 
     try main.decodeAndExecute(&register, &memory);
 
-    try expect(register.PC == 0x0101);
+    try expect(register.PC == start_mem_location + 1);
+    try expect(register.A == 0x01);
     try expect(register.B == 0xff);
     try expect(register.C == 0xff);
-    try expect(register.A == 0x01);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0);
+    try expect(register.L == 0);
+    try expect(register.IR == op_code);
     try expect(memory.get(0xffff) == 0x01);
     try expect(memory.get(0xfffe) == 0x00);
 
+    register.A = 0xfa;
     register.B = 0x00;
     register.C = 0x00;
 
     try main.decodeAndExecute(&register, &memory);
 
-    try expect(register.PC == 0x0102);
+    try expect(register.PC == start_mem_location + 2);
+    try expect(register.A == 0xfa);
     try expect(register.B == 0x00);
     try expect(register.C == 0x00);
-    try expect(register.A == 0x01);
-    try expect(memory.get(0x0000) == 0x01);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0);
+    try expect(register.L == 0);
+    try expect(register.IR == op_code);
+    try expect(memory.get(0x0000) == 0xfa);
     try expect(memory.get(0x0001) == 0x00);
 
+    register.A = 0xfe;
     register.B = 0x1a;
     register.C = 0x56;
-    register.A = 0xfe;
 
     try main.decodeAndExecute(&register, &memory);
 
-    try expect(register.PC == 0x0103);
-    try expect(register.B == 0x1a);
+    try expect(register.PC == start_mem_location + 3);
     try expect(register.C == 0x56);
+    try expect(register.B == 0x1a);
     try expect(register.A == 0xfe);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0);
+    try expect(register.L == 0);
+    try expect(register.IR == STOP_OP_CODE);
     try expect(memory.get(0x1a56) == 0xfe);
     try expect(memory.get(0x1a57) == 0x00);
     try expect(memory.get(0x1a55) == 0x00);
 }
-
-
 
 // test "decode and execute 0x03 [INC BC]" {
 //     var registers = main.createRegisterFile();
@@ -166,18 +192,22 @@ test "decode and execute 0x02 [LD (BC), A]" {
 // }
 
 test "decode and execute 0x06 [LD B, d8]" {
+    const op_code: u8 = 0x06;
+    const start_mem_location: u16 = 0x0100;
+
     var register = RegisterFile{
-        .IR = 0x06,
-        .PC = 0x0100,
+        .IR = op_code,
+        .PC = start_mem_location,
     };
 
     var memory = Memory.init();
-    memory.set(0x0100, 0xff);
-    memory.set(0x0101, 0x02);
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, 0x02);
+    memory.set(start_mem_location + 2, STOP_OP_CODE);
 
     try main.decodeAndExecute(&register, &memory);
 
-    try expect(register.PC == 0x0102);
+    try expect(register.PC == start_mem_location + 2);
     try expect(register.A == 0);
     try expect(register.B == 0x02);
     try expect(register.C == 0);
@@ -185,23 +215,26 @@ test "decode and execute 0x06 [LD B, d8]" {
     try expect(register.E == 0);
     try expect(register.H == 0);
     try expect(register.L == 0);
-    try expect(register.IR == 0x0000); // NOP
+    try expect(register.IR == STOP_OP_CODE);
 }
 
 test "decode and execute 0x0e [LD C, d8]" {
+    const op_code: u8 = 0x0e;
+    const start_mem_location: u16 = 0x0100;
+
     var register = RegisterFile{
-        .IR = 0x0e,
-        .PC = 0x0100,
+        .IR = op_code,
+        .PC = start_mem_location,
     };
 
     var memory = Memory.init();
-    memory.set(0x0100, 0x0e);
-    memory.set(0x0101, 0x12);
-    memory.set(0x0102, 0x10);
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, 0x12);
+    memory.set(start_mem_location + 2, STOP_OP_CODE);
 
     try main.decodeAndExecute(&register, &memory);
 
-    try expect(register.PC == 0x0102);
+    try expect(register.PC == start_mem_location + 2);
     try expect(register.A == 0);
     try expect(register.B == 0);
     try expect(register.C == 0x12);
@@ -209,25 +242,28 @@ test "decode and execute 0x0e [LD C, d8]" {
     try expect(register.E == 0);
     try expect(register.H == 0);
     try expect(register.L == 0);
-    try expect(register.IR == 0x0010); // STOP
+    try expect(register.IR == STOP_OP_CODE); // STOP
 }
 
 test "decode and execute 0x12 [LD (DE), A]" {
+    const op_code: u8 = 0x12;
+    const start_mem_location: u16 = 0x0100;
+
     var register = RegisterFile{
-        .PC = 0x0100,
-        .IR = 0x12,
+        .PC = start_mem_location,
+        .IR = op_code,
         .D = 0x6e,
         .E = 0x03,
         .A = 0xbb,
     };
 
     var memory = Memory.init();
-    memory.set(0x0100, 0x12);
-    memory.set(0x0101, 0x10);
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, STOP_OP_CODE);
 
     try main.decodeAndExecute(&register, &memory);
 
-    try expect(register.PC == 0x0101);
+    try expect(register.PC == start_mem_location + 1);
     try expect(register.A == 0xbb);
     try expect(register.B == 0);
     try expect(register.C == 0);
@@ -235,7 +271,7 @@ test "decode and execute 0x12 [LD (DE), A]" {
     try expect(register.E == 0x03);
     try expect(register.H == 0);
     try expect(register.L == 0);
-    try expect(register.IR == 0x10); // STOP
+    try expect(register.IR == STOP_OP_CODE);
     try expect(memory.get(0x6e03) == 0xbb);
     try expect(memory.get(0x6e04) == 0);
     try expect(memory.get(0x6e02) == 0);
