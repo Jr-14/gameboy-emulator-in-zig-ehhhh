@@ -62,4 +62,4 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x4c - LD C, H
 - [x] 0x4d - LD C, L
 - [x] 0x4e - LD C, (HL)
-- [ ] 0x4f - LD C, A
+- [x] 0x4f - LD C, A
