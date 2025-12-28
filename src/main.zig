@@ -587,6 +587,13 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.E = register.E;
             register.PC += 1;
         },
+        
+        // LD E, H
+        // Load the contents of register H into register E.
+        0x5c => {
+            register.E = register.H;
+            register.PC += 1;
+        },
 
         // TODO
         // We have to throw an error here to be exhaustive and have the correct error handling
