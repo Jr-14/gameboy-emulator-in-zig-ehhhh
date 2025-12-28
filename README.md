@@ -60,6 +60,6 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x4a - LD C, D
 - [x] 0x4b - LD C, E
 - [x] 0x4c - LD C, H
-- [ ] 0x4d - LD C, L
+- [x] 0x4d - LD C, L
 - [ ] 0x4e - LD C, (HL)
 - [ ] 0x4f - LD C, A

@@ -849,5 +849,30 @@ test "decode and execute 0x4c [LD C, H]" {
     try expect(register.H == 0x30);
     try expect(register.L == 0);
     try expect(register.IR == STOP_OP_CODE);
-    
+}
+
+test "decode and execute 0x4d [LD C, L]" {
+    const op_code: u8 = 0x4d;
+    const start_mem_location: u16 = 0x0100;
+
+    var register = RegisterFile{
+        .IR = op_code,
+        .PC = start_mem_location,
+        .L = 0x0a,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expect(register.PC == start_mem_location + 1);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0x0a);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0);
+    try expect(register.L == 0x0a);
+    try expect(register.IR == STOP_OP_CODE);
 }
