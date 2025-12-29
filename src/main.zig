@@ -779,6 +779,18 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
         },
 
+        // HALT
+        // TODO
+        // 0x76 => {},
+
+        // LD (HL), A
+        // Store the contents of register A in the memory location specified by
+        // register pair HL.
+        0x77 => {
+            memory.set(register.getHL(), register.A);
+            register.PC += 1;
+        },
+
         // TODO
         // We have to throw an error here to be exhaustive and have the correct error handling
         else => register.PC += 1,
