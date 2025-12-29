@@ -747,8 +747,19 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
         },
 
+        // LD (HL), D
+        // Store the contents of register D in the memory location specified by
+        // register pair HL.
         0x72 => {
             memory.set(register.getHL(), register.D);
+            register.PC += 1;
+        },
+
+        // LD (HL), E
+        // Store the contents of register E in the memory location specified by
+        // register pair HL.
+        0x73 => {
+            memory.set(register.getHL(), register.E);
             register.PC += 1;
         },
 
