@@ -5,3 +5,5 @@ And more load instructions today
 
 # Day 12 Part 2 - December 28th 6.13PM
 More loading 8-bit load instructions still, we're nearly therte
+
+**Total time: 37 minutes**
