@@ -1692,3 +1692,29 @@ test "decode and execute 0x6c [LD L, H]" {
     try expect(register.L == 0x38);
     try expect(register.IR == STOP_OP_CODE);
 }
+
+test "decode and execute 0x6d [LD L, L]" {
+    const op_code: u8 = 0x6d;
+    const start_mem_location: u16 = 0x0100;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+        .L = 0x7f,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expect(register.PC == start_mem_location + 1);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0);
+    try expect(register.L == 0x7f);
+    try expect(register.IR == STOP_OP_CODE);
+}
