@@ -1404,3 +1404,29 @@ test "decode and execute 0x61 [LD H, C]" {
     try expect(register.L == 0);
     try expect(register.IR == STOP_OP_CODE);
 }
+
+test "decode and execute 0x62 [LD H, D]" {
+    const op_code: u8 = 0x62;
+    const start_mem_location: u16 = 0x0100;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = 0x62,
+        .D = 0x73,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expect(register.PC == start_mem_location + 1);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0x73);
+    try expect(register.E == 0);
+    try expect(register.H == 0x73);
+    try expect(register.L == 0);
+    try expect(register.IR == STOP_OP_CODE);
+}
