@@ -36,8 +36,11 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 **8-bit load instructions**
 - [x] 0x02 - LD (BC), A
 - [x] 0x06 - LD B, d8
+- [x] 0x0a - LD A, (BC)
+- [x] 0x0e - LD C, d8
 - [x] 0x12 - LD (DE), A
 - [x] 0x16 - LD D, d8
+- [ ] 0x1a - LD A, (DE)
 - [x] 0x1e - LD E, d8
 - [x] 0x22 - LD (HL+), A
 - [x] 0x26 - LD H, d8
