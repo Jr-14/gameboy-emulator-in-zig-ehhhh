@@ -108,7 +108,7 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x7b - LD A, E
 - [x] 0x7c - LD A, H
 - [x] 0x7d - LD A, L
-- [ ] 0x7e - LD A, (HL)
+- [x] 0x7e - LD A, (HL)
 - [ ] 0x7f - LD A, A
 - [ ] 0xe0 - LD (a8), A
 - [ ] 0xe2 - LD (C), A
