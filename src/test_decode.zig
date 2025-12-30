@@ -2183,3 +2183,31 @@ test "decode and execute 0x7f [LD A, A]" {
     try expect(register.L == 0);
     try expect(register.IR == STOP_OP_CODE);
 }
+
+test "decode and execute 0xe0 [LD (a8), A]" {
+    const op_code: u8 = 0xe0;
+    const start_mem_location: u16 = 0x0100;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+        .A = 0x10,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, 0x7a);
+    memory.set(start_mem_location + 2, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expect(register.PC == start_mem_location + 2);
+    try expect(register.A == 0x10);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0);
+    try expect(register.L == 0);
+    try expect(register.IR == STOP_OP_CODE);
+    try expect(memory.get(0xff7a) == 0x10);
+}
