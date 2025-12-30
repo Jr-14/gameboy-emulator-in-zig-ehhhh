@@ -819,6 +819,13 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
         },
 
+        // LD A, H
+        // Load the contents of register H into register A.
+        0x7c => {
+            register.A = register.H;
+            register.PC += 1;
+        },
+
         // TODO
         // We have to throw an error here to be exhaustive and have the correct error handling
         else => register.PC += 1,
