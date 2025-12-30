@@ -894,6 +894,16 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
         },
 
+        // LD A, (C)
+        // Load to the 8-bit A register, data from the address specified by the 8-bit C register. The full 16-bit
+        // address is obtianed by setting the most significant byte to 0xff and the least significant byte to the
+        // value of C, so the possible range is 0xff00-0xffff.
+        0xf2 => {
+            const z: u16 = @as(u16, 0xff00) | register.C;
+            register.A = memory.get(z);
+            register.PC += 1;
+        },
+
         // TODO
         // We have to throw an error here to be exhaustive and have the correct error handling
         else => register.PC += 1,
