@@ -835,9 +835,16 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
 
         // LD A, (HL)
         // Load the 8-bit contents of memory specified by register pair HL
-        // ino register A.
+        // into register A.
         0x7e => {
             register.A = memory.get(register.getHL());
+            register.PC += 1;
+        },
+
+        // LD A, A
+        // Load the contents of register A into register A.
+        0x7f => {
+            register.A = register.A;
             register.PC += 1;
         },
 
