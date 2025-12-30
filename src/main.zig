@@ -904,6 +904,19 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
         },
 
+        // LD A, (a16)
+        // Load to the 8-bit A register, data from the absolute address specified by the 16-bit operand (a16).
+        0xfa => {
+            register.PC += 1;
+            var z: u16 = @as(u16, memory.get(register.PC)) << 8;
+
+            register.PC += 1;
+            z |= memory.get(register.PC);
+
+            register.A = memory.get(z);
+            register.PC += 1;
+        },
+
         // TODO
         // We have to throw an error here to be exhaustive and have the correct error handling
         else => register.PC += 1,
