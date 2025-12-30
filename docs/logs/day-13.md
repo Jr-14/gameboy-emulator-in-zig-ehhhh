@@ -8,3 +8,5 @@ And with that I think I have completed all 8-bit load instructions and with test
 Let's just hope I don't have to refactor too much hehe.
 
 Maybe time for 16 bit load instructions?
+
+Total time: 33 minutes
