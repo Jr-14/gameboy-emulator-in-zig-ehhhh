@@ -296,8 +296,12 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // Flags: - 0 16-bit 16-bit
         // 0x19 => "ADD HL, DE",
 
+        // LD A, (DE)
         // Load the 8-bit contents of memory specified by register pair DE into register A.
-        // 0x1a => "LD A, (DE)",
+        0x1a => {
+            register.A = memory.get(register.getDE());
+            register.PC += 1;
+        },
 
         // Decrement the contents of register pair DE by 1.
         // 0x1b => "DEC DE",
