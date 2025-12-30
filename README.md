@@ -102,7 +102,7 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x74 - LD (HL), H
 - [x] 0x75 - LD (HL), L
 - [x] 0x77 - LD (HL), A
-- [ ] 0x78 - LD A, B
+- [x] 0x78 - LD A, B
 - [ ] 0x79 - LD A, C
 - [ ] 0x7a - LD A, D
 - [ ] 0x7b - LD A, E
