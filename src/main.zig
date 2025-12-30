@@ -125,13 +125,13 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // Load the 2 bytes of immediate data into register pair BC
         // The first byte of immediate data is the lower byte (i.e. bits 0-7), and
         // the second byte of immediate data is the higher byte (i.e., bits 8-15)
-        // 0x01 => {
-        //     // Store it as it is, maybe we'll need to switch byte ordering at later stage
-        //     // maybe during execution?
-        //     register.B = first_byte;
-        //     register.C = second_byte;
-        //     register.PC += 1;
-        // },
+        0x01 => {
+            register.PC += 1;
+            register.C = memory.get(register.PC);
+            register.PC += 1;
+            register.B = memory.get(register.PC);
+            register.PC += 1;
+        },
 
         // LD (BC), A
         // Store the contents of register A in the memory location specified by

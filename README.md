@@ -119,3 +119,18 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0xf0 - LD A, (a8)
 - [x] 0xf2 - LD A, (C)
 - [x] 0xfa - LD A, (a16)
+
+**16-bit load instructions**
+- [x] 0x01 - LD BC, d16
+- [ ] 0x08 - LD (a16), SP
+- [ ] 0x12 - LD DE, d16
+- [ ] 0x21 - LD HL, d16
+- [ ] 0x31 - LD SP, d16
+- [ ] 0xc1 - POP BC
+- [ ] 0xc5 - PUSH BC
+- [ ] 0xd1 - POP DE
+- [ ] 0xd5 - PUSH DE
+- [ ] 0xe1 - POP HL
+- [ ] 0xe5 - PUSH HL
+- [ ] 0xf1 - POP AF
+- [ ] 0xf5 - PUSH AF
