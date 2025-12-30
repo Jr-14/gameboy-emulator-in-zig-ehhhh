@@ -2239,3 +2239,32 @@ test "decode and execute 0xe2 [LD (C), A]" {
     try expect(register.IR == STOP_OP_CODE);
     try expect(memory.get(0xff17) == 0x83);
 }
+
+test "decode and execute 0xea [LD (a16), A]" {
+    const op_code: u8 = 0xea;
+    const start_mem_location: u16 = 0x0100;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+        .A = 0x12,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, 0x3c);
+    memory.set(start_mem_location + 2, 0x17);
+    memory.set(start_mem_location + 3, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expect(register.PC == start_mem_location + 3);
+    try expect(register.A == 0x12);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0);
+    try expect(register.L == 0);
+    try expect(register.IR == STOP_OP_CODE);
+    try expect(memory.get(0x3c17) == register.A);
+}

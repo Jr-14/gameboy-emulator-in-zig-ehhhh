@@ -112,7 +112,7 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x7f - LD A, A
 - [x] 0xe0 - LD (a8), A
 - [x] 0xe2 - LD (C), A
-- [ ] 0xea - LD (a16), A
+- [x] 0xea - LD (a16), A
 - [ ] 0xf0 - LD A, (a8)
 - [ ] 0xf2 - LD A, (C)
 - [ ] 0xfa - LD A, (a16)
