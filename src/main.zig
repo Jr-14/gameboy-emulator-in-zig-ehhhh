@@ -806,8 +806,16 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         },
 
         // LD A, D
+        // Load the contents of register D into register A.
         0x7a => {
             register.A = register.D;
+            register.PC += 1;
+        },
+
+        // LD A, E
+        // Load the contents of register E into register A.
+        0x7b => {
+            register.A = register.E;
             register.PC += 1;
         },
 
