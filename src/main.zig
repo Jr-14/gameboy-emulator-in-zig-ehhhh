@@ -1068,6 +1068,13 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
         },
 
+        // LD SP, HL
+        // Load the contents of register pair HL into the stack pointer SP.
+        0xf9 => {
+            register.SP = register.getHL();
+            register.PC += 1;
+        },
+
         // LD A, (a16)
         // Load to the 8-bit A register, data from the absolute address specified by the 16-bit operand (a16).
         0xfa => {
