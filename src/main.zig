@@ -316,6 +316,20 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // TODO:
         // Flags: - 0 16-bit 16-bit
         // 0x19 => "ADD HL, DE",
+        
+        // LD HL, d16
+        // Load the 2 bytes of immediate data into register pair HL.
+        // The first byte of immediate data is the lower byte (i.e., bits 0-7), and the second byte of immediate data
+        // is the higher byte (i.e., bits 8-15)
+        0x21 => {
+            register.PC += 1;
+            register.L = memory.get(register.PC);
+
+            register.PC += 1;
+            register.H = memory.get(register.PC);
+
+            register.PC += 1;
+        },
 
         // LD A, (DE)
         // Load the 8-bit contents of memory specified by register pair DE into register A.
