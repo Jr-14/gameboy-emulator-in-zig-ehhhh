@@ -122,7 +122,7 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 
 **16-bit load instructions**
 - [x] 0x01 - LD BC, d16
-- [ ] 0x08 - LD (a16), SP
+- [x] 0x08 - LD (a16), SP
 - [ ] 0x12 - LD DE, d16
 - [ ] 0x21 - LD HL, d16
 - [ ] 0x31 - LD SP, d16

@@ -185,9 +185,22 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // Flags: 0 0 0 A7
         // 0x07 => "RLCA",
 
+        // LD (a16), SP
         // Store the lower byte of stack pointer SP at the address specified by the 16-bit
         // immediate operand 16, and store the upper byte of SP at address a16 + 1.
-        // 0x08 => "LD (a16), SP",
+        0x08 => {
+            register.PC += 1;
+            var z: u16 = memory.get(register.PC);
+            register.PC += 1;
+            z = (@as(u16, memory.get(register.PC)) << 8) | z;
+
+            const sp_lsb: u8 = @truncate(register.SP & 0x00ff);
+            memory.set(z, sp_lsb);
+            const sp_msb: u8 = @truncate((register.SP & 0xff00) >> 8);
+            memory.set(z + 1, sp_msb);
+
+            register.PC += 1;
+        },
 
         // Add the contents of register pair BC to the contents of register pair HL, and
         // store the results in register pair HL.
