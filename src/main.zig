@@ -397,6 +397,21 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
         },
 
+        // LD SP, d16
+        // Load the 2 bytes of immediate data into register pair SP.
+        // The first byte of immedaite data is the lower byte (i.e., bits 0-7), and the second byte of immediate data
+        // is the higher byte (i.e., bits 8-15).
+        0x31 => {
+            register.PC += 1;
+            var z: u16 = memory.get(register.PC);
+
+            register.PC += 1;
+            z = @as(u16, memory.get(register.PC)) << 8 | z;
+
+            register.SP = z;
+            register.PC += 1;
+        },
+
         // LD (HL-), A
         // Store the contents of register A into the memory location specified by register pair
         // HL, and simultaneously decrement the contents of HL.
