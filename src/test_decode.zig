@@ -2473,6 +2473,38 @@ test "decode and execute 0xd1 [POP DE]" {
     try expect(register.SP == start_stack_pointer + 2);
 }
 
+test "decode and execute 0x5d [PUSH DE]" {
+    const op_code: u8 = 0xd5;
+    const start_mem_location: u16 = 0x0100;
+    const start_stack_pointer: u16 = 0x0700;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+        .SP = start_stack_pointer,
+        .D = 0xe9,
+        .E = 0x37,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expect(register.PC == start_mem_location + 1);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0xe9);
+    try expect(register.E == 0x37);
+    try expect(register.H == 0);
+    try expect(register.L == 0);
+    try expect(register.IR == STOP_OP_CODE);
+    try expect(register.SP == start_stack_pointer - 2);
+    try expect(memory.get(start_stack_pointer - 1) == register.D);
+    try expect(memory.get(start_stack_pointer - 2) == register.E);
+}
+
 test "decode and execute 0xe0 [LD (a8), A]" {
     const op_code: u8 = 0xe0;
     const start_mem_location: u16 = 0x0100;
