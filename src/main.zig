@@ -1055,6 +1055,19 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
         },
 
+        // PUSH AF
+        // Push the contents of register pair AF onto the memory stack by doing the following:
+        // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of register pair
+        // BC on on the stack.
+        // 2. Subtract 1 from SP, and put the lower portion of register pair AF on the stack.
+        0xf5 => {
+            register.SP -= 1;
+            memory.set(register.SP, register.A);
+            register.SP -= 1;
+            memory.set(register.SP, register.F);
+            register.PC += 1;
+        },
+
         // LD A, (a16)
         // Load to the 8-bit A register, data from the absolute address specified by the 16-bit operand (a16).
         0xfa => {
