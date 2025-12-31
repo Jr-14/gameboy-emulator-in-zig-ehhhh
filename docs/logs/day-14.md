@@ -23,4 +23,4 @@ if IR == 0x08:
 We can determine the `Z` is the least significant byte and `W` the most significant byte respectively and thus
 the first and second operand follow this.
 
-**Total time: ?**
+**Total time: 110 minutes**
