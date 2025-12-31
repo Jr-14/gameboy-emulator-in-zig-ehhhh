@@ -3,3 +3,5 @@ Happy new year! More 16-bit load instructions
 
 It's going to be my first time implementing and trying to understand the flags register as we'll need to implement
 0xf8 - LD HL, SP+s8 - this instruction. It is also a signed integer :O.
+
+Total time 127 minutes

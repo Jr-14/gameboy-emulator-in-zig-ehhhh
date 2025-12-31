@@ -1068,6 +1068,18 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
         },
 
+        // LD HL, SP+s8
+        // Add the 8-bit signed operand s8 (values -128 to +127) to the stack pointer SP, and
+        // store the result in register pair HL.
+        0xf8 => {
+            register.PC += 1;
+            const s: i8 = @bitCast(memory.get(register.PC));
+            register.SP += s;
+            register.H = @truncate((register.SP & 0xff00) >> 8);
+            register.L = @truncate(register.SP & 0x00ff);
+            register.PC += 1;
+        },
+
         // LD SP, HL
         // Load the contents of register pair HL into the stack pointer SP.
         0xf9 => {
