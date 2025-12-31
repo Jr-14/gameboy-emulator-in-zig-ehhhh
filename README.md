@@ -128,7 +128,7 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x31 - LD SP, d16
 - [x] 0xc1 - POP BC
 - [x] 0xc5 - PUSH BC
-- [ ] 0xd1 - POP DE
+- [x] 0xd1 - POP DE
 - [ ] 0xd5 - PUSH DE
 - [ ] 0xe1 - POP HL
 - [ ] 0xe5 - PUSH HL

@@ -923,13 +923,25 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // Push the contents of register pair BC onto the memory stack by doing the following:
         // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of register pair
         // BC on on the stack.
-        // 2. Subtract 2 from SP, and put the lower portion of register pair BC on the stack.
-        // 3. Decrement SP by 2.
+        // 2. Subtract 1 from SP, and put the lower portion of register pair BC on the stack.
         0xc5 => {
             register.SP -= 1;
             memory.set(register.SP, register.B);
             register.SP -= 1;
             memory.set(register.SP, register.C);
+            register.PC += 1;
+        },
+
+        // POP DE
+        // Pop the contents from the memory stack into register pair DE by doing the following:
+        // 1. Load the contents of memory specified by stack pointer SP into the lower portion of DE.
+        // 2. Add 1 to SP and load the contents from the new memory location into the upper portion of DE.
+        // 3. By the end, SP should be 2 more than its initial value.
+        0xd1 => {
+            register.E = memory.get(register.SP);
+            register.SP += 1;
+            register.D = memory.get(register.SP);
+            register.SP += 1;
             register.PC += 1;
         },
 
