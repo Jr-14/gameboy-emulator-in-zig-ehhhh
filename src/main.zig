@@ -1032,6 +1032,19 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
         },
 
+        // POP AF
+        // Pop the contents from the memory stack into register pair AF by doing the following:
+        // 1. Load the contents of memory specified by stack pointer SP into the lower portion of AF.
+        // 2. Add 1 to SP and load the contents from the new memory location into the upper portion AF.
+        // 3. By the end, SP should be 2 more than its initial value.
+        0xf1 => {
+            register.F = memory.get(register.SP);
+            register.SP -= 1;
+            register.A = memory.get(register.SP);
+            register.SP -= 1;
+            register.PC += 1;
+        },
+
         // LD A, (C)
         // Load to the 8-bit A register, data from the address specified by the 8-bit C register. The full 16-bit
         // address is obtianed by setting the most significant byte to 0xff and the least significant byte to the

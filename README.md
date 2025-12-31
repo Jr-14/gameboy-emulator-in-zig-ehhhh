@@ -132,5 +132,5 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0xd5 - PUSH DE
 - [x] 0xe1 - POP HL
 - [x] 0xe5 - PUSH HL
-- [ ] 0xf1 - POP AF
+- [x] 0xf1 - POP AF
 - [ ] 0xf5 - PUSH AF
