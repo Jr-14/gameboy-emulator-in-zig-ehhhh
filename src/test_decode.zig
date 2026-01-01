@@ -2768,6 +2768,24 @@ test "decode and execute 0xf5 [PUSH AF]" {
     try expect(memory.get(start_stack_pointer - 2) == register.F);
 }
 
+test "decode and execute 0xf8 [LD HL, SP+s8]" {
+    const op_code: u8 = 0xf8;
+    const start_mem_location: u16 = 0x0100;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expect(register.PC == start_mem_location + 1);
+    try expect(register.IR == STOP_OP_CODE);
+}
+
 test "decode and execute 0xf9 [LD SP, HL]" {
     const op_code: u8 = 0xf9;
     const start_mem_location: u16 = 0x0100;

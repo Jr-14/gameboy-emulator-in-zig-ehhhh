@@ -27,7 +27,7 @@ pub const FlagsRegister = struct {
 pub const RegisterFile = struct {
     A: u8 = 0, // Accumulator
     F: u8 = 0, // Flags
-    R: FlagsRegister,
+    // R: FlagsRegister,
 
     // General Purpose Registers
     B: u8 = 0,
@@ -1099,9 +1099,11 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         0xf8 => {
             register.PC += 1;
             const s: i8 = @bitCast(memory.get(register.PC));
-            register.SP += s;
-            register.H = @truncate((register.SP & 0xff00) >> 8);
-            register.L = @truncate(register.SP & 0x00ff);
+            const result, const carry = @addWithOverflow(register.SP, s);
+            std.debug.print("res: {any}, carry: {any}", .{ result, carry });
+            // register.SP += s;
+            // register.H = @truncate((register.SP & 0xff00) >> 8);
+            // register.L = @truncate(register.SP & 0x00ff);
             register.PC += 1;
         },
 

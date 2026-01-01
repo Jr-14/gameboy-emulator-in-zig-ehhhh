@@ -7,3 +7,5 @@ It's going to be my first time implementing and trying to understand the flags r
 Total time 127 minutes
 
 Gotta learn about flag registers [Ep 083: Introduction to the Flags Register](https://www.youtube.com/watch?v=7eaTT8PekE0)
+Some more resources [Game boy dealing with carry flags when
+handling](https://www.reddit.com/r/EmuDev/comments/y51i1c/game_boy_dealing_with_carry_flags_when_handling/)
