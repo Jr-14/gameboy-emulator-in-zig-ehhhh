@@ -1,8 +1,33 @@
 const std = @import("std");
 
+pub const FlagsRegister = struct {
+    Z: u1,
+    N: u1,
+    H: u1,
+    C: u1,
+
+    const Self = @This();
+
+    pub fn asByte(self: Self) u8 {
+        var f: u8 = self.Z << 8;
+        f |= (self.N << 7);
+        f |= (self.H << 6);
+        f |= (self.C << 5);
+        return f;
+    }
+
+    pub fn zeroAll(self: Self) void {
+        self.Z = 0;
+        self.N = 0;
+        self.H = 0;
+        self.C = 0;
+    }
+};
+
 pub const RegisterFile = struct {
     A: u8 = 0, // Accumulator
     F: u8 = 0, // Flags
+    R: FlagsRegister,
 
     // General Purpose Registers
     B: u8 = 0,
