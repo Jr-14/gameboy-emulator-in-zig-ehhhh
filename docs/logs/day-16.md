@@ -12,3 +12,5 @@ And more resources I've found about carry bits
 It's really fun going through the searches and reading them. I can probably find it much quicker through LLM's
 but the point of it going through the struggle is to really really think deeply, and struggle through the problem
 before getting through a solution.
+
+Total time: 132 minutes
