@@ -1,10 +1,10 @@
 const std = @import("std");
 
 pub const FlagsRegister = struct {
-    Z: u1,
-    N: u1,
-    H: u1,
-    C: u1,
+    Z: u1 = 0,
+    N: u1 = 0,
+    H: u1 = 0,
+    C: u1 = 0,
 
     const Self = @This();
 
@@ -22,12 +22,18 @@ pub const FlagsRegister = struct {
         self.H = 0;
         self.C = 0;
     }
+
+    pub fn setFromByte(self: *Self, bits: u8) void {
+        self.Z = @as(u1, (bits & 0x8) >> 3);
+        self.H = @as(u1, (bits & 0x4) >> 2);
+        self.H = @as(u1, (bits & 0x2) >> 1);
+        self.C = @as(u1, bits & 0x1);
+    }
 };
 
 pub const RegisterFile = struct {
     A: u8 = 0, // Accumulator
     F: u8 = 0, // Flags
-    // R: FlagsRegister,
 
     // General Purpose Registers
     B: u8 = 0,
@@ -46,6 +52,14 @@ pub const RegisterFile = struct {
     SP: u16 = 0, // Stack Pointer
 
     const Self = @This();
+
+    pub inline fn flagsSetZ(self: *Self) void {
+        self.F |= 0b10000000;
+    }
+
+    pub inline fn flagsUnsetZ(self: *Self) void {
+        self.F &= 0b01111111;
+    }
 
     pub inline fn getBC(self: Self) u16 {
         return (@as(u16, self.B) << 8) | self.C;
@@ -1097,13 +1111,28 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // Add the 8-bit signed operand s8 (values -128 to +127) to the stack pointer SP, and
         // store the result in register pair HL.
         0xf8 => {
+            // TODO - refactor, use the entire 8 bit rather than using u1 and having individual flags
+            // Maybe best to use masking
             register.PC += 1;
-            const s: i8 = @bitCast(memory.get(register.PC));
-            const result, const carry = @addWithOverflow(register.SP, s);
-            std.debug.print("res: {any}, carry: {any}", .{ result, carry });
-            // register.SP += s;
-            // register.H = @truncate((register.SP & 0xff00) >> 8);
-            // register.L = @truncate(register.SP & 0x00ff);
+            const s: u8 = memory.get(register.PC);
+            const lsb: u8 = @truncate(register.SP & 0x00ff);
+            var result: u8, const ov: u1 = @addWithOverflow(s, lsb);
+            register.F &= 0b00110000; // reset the Z and N flags;
+            register.L = result;
+
+            // Half carry
+            const hc: u8 =  if ((((lsb & 0xf) + (s & 0xf)) & 0x10) == 0x10) 0b00100000 else 0;
+            // Carry
+            const c: u8 = if (ov == 1) 0b00010000 else 0;
+            register.F |= (hc | c);
+            std.debug.print("s: {any}, lsb: {any}, result: {any}, ov: {any}, half_carry: {any}, SP: 0x{x}\n", .{ s, lsb, result, ov, hc, register.SP });
+
+            const sign = s & 0x80;
+            const adj = if (sign == 0x80) 0xff else 0x00;
+            const msb: u8 = @truncate((register.SP & 0xff00) >> 8);
+            result = msb + adj + @as(u8, hc);
+
+            register.H = result;
             register.PC += 1;
         },
 
