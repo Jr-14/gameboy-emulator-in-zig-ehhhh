@@ -1123,14 +1123,15 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             // Carry
             const c: u8 = if (ov == 1) 0b00010000 else 0;
             register.F |= (hc | c);
-            std.debug.print("s: {any}, lsb: {any}, result: {any}, ov: {any}, half_carry: {any}, SP: 0x{x}\n", .{ s, lsb, result, ov, hc, register.SP });
+            std.debug.print("s: {any}, lsb: {any}, result: {any}, ov: {any}, half_carry: {any}, SP: 0x{x}, F: 0b{b}\n", .{ s, lsb, result, ov, hc, register.SP, register.F });
 
-            const sign = s & 0b10000000;
-            const adj = if (sign == 0b10000000) 0xff else 0x00;
+            const sign: u8 = s & 0b10000000;
+            const adj: u8 = if (sign == 0b10000000) 0xff else 0x00;
             const msb: u8 = @truncate((register.SP & 0xff00) >> 8);
             result = msb + adj + @as(u8, hc);
 
             register.H = result;
+            std.debug.print("\nH: 0b{b}, L: 0b{b}, result: 0b{b}\n", .{ register.H, register.L, result });
             register.PC += 1;
         },
 

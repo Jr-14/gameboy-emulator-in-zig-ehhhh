@@ -2771,7 +2771,7 @@ test "decode and execute 0xf5 [PUSH AF]" {
 test "decode and execute 0xf8 [LD HL, SP+s8]" {
     const op_code: u8 = 0xf8;
     const start_mem_location: u16 = 0x017f;
-    const start_stack_pointer: u16 = 0x07ca;
+    const start_stack_pointer: u16 = 0x00ff;
 
     var register = RegisterFile{
         .PC = start_mem_location,
@@ -2781,7 +2781,7 @@ test "decode and execute 0xf8 [LD HL, SP+s8]" {
 
     var memory = Memory.init();
     memory.set(start_mem_location, op_code);
-    memory.set(start_mem_location + 1, 0xff);
+    memory.set(start_mem_location + 1, 0x01);
     memory.set(start_mem_location + 2, STOP_OP_CODE);
 
     try main.decodeAndExecute(&register, &memory);
