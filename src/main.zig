@@ -1121,7 +1121,7 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.L = result;
 
             // Half carry
-            const hc: u8 =  if ((((lsb & 0xf) + (s & 0xf)) & 0x10) == 0x10) 0b00100000 else 0;
+            const hc: u8 =  if ((((lsb & 0b1111) + (s & 0b1111)) & 0b10000) == 0b10000) 0b00100000 else 0;
             // Carry
             const c: u8 = if (ov == 1) 0b00010000 else 0;
             register.F |= (hc | c);
