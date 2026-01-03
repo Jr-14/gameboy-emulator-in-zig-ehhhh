@@ -1111,8 +1111,6 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // Add the 8-bit signed operand s8 (values -128 to +127) to the stack pointer SP, and
         // store the result in register pair HL.
         0xf8 => {
-            // TODO - refactor, use the entire 8 bit rather than using u1 and having individual flags
-            // Maybe best to use masking
             register.PC += 1;
             const s: u8 = memory.get(register.PC);
             const lsb: u8 = @truncate(register.SP & 0x00ff);
@@ -1127,8 +1125,8 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.F |= (hc | c);
             std.debug.print("s: {any}, lsb: {any}, result: {any}, ov: {any}, half_carry: {any}, SP: 0x{x}\n", .{ s, lsb, result, ov, hc, register.SP });
 
-            const sign = s & 0x80;
-            const adj = if (sign == 0x80) 0xff else 0x00;
+            const sign = s & 0b10000000;
+            const adj = if (sign == 0b10000000) 0xff else 0x00;
             const msb: u8 = @truncate((register.SP & 0xff00) >> 8);
             result = msb + adj + @as(u8, hc);
 
