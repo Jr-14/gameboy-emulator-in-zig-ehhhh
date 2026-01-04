@@ -5,5 +5,3 @@ It's mainly got to do with the `LD HL, SP+s8` instruction where we do signed and
 
 Some other resources
 - [what's the simplest way of mixing signedness calculation in zig](https://stackoverflow.com/questions/76293230/whats-the-simple-way-of-mixing-signed-ness-calculation-in-zig)
-
-# Binary Representation vs Bit Representation
