@@ -1128,8 +1128,8 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             const s_sp: i16 = @bitCast(register.SP);
             const res: u16 = @bitCast(s_sp + @as(i16, s_imm));
 
-            register.H = @truncate((res & 0xff00) >> 8);
-            register.L = @truncate(res & 0x00ff);
+            register.H = @truncate(res >> 8);
+            register.L = @truncate(res);
             std.debug.print("\nH: 0b{b}, L: 0b{b}, res: 0b{b} flags: 0b{b}\n", .{ register.H, register.L, res, register.F });
             register.PC += 1;
         },
