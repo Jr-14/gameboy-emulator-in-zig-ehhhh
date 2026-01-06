@@ -2869,7 +2869,7 @@ test "decode and execute 0xf8 [LD HL, SP+s8] - negative" {
     try expect(register.E == 0);
     try expect(register.H == 0x00);
     try expect(register.L == 0xef);
-    // try expect(register.F == 0b0001_0000);
+    try expect(register.F == 0b0001_0000);
     try expect(register.IR == STOP_OP_CODE);
 }
 
