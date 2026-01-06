@@ -1122,7 +1122,6 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             // Carry
             const c: u8 = if (ov == 1) 0b0001_0000 else 0;
             register.F |= (hc | c);
-            std.debug.print("imm: {any}, lsb: {any}, ov: {any}, half_carry: 0b{b}, SP: 0x{x}, F: 0b{b}\n", .{ imm, lsb, ov, hc, register.SP, register.F });
 
             const s_imm: i8 = @bitCast(imm);
             const s_sp: i16 = @bitCast(register.SP);
@@ -1130,7 +1129,6 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
 
             register.H = @truncate(res >> 8);
             register.L = @truncate(res);
-            std.debug.print("\nH: 0b{b}, L: 0b{b}, res: 0b{b} flags: 0b{b}\n", .{ register.H, register.L, res, register.F });
             register.PC += 1;
         },
 
