@@ -2,6 +2,7 @@ const std = @import("std");
 const main = @import("main.zig");
 
 const expect = std.testing.expect;
+const expectEqual = std.testing.expectEqual;
 
 const Memory = main.Memory;
 const RegisterFile = main.RegisterFile;
@@ -412,6 +413,24 @@ test "decode and execute 0x16 [LD D, d8]" {
     try expect(register.H == 0);
     try expect(register.L == 0);
     try expect(register.IR == 0x010); // STOP
+}
+
+test "decode and execute 0x18 [JR s8]" {
+    const op_code: u8 = 0x18;
+    const start_mem_location: u16 = 0x0100;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, 0x10); // -128
+    memory.set(start_mem_location + 2, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expectEqual(register.PC, 0x007f); // 127
 }
 
 test "decode and execute 0x21 [LD HL, d16]" {

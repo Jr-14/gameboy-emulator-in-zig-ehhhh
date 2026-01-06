@@ -347,8 +347,15 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // Flags: 0 0 0 A7
         // 0x17 => "RLA",
 
+        // JR s8
         // Jump s8 steps from the current address in the program counter (PC). (Jump relative.)
-        // 0x18 => "JR s8",
+        0x18 => {
+            register.PC += 1;
+            const imm: i16 = @as(i16, memory.get(register.PC));
+            const loc: u16 = @bitCast(@as(i16, @bitCast(register.PC)) - imm);
+            register.PC = loc;
+            register.PC += 1;
+        },
 
         // Add the contents of register pair DE to the contents of register pair HL, and store the results
         // in register pair HL.
