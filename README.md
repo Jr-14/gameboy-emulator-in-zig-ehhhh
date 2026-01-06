@@ -137,5 +137,37 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0xf8 - LD HL, SP+s8
 - [x] 0xf9 - LD SP, HL
 
+**Control Flow Instructions**
+- [ ] 0x18 - JR s8
+- [ ] 0x20 - JR NZ, s8
+- [ ] 0x28 - JR Z, s8
+- [ ] 0x30 - JR NC, s8
+- [ ] 0x38 - JR C, s8
+- [ ] 0xc0 - RET NZ
+- [ ] 0xc2 - JP NZ, a16
+- [ ] 0xc3 - JP a16
+- [ ] 0xc4 - CALL NZ, a16
+- [ ] 0xc7 - RST 0
+- [ ] 0xc8 - RET Z
+- [ ] 0xc9 - RET
+- [ ] 0xca - JP Z, a16
+- [ ] 0xcc - CALL Z, a16
+- [ ] 0xcd - CALL a16
+- [ ] 0xcf - RST 1
+- [ ] 0xd0 - RET NC
+- [ ] 0xd2 - JP NC, a16
+- [ ] 0xd4 - CALL NC, a16
+- [ ] 0xd7 - RST 2
+- [ ] 0xd8 - RET C
+- [ ] 0xd9 - RETI
+- [ ] 0xda - JP C, a16
+- [ ] 0xdc - CALL C, a16
+- [ ] 0xdf - RST 3
+- [ ] 0xe7 - RST 4
+- [ ] 0xe9 - JP HL
+- [ ] 0xef - RST 5
+- [ ] 0xf7 - RST 6
+- [ ] 0xff - RST 7
+
 # Timeline
 Day 20 - Completed All 8-bit and 16-bit load instructions with tests (to the best of my knowledge)
