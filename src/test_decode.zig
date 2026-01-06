@@ -2768,7 +2768,7 @@ test "decode and execute 0xf5 [PUSH AF]" {
     try expect(memory.get(start_stack_pointer - 2) == register.F);
 }
 
-test "decode and execute 0xf8 [LD HL, SP+s8]" {
+test "decode and execute 0xf8 [LD HL, SP+s8] - hi-lo overflow" {
     const op_code: u8 = 0xf8;
     const start_mem_location: u16 = 0x017f;
     const start_stack_pointer: u16 = 0x00ff;
@@ -2782,7 +2782,9 @@ test "decode and execute 0xf8 [LD HL, SP+s8]" {
     var memory = Memory.init();
     memory.set(start_mem_location, op_code);
     memory.set(start_mem_location + 1, 0x01);
-    memory.set(start_mem_location + 2, STOP_OP_CODE);
+    memory.set(start_mem_location + 2, op_code);
+    memory.set(start_mem_location + 3, 0x08);
+    memory.set(start_mem_location + 4, STOP_OP_CODE);
 
     try main.decodeAndExecute(&register, &memory);
     try expect(register.PC == start_mem_location + 2);
@@ -2793,6 +2795,110 @@ test "decode and execute 0xf8 [LD HL, SP+s8]" {
     try expect(register.E == 0);
     try expect(register.H == 0x01);
     try expect(register.L == 0x00);
+    try expect(register.F == 0b0011_0000);
+    try expect(register.IR == op_code);
+
+    register.SP = start_stack_pointer - 4;
+    register.F = 0;
+    register.H = 0;
+    register.L = 0;
+
+    try main.decodeAndExecute(&register, &memory);
+    try expect(register.PC == start_mem_location + 4);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0x01);
+    try expect(register.L == 0x03);
+    try expect(register.IR == STOP_OP_CODE);
+}
+
+test "decode and execute 0xf8 [LD HL, SP+s8] - carry flag" {
+    const op_code: u8 = 0xf8;
+    const start_mem_location: u16 = 0x017f;
+    const start_stack_pointer: u16 = 0x00f0;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+        .SP = start_stack_pointer,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, 0x20);
+    memory.set(start_mem_location + 2, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expect(register.PC == start_mem_location + 2);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0x01);
+    try expect(register.L == 0x10);
+    try expect(register.F == 0b0001_0000);
+    try expect(register.IR == STOP_OP_CODE);
+}
+
+test "decode and execute 0xf8 [LD HL, SP+s8] - negative" {
+    const op_code: u8 = 0xf8;
+    const start_mem_location: u16 = 0x017f;
+    const start_stack_pointer: u16 = 0x00f0;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+        .SP = start_stack_pointer,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, 0xff); // -1
+    memory.set(start_mem_location + 2, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expect(register.PC == start_mem_location + 2);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0x00);
+    try expect(register.L == 0xe0);
+    // try expect(register.F == 0b0001_0000);
+    try expect(register.IR == STOP_OP_CODE);
+}
+
+test "decode and execute 0xf8 [LD HL, SP+s8] - no half carry or carry flags" {
+    const op_code: u8 = 0xf8;
+    const start_mem_location: u16 = 0x017f;
+    const start_stack_pointer: u16 = 0x00f0;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+        .SP = start_stack_pointer,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, 0x0f);
+    memory.set(start_mem_location + 2, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expect(register.PC == start_mem_location + 2);
+    try expect(register.A == 0);
+    try expect(register.B == 0);
+    try expect(register.C == 0);
+    try expect(register.D == 0);
+    try expect(register.E == 0);
+    try expect(register.H == 0x00);
+    try expect(register.L == 0xff);
+    try expect(register.F == 0b0000_0000);
     try expect(register.IR == STOP_OP_CODE);
 }
 

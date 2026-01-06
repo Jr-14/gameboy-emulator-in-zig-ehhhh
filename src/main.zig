@@ -1114,26 +1114,23 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
             register.PC += 1;
             const imm: u8 = memory.get(register.PC);
             const lsb: u8 = @truncate(register.SP & 0x00ff);
-            var result: u8, const ov: u1 = @addWithOverflow(imm, lsb);
-            register.F &= 0b0011_0000; // reset the Z and N flags;
-            register.L = result;
+            _, const ov: u1 = @addWithOverflow(imm, lsb);
+            register.F = 0;
 
             // Half carry
             const hc: u8 =  if ((((lsb & 0b1111) + (imm & 0b1111)) & 0b1_0000) == 0b1_0000) 0b0010_0000 else 0;
             // Carry
             const c: u8 = if (ov == 1) 0b0001_0000 else 0;
             register.F |= (hc | c);
-            std.debug.print("imm: {any}, lsb: {any}, result: {any}, ov: {any}, half_carry: {any}, SP: 0x{x}, F: 0b{b}\n", .{ imm, lsb, result, ov, hc, register.SP, register.F });
+            std.debug.print("imm: {any}, lsb: {any}, ov: {any}, half_carry: 0b{b}, SP: 0x{x}, F: 0b{b}\n", .{ imm, lsb, ov, hc, register.SP, register.F });
 
-            // const sign: u8 = imm & 0b1000_0000;
-            // const adj: u8 = if (sign == 0b1000_0000) 0xff else 0x00;
-            const msb: u8 = @truncate((register.SP & 0xff00) >> 8);
-            // result = msb + adj + @as(u8, hc);
-            result = msb + ov;
-            std.debug.print("\nmsb: 0b{b}, result: 0b{b}\n", .{ msb, result });
+            const s_imm: i8 = @bitCast(imm);
+            const s_sp: i16 = @bitCast(register.SP);
+            const res: u16 = @bitCast(s_sp + @as(i16, s_imm));
 
-            register.H = result;
-            std.debug.print("\nH: 0b{b}, L: 0b{b}, result: 0b{b}\n", .{ register.H, register.L, result });
+            register.H = @truncate((res & 0xff00) >> 8);
+            register.L = @truncate(res & 0x00ff);
+            std.debug.print("\nH: 0b{b}, L: 0b{b}, res: 0b{b} flags: 0b{b}\n", .{ register.H, register.L, res, register.F });
             register.PC += 1;
         },
 
