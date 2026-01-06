@@ -136,3 +136,6 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0xf5 - PUSH AF
 - [x] 0xf8 - LD HL, SP+s8
 - [x] 0xf9 - LD SP, HL
+
+# Timeline
+Day 20 - Completed All 8-bit and 16-bit load instructions with tests (to the best of my knowledge)
