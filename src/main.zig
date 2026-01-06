@@ -1112,23 +1112,25 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // store the result in register pair HL.
         0xf8 => {
             register.PC += 1;
-            const s: u8 = memory.get(register.PC);
+            const imm: u8 = memory.get(register.PC);
             const lsb: u8 = @truncate(register.SP & 0x00ff);
-            var result: u8, const ov: u1 = @addWithOverflow(s, lsb);
-            register.F &= 0b00110000; // reset the Z and N flags;
+            var result: u8, const ov: u1 = @addWithOverflow(imm, lsb);
+            register.F &= 0b0011_0000; // reset the Z and N flags;
             register.L = result;
 
             // Half carry
-            const hc: u8 =  if ((((lsb & 0b1111) + (s & 0b1111)) & 0b10000) == 0b10000) 0b00100000 else 0;
+            const hc: u8 =  if ((((lsb & 0b1111) + (imm & 0b1111)) & 0b1_0000) == 0b1_0000) 0b0010_0000 else 0;
             // Carry
-            const c: u8 = if (ov == 1) 0b00010000 else 0;
+            const c: u8 = if (ov == 1) 0b0001_0000 else 0;
             register.F |= (hc | c);
-            std.debug.print("s: {any}, lsb: {any}, result: {any}, ov: {any}, half_carry: {any}, SP: 0x{x}, F: 0b{b}\n", .{ s, lsb, result, ov, hc, register.SP, register.F });
+            std.debug.print("imm: {any}, lsb: {any}, result: {any}, ov: {any}, half_carry: {any}, SP: 0x{x}, F: 0b{b}\n", .{ imm, lsb, result, ov, hc, register.SP, register.F });
 
-            const sign: u8 = s & 0b10000000;
-            const adj: u8 = if (sign == 0b10000000) 0xff else 0x00;
+            // const sign: u8 = imm & 0b1000_0000;
+            // const adj: u8 = if (sign == 0b1000_0000) 0xff else 0x00;
             const msb: u8 = @truncate((register.SP & 0xff00) >> 8);
-            result = msb + adj + @as(u8, hc);
+            // result = msb + adj + @as(u8, hc);
+            result = msb + ov;
+            std.debug.print("\nmsb: 0b{b}, result: 0b{b}\n", .{ msb, result });
 
             register.H = result;
             std.debug.print("\nH: 0b{b}, L: 0b{b}, result: 0b{b}\n", .{ register.H, register.L, result });
