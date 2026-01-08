@@ -350,11 +350,10 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // JR s8
         // Jump s8 steps from the current address in the program counter (PC). (Jump relative.)
         0x18 => {
-            register.PC += 1;
-            const imm: i16 = @as(i16, memory.get(register.PC));
-            const loc: u16 = @bitCast(@as(i16, @bitCast(register.PC)) - imm);
-            register.PC = loc;
-            register.PC += 1;
+            var s: u16 = memory.get(register.PC + 1);
+            const sign: u16 = if ((s & 0b1000_0000) == 0b1000_0000) 0xff00 else 0x00;
+            s |= sign;
+            register.PC = @bitCast(@as(i16, @bitCast(register.PC)) + @as(i16, @bitCast(s)));
         },
 
         // Add the contents of register pair DE to the contents of register pair HL, and store the results

@@ -417,7 +417,7 @@ test "decode and execute 0x16 [LD D, d8]" {
 
 test "decode and execute 0x18 [JR s8]" {
     const op_code: u8 = 0x18;
-    const start_mem_location: u16 = 0x0100;
+    const start_mem_location: u16 = 0x00fd;
 
     var register = RegisterFile{
         .PC = start_mem_location,
@@ -426,11 +426,29 @@ test "decode and execute 0x18 [JR s8]" {
 
     var memory = Memory.init();
     memory.set(start_mem_location, op_code);
-    memory.set(start_mem_location + 1, 0x10); // -128
+    memory.set(start_mem_location + 1, 0xfd); // -3
     memory.set(start_mem_location + 2, STOP_OP_CODE);
 
     try main.decodeAndExecute(&register, &memory);
-    try expectEqual(register.PC, 0x007f); // 127
+    try expectEqual(0x00fa, register.PC);
+}
+
+test "decode and execute 0x18 [JR s8] - positve" {
+    const op_code: u8 = 0x18;
+    const start_mem_location: u16 = 0x00ff;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, 0x03); // 3
+    memory.set(start_mem_location + 2, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expectEqual(0x0102, register.PC);
 }
 
 test "decode and execute 0x21 [LD HL, d16]" {
