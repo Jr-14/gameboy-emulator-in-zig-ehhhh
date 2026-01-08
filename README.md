@@ -11,15 +11,6 @@ answer with my own critical thinking.
 
 Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) told me I should make a GameBoy emulator.
 
-# Resources
-- [You Should Make a Gameboy Emulator](https://www.youtube.com/watch?v=hy2yY5a1Z-0) - I guess this is where it all began.
-- [Gameboy Development Community](https://gbdev.io/)
-- [Gameboy Complete Technical Reference](https://gekkio.fi/files/gb-docs/gbctr.pdf)
-- [RGBDS assembly reference](https://rgbds.gbdev.io/docs/v0.9.0/gbz80.7)
-- [Interactive Op code reference](https://meganesu.github.io/generate-gb-opcodes/)
-- [The Pandocs](https://gbdev.io/pandocs/)
-- [GameBoy Memory Map](http://gameboy.mongenel.com/dmg/asmmemmap.html)
-
 # To Do
 ## CPU Instructions
 

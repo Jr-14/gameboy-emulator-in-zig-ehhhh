@@ -4,3 +4,6 @@ and I think I've somehow got a good framework and understanding on how to do uns
 relative offsets now.
 
 **Total time: 120 minutes**
+
+Found this pretty cool resource as well
+[Bit Twiddling Hacks](https://graphics.stanford.edu/~seander/bithacks.html)
