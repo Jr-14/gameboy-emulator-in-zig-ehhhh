@@ -361,6 +361,21 @@ pub fn decodeAndExecute(register: *RegisterFile, memory: *Memory) !void {
         // TODO:
         // Flags: - 0 16-bit 16-bit
         // 0x19 => "ADD HL, DE",
+
+        // JR NZ, s8
+        // If the Z flag is 0, jump s8 steps from the current address stored in the program counter (PC). If not, the
+        // instruction following the current JP instruction is executed (as usual).
+        0x20 => {
+            register.PC += 1;
+            var s: u16 = memory.get(register.PC);
+            register.PC += 1;
+            const z: bool = register.F & 0b1000_0000 == 0b1000_0000;
+            if (!z) {
+                const sign: u16 = if ((s & 0b1000_0000) == 0b1000_0000) 0xff00 else 0x00;
+                s |= sign;
+                register.PC = @bitCast(@as(i16, @bitCast(register.PC)) + @as(i16, @bitCast(s)));
+            }
+        },
         
         // LD HL, d16
         // Load the 2 bytes of immediate data into register pair HL.
