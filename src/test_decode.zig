@@ -2676,6 +2676,8 @@ test "decode and execute 0xc0 [RET NZ], NZ" {
     var memory = Memory.init();
     memory.set(start_mem_location, op_code);
     memory.set(start_stack_pointer, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
 }
 
 test "decode and execute 0xc0 [RET NZ], Z" {}

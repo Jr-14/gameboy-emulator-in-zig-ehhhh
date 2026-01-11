@@ -21,3 +21,7 @@ Hmmm maybe now is a good time to refactor?
 
 Also I thought I was cool writing hexadecimal with lowercase, but I find it more annoying to read now...
 Maybe it's time to refactor aye?
+
+I've started to refactor them now into interesting components, Did I refactor too early? I'm not too sure but we'll see
+
+Total time: 123 minutes

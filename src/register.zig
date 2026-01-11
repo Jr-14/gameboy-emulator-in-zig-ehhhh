@@ -3,7 +3,7 @@ const std = @import("std");
 const HI_MASK: u16 = 0xFF00;
 const LO_MASK: u8 = 0x00FF;
 
-const Register = struct {
+pub const Register = struct {
     const Self = @This();
 
     reg: u16 = 0,

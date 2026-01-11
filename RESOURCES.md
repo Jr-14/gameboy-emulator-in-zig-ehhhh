@@ -39,3 +39,6 @@ idea to catalogue them.
 
 # Bit handling?
 - [Bit Twiddling Hacks](https://graphics.stanford.edu/~seander/bithacks.html)
+
+# Systems Programming
+- [Inline Functions](https://www.geeksforgeeks.org/cpp/inline-functions-cpp/)
