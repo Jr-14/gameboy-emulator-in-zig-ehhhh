@@ -505,6 +505,87 @@ test "decode and execute 0x20 [JR NZ, s8] Z" {
     try expectEqual(STOP_OP_CODE, register.IR);
 }
 
+test "decode and execute 0x28 [JR Z, s8] Z, negative s8" {
+    const op_code: u8 = 0x28;
+    const start_mem_location: u16 = 0x100;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+        .F = 0b1000_0000,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, 0b1000_0000); // -127
+    memory.set(0x82, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expectEqual(0x82, register.PC);
+    try expectEqual(0, register.A);
+    try expectEqual(0, register.B);
+    try expectEqual(0, register.C);
+    try expectEqual(0, register.D);
+    try expectEqual(0, register.E);
+    try expectEqual(0, register.H);
+    try expectEqual(0, register.L);
+    try expectEqual(STOP_OP_CODE, register.IR);
+}
+
+test "decode and execute 0x28 [JR Z, s8] Z, postive s8" {
+    const op_code: u8 = 0x28;
+    const start_mem_location: u16 = 0x100;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+        .F = 0b1000_0000,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, 0b0111_1111); // 127
+    memory.set(0x181, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expectEqual(0x0181, register.PC);
+    try expectEqual(0, register.A);
+    try expectEqual(0, register.B);
+    try expectEqual(0, register.C);
+    try expectEqual(0, register.D);
+    try expectEqual(0, register.E);
+    try expectEqual(0, register.H);
+    try expectEqual(0, register.L);
+    try expectEqual(STOP_OP_CODE, register.IR);
+}
+
+test "decode and execute 0x28 [JR Z, s8] NZ" {
+    const op_code: u8 = 0x28;
+    const start_mem_location: u16 = 0x100;
+
+    var register = RegisterFile{
+        .PC = start_mem_location,
+        .IR = op_code,
+        .F = 0b0000_0000,
+    };
+
+    var memory = Memory.init();
+    memory.set(start_mem_location, op_code);
+    memory.set(start_mem_location + 1, 0b1000_0000); // -127
+    memory.set(start_mem_location + 2, STOP_OP_CODE);
+
+    try main.decodeAndExecute(&register, &memory);
+    try expectEqual(start_mem_location + 2, register.PC);
+    try expectEqual(0, register.A);
+    try expectEqual(0, register.B);
+    try expectEqual(0, register.C);
+    try expectEqual(0, register.D);
+    try expectEqual(0, register.E);
+    try expectEqual(0, register.H);
+    try expectEqual(0, register.L);
+    try expectEqual(STOP_OP_CODE, register.IR);
+}
+
 test "decode and execute 0x21 [LD HL, d16]" {
     const op_code: u8 = 0x21;
     const start_mem_location: u16 = 0x0100;
