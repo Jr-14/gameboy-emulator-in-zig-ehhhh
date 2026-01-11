@@ -133,7 +133,7 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x20 - JR NZ, s8
 - [x] 0x28 - JR Z, s8
 - [x] 0x30 - JR NC, s8
-- [ ] 0x38 - JR C, s8
+- [x] 0x38 - JR C, s8
 - [ ] 0xc0 - RET NZ
 - [ ] 0xc2 - JP NZ, a16
 - [ ] 0xc3 - JP a16
