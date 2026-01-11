@@ -6,32 +6,40 @@ const LO_MASK: u8 = 0x00FF;
 pub const Register = struct {
     const Self = @This();
 
-    reg: u16 = 0,
+    value: u16 = 0,
 
     pub inline fn read(self: Self) u16 {
-        return self.reg;
+        return self.value;
     }
 
     pub inline fn readHi(self: Self) u8 {
-        return @truncate((self.reg & HI_MASK) >> 8);
+        return @truncate((self.value & HI_MASK) >> 8);
     }
 
     pub inline fn readLo(self: Self) u8 {
-        return @truncate((self.reg & LO_MASK));
+        return @truncate((self.value & LO_MASK));
     }
 
     pub inline fn write(self: *Self, val: u16) void {
-        self.reg = val;
+        self.value = val;
     }
 
     pub inline fn writeHi(self: *Self, val: u8) void {
         const new_hi: u16 = @as(u16, val) << 8;
-        const curr_lo: u16 = (self.reg & LO_MASK);
-        self.reg = new_hi | curr_lo;
+        const curr_lo: u16 = (self.value & LO_MASK);
+        self.value = new_hi | curr_lo;
     }
 
     pub inline fn writeLo(self: *Self, val: u8) void {
-        self.reg = (self.reg & HI_MASK) | val;
+        self.value = (self.value & HI_MASK) | val;
+    }
+
+    pub inline fn increment(self: *Self) void {
+        self.value += 1;
+    }
+
+    pub inline fn decrement(self: *Self) void {
+        self.value -= 1;
     }
 };
 
@@ -39,7 +47,7 @@ const expectEqual = std.testing.expectEqual;
 
 test "reading an initialised register" {
     var AF = Register {
-        .reg = 0xffdd
+        .value = 0xffdd
     };
 
     try expectEqual(0xff, AF.readHi());
@@ -81,4 +89,36 @@ test "writing and reading 16 bit register" {
     try expectEqual(0x67f9, AF.read());
     try expectEqual(0x67, AF.readHi());
     try expectEqual(0xf9, AF.readLo());
+}
+
+test "increment" {
+    var AF = Register{
+        .value = 0xf000,
+    };
+
+    AF.increment();
+
+    try expectEqual(0xf001, AF.value);
+
+    AF.increment();
+    AF.increment();
+
+    try expectEqual(0xf003, AF.value);
+    try expectEqual(0xf003, AF.read());
+}
+
+test "decrement" {
+    var AF = Register{
+        .value = 0xf000,
+    };
+
+    AF.decrement();
+
+    try expectEqual(0xefff, AF.value);
+
+    AF.decrement();
+    AF.decrement();
+
+    try expectEqual(0xeffd, AF.value);
+    try expectEqual(0xeffd, AF.read());
 }
