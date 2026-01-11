@@ -46,6 +46,10 @@ test "reading an initialised register" {
     try expectEqual(0xff, AF.readHi());
     try expectEqual(0xdd, AF.readLo());
     try expectEqual(0xffdd, AF.read());
+
+    AF.write(0x1023);
+    try expectEqual(0x10, AF.readHi());
+    try expectEqual(0x23, AF.readLo());
 }
 
 test "writing and reading hi register" {
@@ -75,7 +79,7 @@ test "writing and reading 16 bit register" {
 
     AF.write(0x67f9);
 
-    try expectEqual(0x6739, AF.read());
+    try expectEqual(0x67f9, AF.read());
     try expectEqual(0x67, AF.readHi());
-    try expectEqual(0x3b, AF.readLo());
+    try expectEqual(0xf9, AF.readLo());
 }
