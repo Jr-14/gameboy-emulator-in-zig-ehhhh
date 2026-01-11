@@ -1,4 +1,3 @@
-const Memory = @import("memory.zig").Memory;
 const std = @import("std");
 
 const HI_MASK: u16 = 0xFF00;
