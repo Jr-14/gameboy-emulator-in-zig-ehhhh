@@ -21,6 +21,7 @@ idea to catalogue them.
 - [Zig's funky syntax (.{}){}](https://www.openmymind.net/Zigs-weird-syntax/#)
 - [what's the simplest way of mixing signedness calculation in zig](https://stackoverflow.com/questions/76293230/whats-the-simple-way-of-mixing-signed-ness-calculation-in-zig)
 - [wrapping arithmetic](https://ziglang.org/documentation/0.15.2/#Runtime-Integer-Values)
+- [Zig Function Pointers](https://zigtoolbox.com/zig-function-pointers)
 
 # Emulator Design
 - [How Do Emulators Work? A Deep Dive into Emulator Design](https://www.retroreversing.com/how-emulators-work)
