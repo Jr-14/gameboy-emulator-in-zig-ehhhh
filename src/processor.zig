@@ -18,30 +18,31 @@ pub const Processor = struct {
         self.memory = memory;
     }
 
+    // Fetches the next instruction to be executed from the current memory address pointed at by PC
     pub inline fn fetch(self: *Self) u16 {
         const i: u16 = self.memory.read(self.PC.value);
         self.PC.increment();
         return i;
     }
 
-    pub fn decodeAndExecute(self: *Self) void {
+    pub fn decodeAndExecute(self: *Self, instruction: u16) void {
         // TODO:
         // state all the different instructions for 8-bit opcodes
         //
         // TODO:
         // Look at 16-bit opcodes? Is this required?
-        switch (self.IR) {
+        switch (instruction) {
             // NOP (No operation) Only advances the program counter by 1.
             // Performs no other operations that would have an effect
-            0x00 => self.PC += 1,
+            0x00 => {},
 
             // LD BC, d16
             // Load the 2 bytes of immediate data into register pair BC
             // The first byte of immediate data is the lower byte (i.e. bits 0-7), and
             // the second byte of immediate data is the higher byte (i.e., bits 8-15)
             0x01 => {
-                self.PC += 1;
-                register.C = memory.get(register.PC);
+                self.BC.writeHi
+                memory.get(register.PC);
                 register.PC += 1;
                 register.B = memory.get(register.PC);
                 register.PC += 1;

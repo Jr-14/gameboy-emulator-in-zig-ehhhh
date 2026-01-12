@@ -8,29 +8,29 @@ pub const Register = struct {
 
     value: u16 = 0,
 
-    pub inline fn read(self: Self) u16 {
+    pub inline fn get(self: Self) u16 {
         return self.value;
     }
 
-    pub inline fn readHi(self: Self) u8 {
+    pub inline fn getHi(self: Self) u8 {
         return @truncate((self.value & HI_MASK) >> 8);
     }
 
-    pub inline fn readLo(self: Self) u8 {
+    pub inline fn getLo(self: Self) u8 {
         return @truncate((self.value & LO_MASK));
     }
 
-    pub inline fn write(self: *Self, val: u16) void {
+    pub inline fn set(self: *Self, val: u16) void {
         self.value = val;
     }
 
-    pub inline fn writeHi(self: *Self, val: u8) void {
+    pub inline fn SetHi(self: *Self, val: u8) void {
         const new_hi: u16 = @as(u16, val) << 8;
         const curr_lo: u16 = (self.value & LO_MASK);
         self.value = new_hi | curr_lo;
     }
 
-    pub inline fn writeLo(self: *Self, val: u8) void {
+    pub inline fn setLo(self: *Self, val: u8) void {
         self.value = (self.value & HI_MASK) | val;
     }
 
@@ -45,50 +45,50 @@ pub const Register = struct {
 
 const expectEqual = std.testing.expectEqual;
 
-test "reading an initialised register" {
+test "getting an initialised register" {
     var AF = Register {
         .value = 0xffdd
     };
 
-    try expectEqual(0xff, AF.readHi());
-    try expectEqual(0xdd, AF.readLo());
-    try expectEqual(0xffdd, AF.read());
+    try expectEqual(0xff, AF.getHi());
+    try expectEqual(0xdd, AF.getLo());
+    try expectEqual(0xffdd, AF.get());
 
-    AF.write(0x1023);
-    try expectEqual(0x10, AF.readHi());
-    try expectEqual(0x23, AF.readLo());
+    AF.set(0x1023);
+    try expectEqual(0x10, AF.getHi());
+    try expectEqual(0x23, AF.getLo());
 }
 
-test "writing and reading hi register" {
+test "setting and getting hi register" {
     var AF = Register{};
-    AF.writeHi(0xff);
+    AF.SetHi(0xff);
 
-    try expectEqual(0xff, AF.readHi());
-    try expectEqual(0x00, AF.readLo());
-    try expectEqual(0xff00, AF.read());
+    try expectEqual(0xff, AF.getHi());
+    try expectEqual(0x00, AF.getLo());
+    try expectEqual(0xff00, AF.get());
 }
 
-test "writing and reading lo register" {
+test "setting and getting lo register" {
     var AF = Register{};
-    AF.writeLo(0x1c);
+    AF.setLo(0x1c);
 
-    try expectEqual(0x1c, AF.readLo());
-    try expectEqual(0x00, AF.readHi());
+    try expectEqual(0x1c, AF.getLo());
+    try expectEqual(0x00, AF.getHi());
 }
 
-test "writing and reading 16 bit register" {
+test "setting and getting 16 bit register" {
     var AF = Register{};
-    AF.write(0x1c3b);
+    AF.set(0x1c3b);
 
-    try expectEqual(0x1c3b, AF.read());
-    try expectEqual(0x1c, AF.readHi());
-    try expectEqual(0x3b, AF.readLo());
+    try expectEqual(0x1c3b, AF.get());
+    try expectEqual(0x1c, AF.getHi());
+    try expectEqual(0x3b, AF.getLo());
 
-    AF.write(0x67f9);
+    AF.set(0x67f9);
 
-    try expectEqual(0x67f9, AF.read());
-    try expectEqual(0x67, AF.readHi());
-    try expectEqual(0xf9, AF.readLo());
+    try expectEqual(0x67f9, AF.get());
+    try expectEqual(0x67, AF.getHi());
+    try expectEqual(0xf9, AF.getLo());
 }
 
 test "increment" {
@@ -104,7 +104,7 @@ test "increment" {
     AF.increment();
 
     try expectEqual(0xf003, AF.value);
-    try expectEqual(0xf003, AF.read());
+    try expectEqual(0xf003, AF.get());
 }
 
 test "decrement" {
@@ -120,5 +120,5 @@ test "decrement" {
     AF.decrement();
 
     try expectEqual(0xeffd, AF.value);
-    try expectEqual(0xeffd, AF.read());
+    try expectEqual(0xeffd, AF.get());
 }
