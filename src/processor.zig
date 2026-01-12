@@ -6,9 +6,9 @@ pub const Processor = struct {
     BC: Register = {},
     DE: Register = {},
     HL: Register = {},
-    PC: u16 = 0,
-    SP: u16 = 0,
-    IR: u16 = 0,
+    PC: Register = {},
+    SP: Register = {},
+    IR: Register = {},
 
     memory: Memory = undefined,
 
@@ -19,8 +19,8 @@ pub const Processor = struct {
     }
 
     pub inline fn fetch(self: *Self) u16 {
-        const i: u16 = self.memory.read(self.PC);
-        self.PC += 1;
+        const i: u16 = self.memory.read(self.PC.value);
+        self.PC.increment();
         return i;
     }
 

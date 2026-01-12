@@ -1,5 +1,5 @@
 // 65,536 positions inlcuding 0x00 and 0xffff
-pub const ARRAY_SIZE: u32 = 0xffff + 1;
+pub const ARRAY_SIZE: u32 = 0xFFFF + 1;
 
 pub const Memory = struct {
     memory_array: [ARRAY_SIZE]u8 = undefined,
@@ -23,3 +23,32 @@ pub const Memory = struct {
         self.memory_array[index] = value;
     }
 };
+
+const std = @import("std");
+const expectEqual = std.testing.expectEqual;
+
+test "reading and writing boundaries" {
+    var memory = Memory.init();
+
+    memory.write(0xFFFF, 0xAC);
+    memory.write(0x0000, 0x7F);
+
+    try expectEqual(0xAC, memory.read(0xFFFF));
+    try expectEqual(0x00, memory.read(0xFFFE));
+    try expectEqual(0x7F, memory.read(0x0000));
+    try expectEqual(0x00, memory.read(0x0001));
+}
+
+test "reading and writing" {
+    var memory = Memory.init();
+
+    memory.write(0x1004, 0xAC);
+    memory.write(0x7AC0, 0x7F);
+
+    try expectEqual(0xAC, memory.read(0x1004));
+    try expectEqual(0x00, memory.read(0x1005));
+    try expectEqual(0x00, memory.read(0x1003));
+    try expectEqual(0x7F, memory.read(0x7AC0));
+    try expectEqual(0x00, memory.read(0x7AC1));
+    try expectEqual(0x00, memory.read(0x7ABF));
+}
