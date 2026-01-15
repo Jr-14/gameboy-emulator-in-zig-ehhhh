@@ -44,6 +44,8 @@ pub const Processor = struct {
             0x01 => {
                 self.BC.setLo(self.memory.read(self.PC.get()));
                 self.PC.increment();
+                self.BC.setHi(self.memory.read(self.PC.get()));
+                self.PC.increment();
             },
 
             // LD (BC), A
@@ -78,7 +80,7 @@ pub const Processor = struct {
             // LD B, d8
             // Load the 8-bit immediate operand d8 into register B.
             0x06 => {
-                self.BC.SetHi(self.memory.read(self.PC.get()));
+                self.BC.setHi(self.memory.read(self.PC.get()));
                 self.PC.increment();
             },
 

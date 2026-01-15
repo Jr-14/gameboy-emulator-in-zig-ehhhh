@@ -31,7 +31,7 @@ pub const Register = struct {
         self.value = val;
     }
 
-    pub inline fn SetHi(self: *Self, val: u8) void {
+    pub inline fn setHi(self: *Self, val: u8) void {
         const new_hi: u16 = @as(u16, val) << 8;
         const curr_lo: u16 = (self.value & LO_MASK);
         self.value = new_hi | curr_lo;
@@ -76,7 +76,7 @@ test "getting an initialised register" {
 
 test "setting and getting hi register" {
     var AF = Register{};
-    AF.SetHi(0xff);
+    AF.setHi(0xff);
 
     try expectEqual(0xff, AF.getHi());
     try expectEqual(0x00, AF.getLo());
