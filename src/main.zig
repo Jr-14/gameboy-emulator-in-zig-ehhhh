@@ -1,36 +1,5 @@
 const std = @import("std");
 
-pub const FlagsRegister = struct {
-    Z: u1 = 0,
-    N: u1 = 0,
-    H: u1 = 0,
-    C: u1 = 0,
-
-    const Self = @This();
-
-    pub fn asByte(self: Self) u8 {
-        var f: u8 = self.Z << 8;
-        f |= (self.N << 7);
-        f |= (self.H << 6);
-        f |= (self.C << 5);
-        return f;
-    }
-
-    pub fn zeroAll(self: Self) void {
-        self.Z = 0;
-        self.N = 0;
-        self.H = 0;
-        self.C = 0;
-    }
-
-    pub fn setFromByte(self: *Self, bits: u8) void {
-        self.Z = @as(u1, (bits & 0x8) >> 3);
-        self.H = @as(u1, (bits & 0x4) >> 2);
-        self.H = @as(u1, (bits & 0x2) >> 1);
-        self.C = @as(u1, bits & 0x1);
-    }
-};
-
 pub const RegisterFile = struct {
     A: u8 = 0, // Accumulator
     F: u8 = 0, // Flags

@@ -8,6 +8,13 @@ pub const Register = struct {
 
     value: u16 = 0,
 
+    pub fn init(hi: u8, lo: u8) Self {
+        const value: u16 = (@as(u16, hi) << 8) | lo;
+        return .{
+            .value = value,
+        };
+    }
+
     pub inline fn get(self: Self) u16 {
         return self.value;
     }
@@ -44,6 +51,14 @@ pub const Register = struct {
 };
 
 const expectEqual = std.testing.expectEqual;
+
+test "init" {
+    const hi: u8 = 0x31;
+    const lo: u8 = 0x7b;
+    var AF = Register.init(hi, lo);
+
+    try expectEqual(0x317b, AF.get());
+}
 
 test "getting an initialised register" {
     var AF = Register {
