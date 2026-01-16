@@ -4,4 +4,4 @@ I've been slacking and wanting to tdo something else, but that's okay.
 I'm back now to properly refactor things. I'd also like to get some feedback
 from the zig community after this refactor.
 
-Total time: 40 minutes
+Total time: 85 minutes
