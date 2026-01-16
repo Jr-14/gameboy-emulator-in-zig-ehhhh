@@ -177,50 +177,47 @@ pub const Processor = struct {
                 self.PC.increment();
             },
 
-            // // LD (DE), A
-            // // Store the contents of register A in the memory location specified by register pair DE.
-            // 0x12 => {
-            //     memory.set(register.getDE(), register.A);
-            //     register.PC += 1;
-            // },
-            //
-            // // Increment the contents of register pair DE by 1.
-            // // 0x13 => "INC DE",
-            //
-            // // Increment the contents of register D by 1.
-            // // TODO:
-            // // Flags: Z 0 8-bit -
-            // // 0x14 => "INC D",
-            //
-            // // Decremenet the contents of register D by 1.
-            // // TODO:
-            // // Flags: Z 1 8-bit -
-            // // 0x15 => "DEC D",
-            //
-            // // LD D, d8
-            // // Load the 8-bit immediate operand d8 into register D.
-            // 0x16 => {
-            //     register.PC += 1;
-            //     register.D = memory.get(register.PC);
-            //     register.PC += 1;
-            // },
-            //
-            // // Rotate the contents of register A to the left, through the carry (CY) flag. That is, the
-            // // contents of bit 0 are copied to bit 1, and the previous contents of bit 1 (before the copy
-            // // operation) are copied to bit 2. The same operation is repeated in sequence for the rest of
-            // // the register. The previous contents of the carry flag are copied to bit 0.
-            // // TODO:
-            // // Flags: 0 0 0 A7
-            // // 0x17 => "RLA",
-            //
-            // // JR s8
-            // // Jump s8 steps from the current address in the program counter (PC). (Jump relative.)
-            // 0x18 => {
-            //     var s: u16 = memory.get(register.PC + 1);
-            //     const sign: u16 = if ((s & 0b1000_0000) == 0b1000_0000) 0xff00 else 0x00;
-            //     s |= sign;
-            //     register.PC = @bitCast(@as(i16, @bitCast(register.PC)) + @as(i16, @bitCast(s)));
-            // },
+            // LD (DE), A
+            // Store the contents of register A in the memory location specified by register pair DE.
+            0x12 => self.memory.write(self.DE.get(), self.AF.getHi()),
+
+
+            // Increment the contents of register pair DE by 1.
+            // 0x13 => "INC DE",
+
+            // Increment the contents of register D by 1.
+            // TODO:
+            // Flags: Z 0 8-bit -
+            // 0x14 => "INC D",
+
+            // Decremenet the contents of register D by 1.
+            // TODO:
+            // Flags: Z 1 8-bit -
+            // 0x15 => "DEC D",
+
+            // LD D, d8
+            // Load the 8-bit immediate operand d8 into register D.
+            0x16 => {
+                self.DE.setHi(self.memory.read(self.PC.get()));
+                self.PC.increment();
+            },
+
+            // Rotate the contents of register A to the left, through the carry (CY) flag. That is, the
+            // contents of bit 0 are copied to bit 1, and the previous contents of bit 1 (before the copy
+            // operation) are copied to bit 2. The same operation is repeated in sequence for the rest of
+            // the register. The previous contents of the carry flag are copied to bit 0.
+            // TODO:
+            // Flags: 0 0 0 A7
+            // 0x17 => "RLA",
+
+            // JR s8
+            // Jump s8 steps from the current address in the program counter (PC). (Jump relative.)
+            0x18 => {
+                var s: u16 = self.memory.read(self.PC.get());
+                const sign: u16 = if ((s & 0b1000_0000) == 0b1000_0000) 0xff00 else 0x00;
+                s |= sign;
+                register.PC = @bitCast(@as(i16, @bitCast(register.PC)) + @as(i16, @bitCast(s)));
+            },
             //
             // // Add the contents of register pair DE to the contents of register pair HL, and store the results
             // // in register pair HL.

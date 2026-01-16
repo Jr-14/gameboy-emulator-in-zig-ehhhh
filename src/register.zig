@@ -3,6 +3,18 @@ const std = @import("std");
 pub const HI_MASK: u16 = 0xFF00;
 pub const LO_MASK: u8 = 0x00FF;
 
+pub const Z_MASK: u8 = 0x80; // 0b1000_0000
+pub const N_MASK: u8 = 0x40; // 0b0100_0000
+pub const H_MASK: u8 = 0x20; // 0b0010_0000
+pub const C_MASK: u8 = 0x10; // 0b0001_0000
+
+pub const Flag = enum {
+    Z,
+    N,
+    H,
+    C,
+};
+
 pub const Register = struct {
     const Self = @This();
 
@@ -49,6 +61,35 @@ pub const Register = struct {
         self.value -= 1;
     }
 };
+
+pub fn isFlagSet(register: *Register, flag: Flag) bool {
+    return switch (flag) {
+        .Z => (register.getLo() & Z_MASK) == Z_MASK,
+        .N => (register.getLo() & N_MASK) == N_MASK,
+        .H => (register.getLo() & H_MASK) == H_MASK,
+        .C => (register.getLo() & C_MASK) == C_MASK,
+    };
+}
+
+pub fn setFlag(register: *Register, flag:  Flag) void {
+    const hi = register.getLo();
+    switch (flag) {
+        .Z => register.setLo(hi | Z_MASK),
+        .N => register.setLo(hi | N_MASK),
+        .H => register.setLo(hi | H_MASK),
+        .C => register.setLo(hi | C_MASK),
+    }
+}
+
+pub fn unsetFlag(register: *Register, flag: Flag) void {
+    const hi = register.getLo();
+    switch (flag) {
+        .Z => register.setLo(hi & ~Z_MASK),
+        .N => register.setLo(hi & ~N_MASK),
+        .H => register.setLo(hi & ~H_MASK),
+        .C => register.setLo(hi & ~C_MASK),
+    }
+}
 
 const expectEqual = std.testing.expectEqual;
 
@@ -136,4 +177,136 @@ test "decrement" {
 
     try expectEqual(0xeffd, AF.value);
     try expectEqual(0xeffd, AF.get());
+}
+
+test "isFlagSet, Z" {
+    var AF = Register{
+        .value = 0b1000_0000,
+    };
+
+    try expectEqual(true, isFlagSet(&AF, .Z));
+    try expectEqual(false, isFlagSet(&AF, .N));
+    try expectEqual(false, isFlagSet(&AF, .H));
+    try expectEqual(false, isFlagSet(&AF, .C));
+}
+
+test "isFlagSet, N" {
+    var AF = Register{
+        .value = 0b0100_0000,
+    };
+
+    try expectEqual(false, isFlagSet(&AF, .Z));
+    try expectEqual(true, isFlagSet(&AF, .N));
+    try expectEqual(false, isFlagSet(&AF, .H));
+    try expectEqual(false, isFlagSet(&AF, .C));
+}
+
+test "isFlagSet, H" {
+    var AF = Register{
+        .value = 0b0010_0000,
+    };
+
+    try expectEqual(false, isFlagSet(&AF, .Z));
+    try expectEqual(false, isFlagSet(&AF, .N));
+    try expectEqual(true, isFlagSet(&AF, .H));
+    try expectEqual(false, isFlagSet(&AF, .C));
+}
+
+test "isFlagSet, C" {
+    var AF = Register{
+        .value = 0b0001_0000,
+    };
+
+    try expectEqual(false, isFlagSet(&AF, .Z));
+    try expectEqual(false, isFlagSet(&AF, .N));
+    try expectEqual(false, isFlagSet(&AF, .H));
+    try expectEqual(true, isFlagSet(&AF, .C));
+}
+
+test "setFlag, Z" {
+    var AF = Register{};
+    setFlag(&AF, .Z);
+
+    try expectEqual(true, isFlagSet(&AF, .Z));
+    try expectEqual(false, isFlagSet(&AF, .N));
+    try expectEqual(false, isFlagSet(&AF, .H));
+    try expectEqual(false, isFlagSet(&AF, .C));
+}
+
+test "setFlag, N" {
+    var AF = Register{};
+    setFlag(&AF, .N);
+
+    try expectEqual(false, isFlagSet(&AF, .Z));
+    try expectEqual(true, isFlagSet(&AF, .N));
+    try expectEqual(false, isFlagSet(&AF, .H));
+    try expectEqual(false, isFlagSet(&AF, .C));
+}
+
+test "setFlag, H" {
+    var AF = Register{};
+    setFlag(&AF, .H);
+
+    try expectEqual(false, isFlagSet(&AF, .Z));
+    try expectEqual(false, isFlagSet(&AF, .N));
+    try expectEqual(true, isFlagSet(&AF, .H));
+    try expectEqual(false, isFlagSet(&AF, .C));
+}
+
+test "setFlag, C" {
+    var AF = Register{};
+    setFlag(&AF, .C);
+
+    try expectEqual(false, isFlagSet(&AF, .Z));
+    try expectEqual(false, isFlagSet(&AF, .N));
+    try expectEqual(false, isFlagSet(&AF, .H));
+    try expectEqual(true, isFlagSet(&AF, .C));
+}
+
+test "unsetFlag, Z" {
+    var AF = Register{
+        .value = 0b1111_0000,
+    };
+    unsetFlag(&AF, .Z);
+
+    try expectEqual(false, isFlagSet(&AF, .Z));
+    try expectEqual(true, isFlagSet(&AF, .N));
+    try expectEqual(true, isFlagSet(&AF, .H));
+    try expectEqual(true, isFlagSet(&AF, .C));
+}
+
+test "unsetFlag, N" {
+    var AF = Register{
+        .value = 0b1111_0000,
+    };
+    unsetFlag(&AF, .N);
+
+    try expectEqual(true, isFlagSet(&AF, .Z));
+    try expectEqual(false, isFlagSet(&AF, .N));
+    try expectEqual(true, isFlagSet(&AF, .H));
+    try expectEqual(true, isFlagSet(&AF, .C));
+}
+
+test "unsetFlag, H" {
+    var AF = Register{
+        .value = 0b1111_0000,
+    };
+    unsetFlag(&AF, .H);
+
+    try expectEqual(true, isFlagSet(&AF, .Z));
+    try expectEqual(true, isFlagSet(&AF, .N));
+    try expectEqual(false, isFlagSet(&AF, .H));
+    try expectEqual(true, isFlagSet(&AF, .C));
+}
+
+test "unsetFlag, C" {
+    var AF = Register{
+        .value = 0b1111_0000,
+    };
+    unsetFlag(&AF, .C);
+
+    try expectEqual(true, isFlagSet(&AF, .Z));
+    try expectEqual(true, isFlagSet(&AF, .N));
+    try expectEqual(true, isFlagSet(&AF, .H));
+    try expectEqual(false, isFlagSet(&AF, .C));
 }
