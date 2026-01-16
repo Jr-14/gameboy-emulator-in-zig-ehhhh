@@ -110,77 +110,73 @@ pub const Processor = struct {
                 self.memory.write(z + 1, sp_msb);
                 self.PC.increment();
             },
+
+            // Add the contents of register pair BC to the contents of register pair HL, and
+            // store the results in register pair HL.
+            // TODO:
+            // Flags: - 0 16-bit 16-bit
+            // 0x09 => "ADD HL, BC",
+
+            // LD A, (BC)
+            // Load the 8-bit contents of memory specified by register pair BC into register A.
+            0x0A => {
+                self.AF.setHi(self.memory.read(self.BC.get()));
+                self.PC.increment();
+            },
+
+            // Decrement the contents of register pair BC by 1.
+            // 0x0b => "DEC BC",
+
+            // Increment the contents of register C by 1.
+            // TODO:
+            // Flags: Z 0 8-bit -
+            // 0x0c => "INC C",
+
+            // Decrement the contents of register C by 1
+            // TODO:
+            // Flags: Z 1 8-bit -
+            // 0x0d => "DEC C",
+
+            // LD C, d8
+            // Load the 8-bit immediate operand d8 into register C
+            0x0E => {
+                self.BC.setLo(self.memory.read(self.PC.get()));
+                self.PC.increment();
+            },
+
+            // Rotate the contents of register A to the right. That is, the contents of bit 7 are
+            // copied to bit 6, and the previous contents of bit 6 (before the copy) are copied to
+            // bit 5. The same operation is repeated in sequence for the rest of the register. The
+            // contents of bit 0 are placed in both the CY flag and bit 7 are register A.
+            // TODO:
+            // Flags: 0 0 0 A0
+            // 0x0f => "RRCA",
+
+            // Execution of a STOP instruction stops both the system clock and oscillator circuit.
+            // STOP mode is entered and the LCD controller also stops. However, the status of the
+            // internal RAM register ports remains unchanged.
             //
-            // // Add the contents of register pair BC to the contents of register pair HL, and
-            // // store the results in register pair HL.
-            // // TODO:
-            // // Flags: - 0 16-bit 16-bit
-            // // 0x09 => "ADD HL, BC",
+            // STOP mode can be canelled by a reset signal
             //
-            // // LD A, (BC)
-            // // Load the 8-bit contents of memory specified by register pair BC into register A.
-            // 0x0a => {
-            //     register.A = memory.get(register.getBC());
-            //     register.PC += 1;
-            // },
+            // If the rRESET terminal goes LOW in STOP mode, it becomes that of a normal reset status.
             //
-            // // Decrement the contents of register pair BC by 1.
-            // // 0x0b => "DEC BC",
-            //
-            // // Increment the contents of register C by 1.
-            // // TODO:
-            // // Flags: Z 0 8-bit -
-            // // 0x0c => "INC C",
-            //
-            // // Decrement the contents of register C by 1
-            // // TODO:
-            // // Flags: Z 1 8-bit -
-            // // 0x0d => "DEC C",
-            //
-            // // LD C, d8
-            // // Load the 8-bit immediate operand d8 into register C
-            // 0x0e => {
-            //     register.PC += 1;
-            //     register.C = memory.get(register.PC);
-            //     register.PC += 1;
-            // },
-            //
-            // // Rotate the contents of register A to the right. That is, the contents of bit 7 are
-            // // copied to bit 6, and the previous contents of bit 6 (before the copy) are copied to
-            // // bit 5. The same operation is repeated in sequence for the rest of the register. The
-            // // contents of bit 0 are placed in both the CY flag and bit 7 are register A.
-            // // TODO:
-            // // Flags: 0 0 0 A0
-            // // 0x0f => "RRCA",
-            //
-            // // Execution of a STOP instruction stops both the system clock and oscillator circuit.
-            // // STOP mode is entered and the LCD controller also stops. However, the status of the
-            // // internal RAM register ports remains unchanged.
-            // //
-            // // STOP mode can be canelled by a reset signal
-            // //
-            // // If the rRESET terminal goes LOW in STOP mode, it becomes that of a normal reset status.
-            // //
-            // // THe following conditions should be met before a STOP instruction is executed and stop
-            // // mode is entered:
-            // // - All interrupt-enable (IE) flags are reset.
-            // // - Input to P10-P13 is LOW for all.
-            // // 0x10 => "STOP",
-            //
-            // // LD DE, d16
-            // // Load the 2 bytes of immediate data into register pair DE.
-            // // The first byte of immediate data is the lower byte (i.e., bit 0-7), and the second byte
-            // // of immediate data is the higher byte (i.e., bits 8-15)
-            // 0x11 => {
-            //     register.PC += 1;
-            //     register.E = memory.get(register.PC);
-            //
-            //     register.PC += 1;
-            //     register.D = memory.get(register.PC);
-            //
-            //     register.PC += 1;
-            // },
-            //
+            // THe following conditions should be met before a STOP instruction is executed and stop
+            // mode is entered:
+            // - All interrupt-enable (IE) flags are reset.
+            // - Input to P10-P13 is LOW for all.
+            // 0x10 => "STOP",
+
+            // LD DE, d16
+            // Load the 2 bytes of immediate data into register pair DE.
+            // The first byte of immediate data is the lower byte (i.e., bit 0-7), and the second byte
+            // of immediate data is the higher byte (i.e., bits 8-15)
+            0x11 => {
+                self.DE.setLo(self.memory.read(self.PC.get()));
+                self.PC.increment();
+                self.DE.setHi(self.memory.read(self.PC.get()));
+                self.PC.increment();
+            },
+
             // // LD (DE), A
             // // Store the contents of register A in the memory location specified by register pair DE.
             // 0x12 => {
