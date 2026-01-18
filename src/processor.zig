@@ -1,4 +1,6 @@
 const register = @import("register.zig");
+const utils = @import("utils.zig");
+
 const Register = register.Register;
 const HI_MASK = register.HI_MASK;
 const LO_MASK = register.LO_MASK;
@@ -213,10 +215,10 @@ pub const Processor = struct {
             // JR s8
             // Jump s8 steps from the current address in the program counter (PC). (Jump relative.)
             0x18 => {
-                var s: u16 = self.memory.read(self.PC.get());
-                const sign: u16 = if ((s & 0b1000_0000) == 0b1000_0000) 0xff00 else 0x00;
-                s |= sign;
-                register.PC = @bitCast(@as(i16, @bitCast(register.PC)) + @as(i16, @bitCast(s)));
+                const offset = self.memory.read(self.PC.get());
+                self.PC.increment();
+                const address: u16 = utils.addOffset(self.PC.get(), offset);
+                self.PC.set(address);
             },
             //
             // // Add the contents of register pair DE to the contents of register pair HL, and store the results

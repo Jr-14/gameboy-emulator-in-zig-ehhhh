@@ -31,4 +31,15 @@ test "sign extend - positive two's complement" {
 }
 
 test "addOffset - negative offset" {
+    const negative_three_u8: u8 = 0b1111_1101; // -3
+    const initial_PC: u16 = 0b0000_0001_0000_0000; // 256
+
+    try expectEqual(253, addOffset(initial_PC, negative_three_u8));
+}
+
+test "addOffset - positive offset" {
+    const positive_three_u8: u8 = 0b11; // 3
+    const initial_PC: u16 = 0b0000_0000_1111_1111; // 255
+
+    try expectEqual(258, addOffset(initial_PC, positive_three_u8));
 }

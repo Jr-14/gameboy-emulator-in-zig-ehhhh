@@ -235,3 +235,19 @@ test "decode and execute 0x16 [LD D, d8]" {
     try expectEqual(0x00, processor.DE.getLo());
     try expectEqual(0x00, processor.HL.get());
 }
+
+test "decode and execute 0x18 [JR s8]" {
+    const op_code: u8 = 0x18;
+    const initial_PC: u16 = 0x00fd;
+    const offset: u8 = 0b1111_1101; // -3
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(initial_PC + 1, offset);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(0x00fc, processor.PC.get());
+}
