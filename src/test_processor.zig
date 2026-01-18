@@ -1,9 +1,12 @@
 const std = @import("std");
-const Register = @import("register.zig").Register;
+const register = @import("register.zig");
+const Register = register.Register;
 const Processor = @import("processor.zig").Processor;
 const Memory = @import("memory.zig").Memory;
 
 const expectEqual = std.testing.expectEqual;
+
+const STOP_OP_CODE: u8 = 0x10;
 
 test "decode and execute 0x01 [LD BC, d16]" {
     const op_code: u8 = 0x01;
@@ -126,7 +129,7 @@ test "decode and execute 0x08 [LD (a16), SP]" {
 test "decode and execute 0x0A [LD A, (BC)]" {
     const op_code: u8 = 0x0a;
     const initial_PC: u16 = 0x0100;
-    const BC: u16 = 0x2c19;
+    const BC: u16 = 0x2C19;
     const contents: u8 = 0x79;
 
     var memory = Memory.init();
@@ -148,7 +151,7 @@ test "decode and execute 0x0A [LD A, (BC)]" {
 }
 
 test "decode and execute 0x0E [LD C, d8]" {
-    const op_code: u8 = 0x0e;
+    const op_code: u8 = 0x0E;
     const initial_PC: u16 = 0x0100;
     const d: u8 = 0x12;
 
@@ -172,7 +175,7 @@ test "decode and execute 0x11 [LD DE, d16]" {
     const op_code: u8 = 0x11;
     const initial_PC: u16 = 0x0100;
     const hi: u8 = 0x88;
-    const lo: u8 = 0x1b;
+    const lo: u8 = 0x1B;
 
     var memory = Memory.init();
     var processor = Processor.init(&memory);
@@ -186,7 +189,7 @@ test "decode and execute 0x11 [LD DE, d16]" {
     try expectEqual(initial_PC + 3, processor.PC.get());
     try expectEqual(0x0000, processor.AF.get());
     try expectEqual(0x0000, processor.BC.get());
-    try expectEqual(0x881b, processor.DE.get());
+    try expectEqual(0x881B, processor.DE.get());
     try expectEqual(0x0000, processor.HL.get());
 }
 
@@ -217,7 +220,7 @@ test "decode and execute 0x12 [LD (DE), A]" {
 test "decode and execute 0x16 [LD D, d8]" {
     const op_code: u8 = 0x16;
     const initial_PC: u16 = 0x0100;
-    const d: u8 = 0x0b;
+    const d: u8 = 0x0B;
 
     var memory = Memory.init();
     var processor = Processor.init(&memory);
@@ -238,7 +241,7 @@ test "decode and execute 0x16 [LD D, d8]" {
 
 test "decode and execute 0x18 [JR s8]" {
     const op_code: u8 = 0x18;
-    const initial_PC: u16 = 0x00fd;
+    const initial_PC: u16 = 0x00FD;
     const offset: u8 = 0b1111_1101; // -3
 
     var memory = Memory.init();
@@ -249,5 +252,53 @@ test "decode and execute 0x18 [JR s8]" {
 
     const instruction = processor.fetch();
     try processor.decodeAndExecute(instruction);
-    try expectEqual(0x00fc, processor.PC.get());
+    try expectEqual(0x00FC, processor.PC.get());
+    try expectEqual(0x0000, processor.AF.get());
+    try expectEqual(0x0000, processor.BC.get());
+    try expectEqual(0x0000, processor.DE.get());
+    try expectEqual(0x0000, processor.HL.get());
+    try expectEqual(0x0000, processor.SP.get());
+}
+
+test "decode and execute 0x20 [JR NZ, s8] NZ" {
+    const op_code: u8 = 0x20;
+    const initial_PC: u16 = 0x00FF;
+    const offset: u8 = 0b1111_1101; // -3
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(initial_PC + 1, offset);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC - 1, processor.PC.get());
+    try expectEqual(0x0000, processor.AF.get());
+    try expectEqual(0x0000, processor.BC.get());
+    try expectEqual(0x0000, processor.DE.get());
+    try expectEqual(0x0000, processor.HL.get());
+    try expectEqual(0x0000, processor.SP.get());
+}
+
+test "decode and execute 0x20 [JR NZ, s8] Z" {
+    const op_code: u8 = 0x20;
+    const initial_PC: u16 = 0x00FF;
+    const offset: u8 = 0b1111_1101; // -3
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    register.setFlag(&processor.AF, .Z);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(initial_PC + 1, offset);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 2, processor.PC.get());
+    try expectEqual(0x0080, processor.AF.get());
+    try expectEqual(0x0000, processor.BC.get());
+    try expectEqual(0x0000, processor.DE.get());
+    try expectEqual(0x0000, processor.HL.get());
+    try expectEqual(0x0000, processor.SP.get());
 }
