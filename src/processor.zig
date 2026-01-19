@@ -248,21 +248,17 @@ pub const Processor = struct {
                 self.HL.setHi(self.memory.read(self.PC.get()));
                 self.PC.increment();
             },
-            //
-            // // JR Z, s8
-            // // If the Z flag is 1, jump s8 steps from the current address stored in the program counter (PC). If not, the
-            // // instruction following the current JP instruction is executed (as usual).
-            // 0x28 => {
-            //     register.PC += 1;
-            //     var s: u16 = memory.get(register.PC);
-            //     register.PC += 1;
-            //     const z: bool = (register.F & 0b1000_0000) == 0b1000_0000;
-            //     if (z) {
-            //         const sign: u16 = if ((s & 0b1000_0000) == 0b1000_0000) 0xff00 else 0x0000;
-            //         s |= sign;
-            //         register.PC = @bitCast(@as(i16, @bitCast(register.PC)) + @as(i16, @bitCast(s)));
-            //     }
-            // },
+
+            // JR Z, s8
+            // If the Z flag is 1, jump s8 steps from the current address stored in the program counter (PC). If not, the
+            // instruction following the current JP instruction is executed (as usual).
+            0x28 => {
+                const offset: u8 = self.memory.read(self.PC.get());
+                self.PC.increment();
+                if (register.isFlagSet(&self.AF, .Z)) {
+                    self.PC.set(utils.addOffset(self.PC.get(), offset));
+                }
+            },
             // 
             // // JR NC, s8
             // // If the CY flag is 0, jump s8 steps from the current address stored in the program counter (PC). If not, the
