@@ -1,10 +1,23 @@
-const register = @import("register.zig");
+const std = @import("std");
 const utils = @import("utils.zig");
 
-const Register = register.Register;
-const HI_MASK = register.HI_MASK;
-const LO_MASK = register.LO_MASK;
+const Register = @import("register.zig").Register;
 const Memory = @import("memory.zig").Memory;
+
+pub const HI_MASK: u16 = 0xFF00;
+pub const LO_MASK: u8 = 0x00FF;
+
+pub const Z_MASK: u8 = 0x80; // 0b1000_0000
+pub const N_MASK: u8 = 0x40; // 0b0100_0000
+pub const H_MASK: u8 = 0x20; // 0b0010_0000
+pub const C_MASK: u8 = 0x10; // 0b0001_0000
+
+pub const Flag = enum {
+    Z,
+    N,
+    H,
+    C,
+};
 
 pub const Processor = struct {
     AF: Register = .{},
@@ -29,6 +42,42 @@ pub const Processor = struct {
         const instruction: u16 = self.memory.read(self.PC.value);
         self.PC.increment();
         return instruction;
+    }
+
+    pub fn isFlagSet(self: *Self, flag: Flag) bool {
+        return switch (flag) {
+            .Z => (self.AF.getLo() & Z_MASK) == Z_MASK,
+            .N => (self.AF.getLo() & N_MASK) == N_MASK,
+            .H => (self.AF.getLo() & H_MASK) == H_MASK,
+            .C => (self.AF.getLo() & C_MASK) == C_MASK,
+        };
+    }
+
+    pub fn setFlag(self: *Self, flag: Flag) void {
+        const hi = self.AF.getLo();
+        switch (flag) {
+            .Z => self.AF.setLo(hi | Z_MASK),
+            .N => self.AF.setLo(hi | N_MASK),
+            .H => self.AF.setLo(hi | H_MASK),
+            .C => self.AF.setLo(hi | C_MASK),
+        }
+    }
+
+    pub fn unsetFlag(self: *Self, flag: Flag) void {
+        const hi = self.AF.getLo();
+        switch (flag) {
+            .Z => self.AF.setLo(hi & ~Z_MASK),
+            .N => self.AF.setLo(hi & ~N_MASK),
+            .H => self.AF.setLo(hi & ~H_MASK),
+            .C => self.AF.setLo(hi & ~C_MASK),
+        }
+    }
+
+    pub fn resetFlags(self: *Self) void {
+        self.unsetFlag(.Z);
+        self.unsetFlag(.H);
+        self.unsetFlag(.N);
+        self.unsetFlag(.C);
     }
 
     pub fn decodeAndExecute(self: *Self, instruction: u16) !void {
@@ -104,13 +153,13 @@ pub const Processor = struct {
             0x08 => {
                 var z: u16 = self.memory.read(self.PC.get());
                 self.PC.increment();
-                z = (@as(u16, self.memory.read(self.PC.get())) << 8) | z;
+                z |= (@as(u16, self.memory.read(self.PC.get())) << 8);
+                self.PC.increment();
 
                 const sp_lsb: u8 = @truncate(self.SP.get() & LO_MASK);
                 const sp_msb: u8 = @truncate((self.SP.get() & HI_MASK) >> 8);
                 self.memory.write(z, sp_lsb);
                 self.memory.write(z + 1, sp_msb);
-                self.PC.increment();
             },
 
             // Add the contents of register pair BC to the contents of register pair HL, and
@@ -233,7 +282,7 @@ pub const Processor = struct {
             0x20 => {
                 const offset: u8 = self.memory.read(self.PC.get());
                 self.PC.increment();
-                if (!register.isFlagSet(&self.AF, .Z)) {
+                if (!self.isFlagSet(.Z)) {
                     self.PC.set(utils.addOffset(self.PC.get(), offset));
                 }
             },
@@ -255,23 +304,19 @@ pub const Processor = struct {
             0x28 => {
                 const offset: u8 = self.memory.read(self.PC.get());
                 self.PC.increment();
-                if (register.isFlagSet(&self.AF, .Z)) {
+                if (self.isFlagSet(.Z)) {
                     self.PC.set(utils.addOffset(self.PC.get(), offset));
                 }
             },
-            // 
-            // // JR NC, s8
-            // // If the CY flag is 0, jump s8 steps from the current address stored in the program counter (PC). If not, the
-            // // instruction following the current JP instruction is executed (as usual).
+
+            // JR NC, s8
+            // If the CY flag is 0, jump s8 steps from the current address stored in the program counter (PC). If not, the
+            // instruction following the current JP instruction is executed (as usual).
             // 0x30 => {
-            //     register.PC += 1;
-            //     var s: u16 = memory.get(register.PC);
-            //     register.PC += 1; //             ZNHC
-            //     const c: bool = (register.F & 0b0001_0000) == 0b0001_0000;
-            //     if (!c) {
-            //         const sign: u16 = if ((s & 0b1000_0000) == 0b1000_0000) 0xff00 else 0x0000;
-            //         s |= sign;
-            //         register.PC = @bitCast(@as(i16, @bitCast(register.PC)) + @as(i16, @bitCast(s)));
+            //     const offset: u8 = self.memory.read(self.PC.get());
+            //     self.PC.increment();
+            //     if (register.isFlagSet(&self.AF, .C)) {
+            //         self.PC.set(utils.addOffset(self.PC.get(), offset));
             //     }
             // },
             //
@@ -1102,3 +1147,157 @@ pub const Processor = struct {
         }
     }
 };
+
+const expectEqual = std.testing.expectEqual;
+
+test "isFlagSet, Z" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.AF.set(Z_MASK);
+
+    try expectEqual(true, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.H));
+    try expectEqual(false, processor.isFlagSet(.C));
+}
+
+test "isFlagSet, N" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.AF.set(N_MASK);
+
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(true, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.H));
+    try expectEqual(false, processor.isFlagSet(.C));
+}
+
+test "isFlagSet, H" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.AF.set(H_MASK);
+
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.H));
+    try expectEqual(false, processor.isFlagSet(.C));
+}
+
+test "isFlagSet, C" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.AF.set(C_MASK);
+
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.H));
+    try expectEqual(true, processor.isFlagSet(.C));
+}
+
+test "setFlag, Z" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.setFlag(.Z);
+
+    try expectEqual(true,  processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.H));
+    try expectEqual(false, processor.isFlagSet(.C));
+}
+
+test "setFlag, N" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.setFlag(.N);
+
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(true, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.H));
+    try expectEqual(false, processor.isFlagSet(.C));
+}
+
+test "setFlag, H" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.setFlag(.H);
+
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.H));
+    try expectEqual(false, processor.isFlagSet(.C));
+}
+
+test "setFlag, C" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.setFlag(.C);
+
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.H));
+    try expectEqual(true,  processor.isFlagSet(.C));
+}
+
+test "unsetFlag, Z" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.setFlag(.Z);
+    processor.setFlag(.N);
+    processor.setFlag(.H);
+    processor.setFlag(.C);
+
+    processor.unsetFlag(.Z);
+
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(true, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.H));
+    try expectEqual(true, processor.isFlagSet(.C));
+}
+
+test "unsetFlag, N" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.setFlag(.Z);
+    processor.setFlag(.N);
+    processor.setFlag(.H);
+    processor.setFlag(.C);
+
+    processor.unsetFlag(.N);
+
+    try expectEqual(true, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.H));
+    try expectEqual(true, processor.isFlagSet(.C));
+}
+
+test "unsetFlag, H" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.setFlag(.Z);
+    processor.setFlag(.N);
+    processor.setFlag(.H);
+    processor.setFlag(.C);
+
+    processor.unsetFlag(.H);
+
+    try expectEqual(true, processor.isFlagSet(.Z));
+    try expectEqual(true, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.H));
+    try expectEqual(true, processor.isFlagSet(.C));
+}
+
+test "unsetFlag, C" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.setFlag(.Z);
+    processor.setFlag(.N);
+    processor.setFlag(.H);
+    processor.setFlag(.C);
+
+    processor.unsetFlag(.C);
+
+    try expectEqual(true, processor.isFlagSet(.Z));
+    try expectEqual(true, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.H));
+    try expectEqual(false, processor.isFlagSet(.C));
+}
