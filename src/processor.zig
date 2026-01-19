@@ -317,7 +317,7 @@ pub const Processor = struct {
             0x30 => {
                 const offset: u8 = self.memory.read(self.PC.get());
                 self.PC.increment();
-                if (self.isFlagSet(.C)) {
+                if (!self.isFlagSet(.C)) {
                     self.PC.set(utils.addOffset(self.PC.get(), offset));
                 }
             },
