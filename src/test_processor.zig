@@ -4,6 +4,8 @@ const Register = register.Register;
 const Processor = @import("processor.zig").Processor;
 const Memory = @import("memory.zig").Memory;
 
+const masks = @import("masks.zig");
+
 const expectEqual = std.testing.expectEqual;
 
 const STOP_OP_CODE: u8 = 0x10;
@@ -346,3 +348,47 @@ test "decode and execute 0x21 [LD HL, d16]" {
     try expectEqual(0xC713, processor.HL.get());
     try expectEqual(0x0000, processor.SP.get());
 }
+
+test "decode and execute 0x28 [JR Z, s8] Z, negative s8" {
+    const op_code: u8 = 0x28;
+    const initial_PC: u16 = 0x100;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.setFlag(.Z);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(initial_PC + 1, 0b1000_0000); // -127
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(0x0082, processor.PC.get());
+    try expectEqual(masks.Z_MASK, processor.AF.get());
+    try expectEqual(0x0000, processor.BC.get());
+    try expectEqual(0x0000, processor.DE.get());
+    try expectEqual(0x0000, processor.HL.get());
+    try expectEqual(0x0000, processor.SP.get());
+}
+
+test "decode and execute 0x28 [JR Z, s8] Z, postive s8" {
+    const op_code: u8 = 0x28;
+    const initial_PC: u16 = 0x100;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.setFlag(.Z);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(initial_PC + 1, 0b0111_1111); // 127
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(0x0181, processor.PC.get());
+    try expectEqual(masks.Z_MASK, processor.AF.get());
+    try expectEqual(0x0000, processor.BC.get());
+    try expectEqual(0x0000, processor.DE.get());
+    try expectEqual(0x0000, processor.HL.get());
+    try expectEqual(0x0000, processor.SP.get());
+}
+
+test "decode and execute 0x30 [JR NC, s8]" {}

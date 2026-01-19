@@ -4,13 +4,15 @@ const utils = @import("utils.zig");
 const Register = @import("register.zig").Register;
 const Memory = @import("memory.zig").Memory;
 
-pub const HI_MASK: u16 = 0xFF00;
-pub const LO_MASK: u8 = 0x00FF;
+const masks = @import("masks.zig");
 
-pub const Z_MASK: u8 = 0x80; // 0b1000_0000
-pub const N_MASK: u8 = 0x40; // 0b0100_0000
-pub const H_MASK: u8 = 0x20; // 0b0010_0000
-pub const C_MASK: u8 = 0x10; // 0b0001_0000
+const HI_MASK = masks.HI_MASK;
+const LO_MASK = masks.LO_MASK;
+
+const Z_MASK = masks.Z_MASK;
+const N_MASK = masks.N_MASK;
+const H_MASK = masks.H_MASK;
+const C_MASK = masks.H_MASK;
 
 pub const Flag = enum {
     Z,
@@ -312,13 +314,13 @@ pub const Processor = struct {
             // JR NC, s8
             // If the CY flag is 0, jump s8 steps from the current address stored in the program counter (PC). If not, the
             // instruction following the current JP instruction is executed (as usual).
-            // 0x30 => {
-            //     const offset: u8 = self.memory.read(self.PC.get());
-            //     self.PC.increment();
-            //     if (register.isFlagSet(&self.AF, .C)) {
-            //         self.PC.set(utils.addOffset(self.PC.get(), offset));
-            //     }
-            // },
+            0x30 => {
+                const offset: u8 = self.memory.read(self.PC.get());
+                self.PC.increment();
+                if (self.isFlagSet(.C)) {
+                    self.PC.set(utils.addOffset(self.PC.get(), offset));
+                }
+            },
             //
             // // JR C, s8
             // // IF the CY flag is 1, jump s8 steps from the current address stored in the program counter (PC). If not, the
