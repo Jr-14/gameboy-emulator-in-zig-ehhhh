@@ -332,55 +332,49 @@ pub const Processor = struct {
                     self.PC.set(utils.addOffset(self.PC.get(), offset));
                 }
             },
-            //
-            // // LD A, (DE)
-            // // Load the 8-bit contents of memory specified by register pair DE into register A.
-            // 0x1a => {
-            //     register.A = memory.get(register.getDE());
-            //     register.PC += 1;
-            // },
-            //
-            // // Decrement the contents of register pair DE by 1.
-            // // 0x1b => "DEC DE",
-            //
-            // // Incremenet the contents of register E by 1.
-            // // 0x1c => "INC E",
-            //
-            // // Decremenet the contents of register E by 1.
-            // // TODO:
-            // // Flags: Z 1 8-bit -
-            // // 0x1d => "DEC E",
-            //
-            // // LD E, d8
-            // // Load the 8-bit immediate operand d8 into register E.
-            // 0x1e => {
-            //     register.PC += 1;
-            //     register.E = memory.get(register.PC);
-            //     register.PC += 1;
-            // },
-            //
-            // // Rotate the contents of register A to the right, through the carry (CY) flag. That is, the contents
-            // // of bit 7 are copied to bit 6, and the previous contents of bit 6 (before the copy) are copied to bit
-            // // 5. The same operation is repeated in sequence for the rest of the register. The previous contents of
-            // // the carry flag are copied to bit 7.
-            // // 0x1f => "RRA",
-            //
-            // // LD (HL+), A
-            // // Store the contents of register A into the memory location specified by register pair
-            // // HL, and simultaneously increment the contents of HL
-            // 0x22 => {
-            //     memory.set(register.getHL(), register.A);
-            //     _ = register.incHL();
-            //     register.PC += 1;
-            // },
-            //
-            // // LD H, d8
-            // // Load the 8-bit immediate operand d8 into register H.
-            // 0x26 => {
-            //     register.PC += 1;
-            //     register.H = memory.get(register.PC);
-            //     register.PC += 1;
-            // },
+
+            // LD A, (DE)
+            // Load the 8-bit contents of memory specified by register pair DE into register A.
+            0x1A => self.AF.setHi(self.memory.read(self.DE.get())),
+
+            // Decrement the contents of register pair DE by 1.
+            // 0x1b => "DEC DE",
+
+            // Incremenet the contents of register E by 1.
+            // 0x1c => "INC E",
+
+            // Decremenet the contents of register E by 1.
+            // TODO:
+            // Flags: Z 1 8-bit -
+            // 0x1d => "DEC E",
+
+            // LD E, d8
+            // Load the 8-bit immediate operand d8 into register E.
+            0x1E => {
+                self.DE.setLo(self.memory.read(self.PC.get()));
+                self.PC.increment();
+            },
+
+            // Rotate the contents of register A to the right, through the carry (CY) flag. That is, the contents
+            // of bit 7 are copied to bit 6, and the previous contents of bit 6 (before the copy) are copied to bit
+            // 5. The same operation is repeated in sequence for the rest of the register. The previous contents of
+            // the carry flag are copied to bit 7.
+            // 0x1f => "RRA",
+
+            // LD (HL+), A
+            // Store the contents of register A into the memory location specified by register pair
+            // HL, and simultaneously increment the contents of HL
+            0x22 => {
+                self.memory.write(self.HL.get(), self.AF.getHi());
+                self.HL.increment();
+            },
+
+            // LD H, d8
+            // Load the 8-bit immediate operand d8 into register H.
+            0x26 => {
+                self.HL.setHi(self.memory.read(self.PC.get()));
+                self.PC.increment();
+            },
             //
             // // LD A, (HL+)
             // // Load the contents of memory specified by register pair HL into register A, and simultaneously
