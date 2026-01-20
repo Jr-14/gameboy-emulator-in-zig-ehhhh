@@ -391,4 +391,91 @@ test "decode and execute 0x28 [JR Z, s8] Z, postive s8" {
     try expectEqual(0x0000, processor.SP.get());
 }
 
-test "decode and execute 0x30 [JR NC, s8]" {}
+test "decode and execute 0x30 [JR NC, s8], NC" {
+    const op_code: u8 = 0x30;
+    const initial_PC: u16 = 0x0100;
+    const offset: u8 = 0b1111_1101; // -3
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(initial_PC + 1, offset);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+
+   try expectEqual(0x00FF, processor.PC.get());
+   try expectEqual(0x0000, processor.AF.get());
+   try expectEqual(0x0000, processor.BC.get());
+   try expectEqual(0x0000, processor.DE.get());
+   try expectEqual(0x0000, processor.HL.get());
+   try expectEqual(0x0000, processor.SP.get());
+}
+
+test "decode and execute 0x30 [JR NC, s8], C" {
+    const op_code: u8 = 0x30;
+    const initial_PC: u16 = 0x0100;
+    const offset: u8 = 0b0111_1111; // 127
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.setFlag(.C);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(initial_PC + 1, offset);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+
+   try expectEqual(0x0102, processor.PC.get());
+   try expectEqual(masks.C_MASK, processor.AF.get());
+   try expectEqual(0x0000, processor.BC.get());
+   try expectEqual(0x0000, processor.DE.get());
+   try expectEqual(0x0000, processor.HL.get());
+   try expectEqual(0x0000, processor.SP.get());
+}
+
+test "decode and execute 0x38 [JR C, s8], NC" {
+    const op_code: u8 = 0x38;
+    const initial_PC: u16 = 0x0100;
+    const offset: u8 = 0b0111_1111; // 127
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(initial_PC + 1, offset);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 2, processor.PC.get());
+    try expectEqual(0x0000, processor.AF.get());
+    try expectEqual(0x0000, processor.BC.get());
+    try expectEqual(0x0000, processor.DE.get());
+    try expectEqual(0x0000, processor.HL.get());
+    try expectEqual(0x0000, processor.SP.get());
+}
+
+test "decode and execute 0x38 [JR C, s8], C" {
+    const op_code: u8 = 0x38;
+    const initial_PC: u16 = 0x0100;
+    const offset: u8 = 0b0111_1111; // 127
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.setFlag(.C);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(initial_PC + 1, offset);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 2 + offset, processor.PC.get());
+    try expectEqual(masks.C_MASK, processor.AF.get());
+    try expectEqual(0x0000, processor.BC.get());
+    try expectEqual(0x0000, processor.DE.get());
+    try expectEqual(0x0000, processor.HL.get());
+    try expectEqual(0x0000, processor.SP.get());
+}
+

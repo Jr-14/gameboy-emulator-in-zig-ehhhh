@@ -12,7 +12,7 @@ const LO_MASK = masks.LO_MASK;
 const Z_MASK = masks.Z_MASK;
 const N_MASK = masks.N_MASK;
 const H_MASK = masks.H_MASK;
-const C_MASK = masks.H_MASK;
+const C_MASK = masks.C_MASK;
 
 pub const Flag = enum {
     Z,
@@ -56,22 +56,22 @@ pub const Processor = struct {
     }
 
     pub fn setFlag(self: *Self, flag: Flag) void {
-        const hi = self.AF.getLo();
+        const lo = self.AF.getLo();
         switch (flag) {
-            .Z => self.AF.setLo(hi | Z_MASK),
-            .N => self.AF.setLo(hi | N_MASK),
-            .H => self.AF.setLo(hi | H_MASK),
-            .C => self.AF.setLo(hi | C_MASK),
+            .Z => self.AF.setLo(lo | Z_MASK),
+            .N => self.AF.setLo(lo | N_MASK),
+            .H => self.AF.setLo(lo | H_MASK),
+            .C => self.AF.setLo(lo | C_MASK),
         }
     }
 
     pub fn unsetFlag(self: *Self, flag: Flag) void {
-        const hi = self.AF.getLo();
+        const lo = self.AF.getLo();
         switch (flag) {
-            .Z => self.AF.setLo(hi & ~Z_MASK),
-            .N => self.AF.setLo(hi & ~N_MASK),
-            .H => self.AF.setLo(hi & ~H_MASK),
-            .C => self.AF.setLo(hi & ~C_MASK),
+            .Z => self.AF.setLo(lo & ~Z_MASK),
+            .N => self.AF.setLo(lo & ~N_MASK),
+            .H => self.AF.setLo(lo & ~H_MASK),
+            .C => self.AF.setLo(lo & ~C_MASK),
         }
     }
 
@@ -321,21 +321,17 @@ pub const Processor = struct {
                     self.PC.set(utils.addOffset(self.PC.get(), offset));
                 }
             },
-            //
-            // // JR C, s8
-            // // IF the CY flag is 1, jump s8 steps from the current address stored in the program counter (PC). If not, the
-            // // instruction following the current JP instruction is executed (as usual).
-            // 0x38 => {
-            //     register.PC += 1;
-            //     var s: u16 = memory.get(register.PC);
-            //     register.PC += 1; //            ZNHC
-            //     const c: bool = (register.F & 0b0001_0000) == 0b0001_0000;
-            //     if (c) {
-            //         const sign: u16 = if ((s & 0b1000_0000) == 0b1000_0000) 0xff00 else 0x0000;
-            //         s |= sign;
-            //         register.PC = @bitCast(@as(i16, @bitCast(register.PC)) + @as(i16, @bitCast(s)));
-            //     }
-            // },
+
+            // JR C, s8
+            // IF the CY flag is 1, jump s8 steps from the current address stored in the program counter (PC). If not, the
+            // instruction following the current JP instruction is executed (as usual).
+            0x38 => {
+                const offset: u8 = self.memory.read(self.PC.get());
+                self.PC.increment();
+                if(self.isFlagSet(.C)) {
+                    self.PC.set(utils.addOffset(self.PC.get(), offset));
+                }
+            },
             //
             // // LD A, (DE)
             // // Load the 8-bit contents of memory specified by register pair DE into register A.
