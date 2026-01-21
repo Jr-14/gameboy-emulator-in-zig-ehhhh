@@ -439,35 +439,31 @@ pub const Processor = struct {
             0x40 => {
                 self.BC.setHi(self.BC.getHi());
             },
-            //
-            // // LD B, C
-            // // Load the contents of register C into register B.
-            // 0x41 => {
-            //     register.B = register.C;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD B, D
-            // // Load the contents of register D into register B.
-            // 0x42 => {
-            //     register.B = register.D;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD B, E
-            // // Load the contents of register E into register B.
-            // 0x43 => {
-            //     register.B = register.E;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD B, H
-            // // Load the contents of register H into register B.
-            // 0x44 => {
-            //     register.B = register.H;
-            //     register.PC += 1;
-            // },
-            //
+
+            // LD B, C
+            // Load the contents of register C into register B.
+            0x41 => {
+                self.BC.setHi(self.BC.getLo());
+            },
+
+            // LD B, D
+            // Load the contents of register D into register B.
+            0x42 => {
+                self.BC.setHi(self.DE.getHi());
+            },
+
+            // LD B, E
+            // Load the contents of register E into register B.
+            0x43 => {
+                self.BC.setHi(self.DE.getLo());
+            },
+
+            // LD B, H
+            // Load the contents of register H into register B.
+            0x44 => {
+                self.BC.setHi(self.HL.getHi());
+            },
+
             // // LD B, L
             // // Load the contents of register L into register B.
             // 0x45 => {
