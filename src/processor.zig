@@ -531,234 +531,202 @@ pub const Processor = struct {
             0x4F => {
                 self.BC.setLo(self.AF.getHi());
             },
-            //
-            // // LD D, B
-            // // Load the contents of register B into register D.
-            // 0x50 => {
-            //     register.D = register.B;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD D, C
-            // // Load the contents of register C into register D.
-            // 0x51 => {
-            //     register.D = register.C;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD D, D
-            // // Load the contents of register D into register D.
-            // 0x52 => {
-            //     register.D = register.D;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD D, E
-            // // Load the contents of register E into register D.
-            // 0x53 => {
-            //     register.D = register.E;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD D, H
-            // // Load the contents of register H into register D.
-            // 0x54 => {
-            //     register.D = register.H;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD D, L
-            // // Load the contents of register L into register D.
-            // 0x55 => {
-            //     register.D = register.L;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD D, (HL)
-            // // Load the 8-bit contents of memory specified by register pair HL into register D.
-            // 0x56 => {
-            //     register.D = memory.get(register.getHL());
-            //     register.PC += 1;
-            // },
-            //
-            // // LD D, A
-            // // Load the contents of register A into register D.
-            // 0x57 => {
-            //     register.D = register.A;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD E, B
-            // // Load the contents of register B into register E.
-            // 0x58 => {
-            //     register.E = register.B;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD E, C
-            // // Load the contents of register C into register E.
-            // 0x59 => {
-            //     register.E = register.C;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD E, D
-            // // Load the contents of register D into register E.
-            // 0x5a => {
-            //     register.E = register.D;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD E, E
-            // // Load the contents of register E into register E.
-            // 0x5b => {
-            //     register.E = register.E;
-            //     register.PC += 1;
-            // },
-            // 
-            // // LD E, H
-            // // Load the contents of register H into register E.
-            // 0x5c => {
-            //     register.E = register.H;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD E, L
-            // // Load the contents of register L into register E.
-            // 0x5d => {
-            //     register.E = register.L;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD E, (HL)
-            // // Load the 8-bit contents of memory specified by register pair HL
-            // // into register E.
-            // 0x5e => {
-            //     register.E = memory.get(register.getHL());
-            //     register.PC += 1;
-            // },
-            //
-            // // LD E, A
-            // // Load the contents of register A into register E.
-            // 0x5f => {
-            //     register.E = register.A;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD H, B
-            // // Load the contents of register B into register H.
-            // 0x60 => {
-            //     register.H = register.B;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD H, C
-            // // Load the contents of register C into register H.
-            // 0x61 => {
-            //     register.H = register.C;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD H, D
-            // // Load the contents of register D into register H.
-            // 0x62 => {
-            //     register.H = register.D;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD H, E
-            // // Load the contents of register E into register H.
-            // 0x63 => {
-            //     register.H = register.E;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD H, H
-            // // Load the contents of register H into register H.
-            // 0x64 => {
-            //     register.H = register.H;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD H, L
-            // // Load the contents of register L into register H.
-            // 0x65 => {
-            //     register.H = register.L;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD H, (HL)
-            // // Load the 8-bit contents of memory specified by register pair HL
-            // // into register H.
-            // 0x66 => {
-            //     register.H = memory.get(register.getHL());
-            //     register.PC += 1;
-            // },
-            //
-            // // LD H, A
-            // // Load the contents of register A into register H.
-            // 0x67 => {
-            //     register.H = register.A;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD L, B
-            // // Load the contents of register B into register L.
-            // 0x68 => {
-            //     register.L = register.B;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD L, C
-            // // Load the contents of register C into register L.
-            // 0x69 => {
-            //     register.L = register.C;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD L, D
-            // // Load the contents of register D into register L.
-            // 0x6a => {
-            //     register.L = register.D;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD L, E
-            // // Load the contents of register E into register L.
-            // 0x6b => {
-            //     register.L = register.E;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD L, H
-            // // Load the contents of register H into register L.
-            // 0x6c => {
-            //     register.L = register.H;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD L, L
-            // // Load the contents of register L into register L.
-            // 0x6d => {
-            //     register.L = register.L;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD L, (HL)
-            // // Load the 8-bit contents of memory specified by register pair HL
-            // // into register L.
-            // 0x6e => {
-            //     register.L = memory.get(register.getHL());
-            //     register.PC += 1;
-            // },
-            //
-            // // LD L, A
-            // // Load the contents of register A into register L.
-            // 0x6f => {
-            //     register.L = register.A;
-            //     register.PC += 1;
-            // },
-            //
+
+            // LD D, B
+            // Load the contents of register B into register D.
+            0x50 => {
+                self.DE.setHi(self.BC.getHi());
+            },
+
+            // LD D, C
+            // Load the contents of register C into register D.
+            0x51 => {
+                self.DE.setHi(self.BC.getLo());
+            },
+
+            // LD D, D
+            // Load the contents of register D into register D.
+            0x52 => {
+                self.DE.setHi(self.DE.getHi());
+            },
+
+            // LD D, E
+            // Load the contents of register E into register D.
+            0x53 => {
+                self.DE.setHi(self.DE.getLo());
+            },
+
+            // LD D, H
+            // Load the contents of register H into register D.
+            0x54 => {
+                self.DE.setHi(self.HL.getHi());
+            },
+
+            // LD D, L
+            // Load the contents of register L into register D.
+            0x55 => {
+                self.DE.setHi(self.HL.getLo());
+            },
+
+            // LD D, (HL)
+            // Load the 8-bit contents of memory specified by register pair HL into register D.
+            0x56 => {
+                self.DE.setHi(self.memory.read(self.HL.get()));
+            },
+
+            // LD D, A
+            // Load the contents of register A into register D.
+            0x57 => {
+                self.DE.setHi(self.AF.getHi());
+            },
+
+            // LD E, B
+            // Load the contents of register B into register E.
+            0x58 => {
+                self.DE.setLo(self.BC.getHi());
+            },
+
+            // LD E, C
+            // Load the contents of register C into register E.
+            0x59 => {
+                self.DE.setLo(self.BC.getLo());
+            },
+
+            // LD E, D
+            // Load the contents of register D into register E.
+            0x5A => {
+                self.DE.setLo(self.DE.getHi());
+            },
+
+            // LD E, E
+            // Load the contents of register E into register E.
+            0x5B => {
+                self.DE.setLo(self.DE.getLo());
+            },
+
+            // LD E, H
+            // Load the contents of register H into register E.
+            0x5C => {
+                self.DE.setLo(self.HL.getHi());
+            },
+
+            // LD E, L
+            // Load the contents of register L into register E.
+            0x5D => {
+                self.DE.setLo(self.HL.getLo());
+            },
+
+            // LD E, (HL)
+            // Load the 8-bit contents of memory specified by register pair HL
+            // into register E.
+            0x5E => {
+                self.DE.setLo(self.memory.read(self.HL.get()));
+            },
+
+            // LD E, A
+            // Load the contents of register A into register E.
+            0x5F => {
+                self.DE.setLo(self.AF.getHi());
+            },
+
+            // LD H, B
+            // Load the contents of register B into register H.
+            0x60 => {
+                self.HL.setHi(self.BC.getHi());
+            },
+
+            // LD H, C
+            // Load the contents of register C into register H.
+            0x61 => {
+                self.HL.setHi(self.BC.getLo());
+            },
+
+            // LD H, D
+            // Load the contents of register D into register H.
+            0x62 => {
+                self.HL.setHi(self.DE.getHi());
+            },
+
+            // LD H, E
+            // Load the contents of register E into register H.
+            0x63 => {
+                self.HL.setHi(self.DE.getLo());
+            },
+
+            // LD H, H
+            // Load the contents of register H into register H.
+            0x64 => {
+                self.HL.setHi(self.HL.getHi());
+            },
+
+            // LD H, L
+            // Load the contents of register L into register H.
+            0x65 => {
+                self.HL.setHi(self.HL.getLo());
+            },
+
+            // LD H, (HL)
+            // Load the 8-bit contents of memory specified by register pair HL
+            // into register H.
+            0x66 => {
+                self.HL.setHi(self.memory.read(self.HL.get()));
+            },
+
+            // LD H, A
+            // Load the contents of register A into register H.
+            0x67 => {
+                self.HL.setHi(self.AF.getHi());
+            },
+
+            // LD L, B
+            // Load the contents of register B into register L.
+            0x68 => {
+                self.HL.setLo(self.BC.getHi());
+            },
+
+            // LD L, C
+            // Load the contents of register C into register L.
+            0x69 => {
+                self.HL.setLo(self.BC.getLo());
+            },
+
+            // LD L, D
+            // Load the contents of register D into register L.
+            0x6A => {
+                self.HL.setLo(self.DE.getHi());
+            },
+
+            // LD L, E
+            // Load the contents of register E into register L.
+            0x6B => {
+                self.HL.setLo(self.DE.getLo());
+            },
+
+            // LD L, H
+            // Load the contents of register H into register L.
+            0x6C => {
+                self.HL.setLo(self.HL.getHi());
+            },
+
+            // LD L, L
+            // Load the contents of register L into register L.
+            0x6D => {
+                self.HL.setLo(self.HL.getLo());
+            },
+
+            // LD L, (HL)
+            // Load the 8-bit contents of memory specified by register pair HL
+            // into register L.
+            0x6E => {
+                self.HL.setLo(self.memory.read(self.HL.get()));
+            },
+
+            // LD L, A
+            // Load the contents of register A into register L.
+            0x6F => {
+                self.HL.setLo(self.AF.getHi());
+            },
+
             // // LD (HL), B
             // // Store the contents of register B in the memory location specified by
             // // register pair HL.
