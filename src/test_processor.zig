@@ -571,3 +571,27 @@ test "decode and execute 0x26 [LD H, d8]" {
     try expectEqual(0x00, procesor.HL.getLo());
     try expectEqual(0x00, procesor.SP.get());
 }
+
+test "decode and execute 0x2A [LD A, (HL+)]" {
+    const op_code: u8 = 0x2A;
+    const initial_PC: u16 = 0x0100;
+    const HL: u16 = 0x76A2;
+    const contents: u8 = 0x06;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.HL.set(HL);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(HL, contents);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(contents, processor.AF.getHi());
+    try expectEqual(0x00, processor.AF.getLo());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(HL + 1, processor.HL.get());
+    try expectEqual(0x00, processor.SP.get());
+}

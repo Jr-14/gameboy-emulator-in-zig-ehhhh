@@ -375,15 +375,14 @@ pub const Processor = struct {
                 self.HL.setHi(self.memory.read(self.PC.get()));
                 self.PC.increment();
             },
-            //
-            // // LD A, (HL+)
-            // // Load the contents of memory specified by register pair HL into register A, and simultaneously
-            // // increment the contents of HL.
-            // 0x2a => {
-            //     register.A = memory.get(register.getHL());
-            //     _ = register.incHL();
-            //     register.PC += 1;
-            // },
+
+            // LD A, (HL+)
+            // Load the contents of memory specified by register pair HL into register A, and simultaneously
+            // increment the contents of HL.
+            0x2A => {
+                self.AF.setHi(self.memory.read(self.HL.get()));
+                self.HL.increment();
+            },
             //
             // // LD L, d8
             // // Load the 8-bit immediate operand d8 into register L.
