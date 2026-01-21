@@ -406,42 +406,39 @@ pub const Processor = struct {
             // Store the contents of register A into the memory location specified by register pair
             // HL, and simultaneously decrement the contents of HL.
             0x32 => {
-            
+                self.memory.write(self.HL.get(), self.AF.getHi());
+                self.HL.decrement();
             },
-            //
-            // // LD (HL), d8
-            // // Store the contents of 8-bit immediate operand d8 in the memory location
-            // // specified by register pair HL.
-            // 0x36 => {
-            //     register.PC += 1;
-            //     memory.set(register.getHL(), memory.get(register.PC));
-            //     register.PC += 1;
-            // },
-            //
-            // // LD A, (HL-)
-            // // Load the contents of memory specified by register pair HL into register A, and
-            // // simultaneously decrement the contents of HL.
-            // 0x3a => {
-            //     register.A = memory.get(register.getHL());
-            //     _ = register.decHL();
-            //     register.PC += 1;
-            // },
-            //
-            // // LD A, d8
-            // // Load the 8-bit immediate operand d8 into register A.
-            // 0x3e => {
-            //     register.PC += 1;
-            //     register.A = memory.get(register.PC);
-            //     register.PC += 1;
-            // },
-            //
-            // // LD B, B
-            // // Load the contents of register B into register B
-            // // What's the point?? weird
-            // 0x40 => {
-            //     register.B = register.B;
-            //     register.PC += 1;
-            // },
+
+            // LD (HL), d8
+            // Store the contents of 8-bit immediate operand d8 in the memory location
+            // specified by register pair HL.
+            0x36 => {
+                self.memory.write(self.HL.get(), self.memory.read(self.PC.get()));
+                self.PC.increment();
+            },
+
+            // LD A, (HL-)
+            // Load the contents of memory specified by register pair HL into register A, and
+            // simultaneously decrement the contents of HL.
+            0x3A => {
+                self.AF.setHi(self.memory.read(self.HL.get()));
+                self.HL.decrement();
+            },
+
+            // LD A, d8
+            // Load the 8-bit immediate operand d8 into register A.
+            0x3E => {
+                self.AF.setHi(self.memory.read(self.PC.get()));
+                self.PC.increment();
+            },
+
+            // LD B, B
+            // Load the contents of register B into register B
+            // What's the point?? weird
+            0x40 => {
+                self.BC.setHi(self.BC.getHi());
+            },
             //
             // // LD B, C
             // // Load the contents of register C into register B.
