@@ -5,3 +5,7 @@ In other words, it needs to pass the first time I write the test and implementat
 Total time: 28 minutes
 
 8.08AM - 8.52AM I guess another 54 minutes? :D
+
++ 30 minutes
+
+8.59PM -

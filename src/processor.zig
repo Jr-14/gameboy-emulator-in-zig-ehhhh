@@ -767,9 +767,9 @@ pub const Processor = struct {
             // 3. By the end, SP should be 2 less than its initial value.
             0xD5 => {
                 self.SP.decrement();
-                self.DE.setLo(self.memory.read(self.SP.get()));
+                self.memory.write(self.SP.get(), self.DE.getHi());
                 self.SP.decrement();
-                self.DE.setHi(self.memory.read(self.SP.get()));
+                self.memory.write(self.SP.get(), self.DE.getLo());
             },
 
             // LD (a8), A
@@ -788,10 +788,10 @@ pub const Processor = struct {
             // 2. Add 1 to SP and load the contents from thew new memory location into the upper portion of HL.
             // 3. By the end, SP should be 2 more than its initial value.
             0xE1 => {
-                self.HL.setHi(self.memory.read(self.SP.get()));
-                self.PC.decrement();
                 self.HL.setLo(self.memory.read(self.SP.get()));
-                self.PC.decrement();
+                self.SP.increment();
+                self.HL.setHi(self.memory.read(self.SP.get()));
+                self.SP.increment();
             },
 
             // PUSH HL
