@@ -2193,3 +2193,4 @@ test "decode and execute 0x7F [LD A, A]" {
     try expectEqual(0x00, processor.HL.get());
     try expectEqual(0x00, processor.SP.get());
 }
+

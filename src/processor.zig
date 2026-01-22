@@ -703,195 +703,177 @@ pub const Processor = struct {
             // Load the contents of register A into register A.
             0x7F => self.AF.setHi(self.AF.getHi()),
 
-            // // RET NZ
-            // // If the Z flag is 0, control is returned to the source program by popping from the memory stack the program
-            // // counter PC value that was pushed to the stack when the subroutine was called.
-            // //
-            // // The contents of the address specified by the stack pointer SP are loaded in the lower-order byte of PC, and
-            // // the contents of SP are incremented by 1. The contents of the address specified by the new SP value are then
-            // // loaded in the higher-order byte of PC, and the contents of SP are incremented by 1 again. (The value of SP
-            // // is 2 larger than before instruction execution.) The next instruction is fetched from the address specified
-            // // by the content of PC (as usual).
-            // 0xc0 => {
-            //     //                              ZNHC
-            //     const z: bool = (register.F & 0b1000_0000) == 0b1000_0000;
-            //     if (!z) {
-            //         const y: u8 = memory.get(register.SP);
-            //         register.SP += 1;
-            //         const x: u8 = memory.get(register.SP);
-            //         register.SP += 1;
-            //         const xy: u16 = (@as(u16, @bitCast(x)) << 8) | y;
-            //         register.PC = memory.get(xy);
-            //     } else {
-            //         register.PC += 1;
-            //     }
-            // },
+            // RET NZ
+            // If the Z flag is 0, control is returned to the source program by popping from the memory stack the program
+            // counter PC value that was pushed to the stack when the subroutine was called.
             //
-            // // POP BC
-            // // Pop the contents from the memory stack into register pair BC by doing the following:
-            // // 1. Load the contents of memory specified by stack pointer SP into the lower portion of BC.
-            // // 2. Add 1 to SP and load the contents from the new memory location into the upper portion BC.
-            // // 3. By the end, SP should be 2 more than its initial value.
-            // 0xc1 => {
-            //     register.C = memory.get(register.SP);
-            //     register.SP += 1;
-            //     register.B = memory.get(register.SP);
-            //     register.SP += 1;
-            //     register.PC += 1;
-            // },
-            //
-            // // PUSH BC
-            // // Push the contents of register pair BC onto the memory stack by doing the following:
-            // // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of register pair
-            // // BC on on the stack.
-            // // 2. Subtract 1 from SP, and put the lower portion of register pair BC on the stack.
-            // 0xc5 => {
-            //     register.SP -= 1;
-            //     memory.set(register.SP, register.B);
-            //     register.SP -= 1;
-            //     memory.set(register.SP, register.C);
-            //     register.PC += 1;
-            // },
-            //
-            // // POP DE
-            // // Pop the contents from the memory stack into register pair DE by doing the following:
-            // // 1. Load the contents of memory specified by stack pointer SP into the lower portion of DE.
-            // // 2. Add 1 to SP and load the contents from the new memory location into the upper portion of DE.
-            // // 3. By the end, SP should be 2 more than its initial value.
-            // 0xd1 => {
-            //     register.E = memory.get(register.SP);
-            //     register.SP += 1;
-            //     register.D = memory.get(register.SP);
-            //     register.SP += 1;
-            //     register.PC += 1;
-            // },
-            //
-            // // PUSH DE
-            // // Push the contents of register pair DE onto the memory stack by doing the following:
-            // // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of regiser pair DE on
-            // // the stack.
-            // // 2. Subtract 1 from SP, and put the lower portion of register pair DE on the stack.
-            // // 3. By the end, SP should be 2 less than its initial value.
-            // 0xd5 => {
-            //     register.SP -= 1;
-            //     memory.set(register.SP, register.D);
-            //     register.SP -= 1;
-            //     memory.set(register.SP, register.E);
-            //     register.PC += 1;
-            // },
-            //
-            // // LD (a8), A
-            // // Load to the address specified by the 8-bit immediate data a8, data from the 8-bit A register. The full
-            // // 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least significant
-            // // byte to the value of a8, so the possible range is 0xff00-0xffff.
-            // 0xe0 => {
-            //     register.PC += 1;
-            //     const z: u16 = @as(u16, 0xff00) | memory.get(register.PC);
-            //     memory.set(z, register.A);
-            //     register.PC += 1;
-            // },
-            //
-            // // POP HL
-            // // Pop the contents from the memory stack into register pair HL by doing the following:
-            // // 1. Load the contents of memory specified by stack pointer SP into the lower portion of HL.
-            // // 2. Add 1 to SP and load the contents from thew new memory location into the upper portion of HL.
-            // // 3. By the end, SP should be 2 more than its initial value.
-            // 0xe1 => {
-            //     register.L = memory.get(register.SP);
-            //     register.SP += 1;
-            //     register.H = memory.get(register.SP);
-            //     register.SP += 1;
-            //     register.PC += 1;
-            // },
-            //
-            // // PUSH HL
-            // // Push the contents of register pair HL onto the memory stack by doing the following:
-            // // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of register pair
-            // // HL on the stack.
-            // // 2. Subtract 1 from SP, and put the lower portion of register pair HL on the stack.
-            // // 3. By the end, SP should be 2 less than its initial value.
-            // 0xe5 => {
-            //     register.SP -= 1;
-            //     memory.set(register.SP, register.H);
-            //     register.SP -= 1;
-            //     memory.set(register.SP, register.L);
-            //     register.PC += 1;
-            // },
-            //
-            // // LD (C), A
-            // // Load to the address specified by the 8-bit C register, data from the 8-bit A register. The full 16-bit
-            // // address is obtained by setting the most significant byte to 0xff and the least significant byte to the
-            // // value of C, so the possible range is 0xff00-0xffff.
-            // 0xe2 => {
-            //     const z: u16 = @as(u16, 0xff00) | register.C; 
-            //     memory.set(z, register.A);
-            //     register.PC += 1;
-            // },
-            //
-            // // LD (a16), A
-            // // Store the contents of register A in the internal RAM or register specified by the 16-bit immediate
-            // // operand a16.
-            // 0xea => {
-            //     register.PC += 1;
-            //     var z: u16 = @as(u16, memory.get(register.PC)) << 8;
-            //
-            //     register.PC += 1;
-            //     z |= memory.get(register.PC);
-            //
-            //     memory.set(z, register.A);
-            //     register.PC += 1;
-            // },
-            //
-            // // LD A, (a8)
-            // // Load to the 8-bit A register, data from the address specified by the 8-bit immediate data a8. The full
-            // // 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least
-            // // significant byte to the value of a8, so the possible range is 0xff0-0xffff.
-            // 0xf0 => {
-            //     register.PC += 1;
-            //     const z: u16 = @as(u16, 0xff00) | memory.get(register.PC);
-            //     register.A = memory.get(z);
-            //     register.PC += 1;
-            // },
-            //
-            // // POP AF
-            // // Pop the contents from the memory stack into register pair AF by doing the following:
-            // // 1. Load the contents of memory specified by stack pointer SP into the lower portion of AF.
-            // // 2. Add 1 to SP and load the contents from the new memory location into the upper portion AF.
-            // // 3. By the end, SP should be 2 more than its initial value.
-            // 0xf1 => {
-            //     register.F = memory.get(register.SP);
-            //     register.SP -= 1;
-            //     register.A = memory.get(register.SP);
-            //     register.SP -= 1;
-            //     register.PC += 1;
-            // },
-            //
-            // // LD A, (C)
-            // // Load to the 8-bit A register, data from the address specified by the 8-bit C register. The full 16-bit
-            // // address is obtianed by setting the most significant byte to 0xff and the least significant byte to the
-            // // value of C, so the possible range is 0xff00-0xffff.
-            // 0xf2 => {
-            //     const z: u16 = @as(u16, 0xff00) | register.C;
-            //     register.A = memory.get(z);
-            //     register.PC += 1;
-            // },
-            //
-            // // PUSH AF
-            // // Push the contents of register pair AF onto the memory stack by doing the following:
-            // // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of register pair
-            // // BC on on the stack.
-            // // 2. Subtract 1 from SP, and put the lower portion of register pair AF on the stack.
-            // 0xf5 => {
-            //     register.SP -= 1;
-            //     memory.set(register.SP, register.A);
-            //     register.SP -= 1;
-            //     memory.set(register.SP, register.F);
-            //     register.PC += 1;
-            // },
+            // The contents of the address specified by the stack pointer SP are loaded in the lower-order byte of PC, and
+            // the contents of SP are incremented by 1. The contents of the address specified by the new SP value are then
+            // loaded in the higher-order byte of PC, and the contents of SP are incremented by 1 again. (The value of SP
+            // is 2 larger than before instruction execution.) The next instruction is fetched from the address specified
+            // by the content of PC (as usual).
+            0xC0 => {
+                if (!self.isFlagSet(.Z)) {
+                    self.PC.setLo(self.memory.read(self.SP.get()));
+                    self.SP.increment();
+                    self.PC.setHi(self.memory.read(self.SP.get()));
+                    self.SP.increment();
+                } else {
+                    self.PC.increment();
+                }
+            },
+
+            // POP BC
+            // Pop the contents from the memory stack into register pair BC by doing the following:
+            // 1. Load the contents of memory specified by stack pointer SP into the lower portion of BC.
+            // 2. Add 1 to SP and load the contents from the new memory location into the upper portion BC.
+            // 3. By the end, SP should be 2 more than its initial value.
+            0xC1 => {
+                self.BC.setLo(self.memory.read(self.SP.get()));
+                self.SP.increment();
+                self.BC.setHi(self.memory.read(self.SP.get()));
+                self.SP.increment();
+            },
+
+            // PUSH BC
+            // Push the contents of register pair BC onto the memory stack by doing the following:
+            // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of register pair
+            // BC on on the stack.
+            // 2. Subtract 1 from SP, and put the lower portion of register pair BC on the stack.
+            0xC5 => {
+                self.SP.decrement();
+                self.memory.write(self.SP.get(), self.BC.getHi());
+                self.SP.decrement();
+                self.memory.write(self.SP.get(), self.BC.getLo());
+            },
+
+            // POP DE
+            // Pop the contents from the memory stack into register pair DE by doing the following:
+            // 1. Load the contents of memory specified by stack pointer SP into the lower portion of DE.
+            // 2. Add 1 to SP and load the contents from the new memory location into the upper portion of DE.
+            // 3. By the end, SP should be 2 more than its initial value.
+            0xD1 => {
+                self.DE.setLo(self.memory.read(self.SP.get()));
+                self.SP.increment();
+                self.DE.setHi(self.memory.read(self.SP.get()));
+                self.SP.increment();
+            },
+
+            // PUSH DE
+            // Push the contents of register pair DE onto the memory stack by doing the following:
+            // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of regiser pair DE on
+            // the stack.
+            // 2. Subtract 1 from SP, and put the lower portion of register pair DE on the stack.
+            // 3. By the end, SP should be 2 less than its initial value.
+            0xD5 => {
+                self.SP.decrement();
+                self.DE.setLo(self.memory.read(self.SP.get()));
+                self.SP.decrement();
+                self.DE.setHi(self.memory.read(self.SP.get()));
+            },
+
+            // LD (a8), A
+            // Load to the address specified by the 8-bit immediate data a8, data from the 8-bit A register. The full
+            // 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least significant
+            // byte to the value of a8, so the possible range is 0xff00-0xffff.
+            0xE0 => {
+                const addr: u16 = HI_MASK | self.memory.read(self.PC.get());
+                self.PC.increment();
+                self.memory.write(addr, self.AF.getHi());
+            },
+
+            // POP HL
+            // Pop the contents from the memory stack into register pair HL by doing the following:
+            // 1. Load the contents of memory specified by stack pointer SP into the lower portion of HL.
+            // 2. Add 1 to SP and load the contents from thew new memory location into the upper portion of HL.
+            // 3. By the end, SP should be 2 more than its initial value.
+            0xE1 => {
+                self.HL.setHi(self.memory.read(self.SP.get()));
+                self.PC.decrement();
+                self.HL.setLo(self.memory.read(self.SP.get()));
+                self.PC.decrement();
+            },
+
+            // PUSH HL
+            // Push the contents of register pair HL onto the memory stack by doing the following:
+            // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of register pair
+            // HL on the stack.
+            // 2. Subtract 1 from SP, and put the lower portion of register pair HL on the stack.
+            // 3. By the end, SP should be 2 less than its initial value.
+            0xE5 => {
+                self.SP.decrement();
+                self.memory.write(self.SP.get(), self.HL.getHi());
+                self.SP.decrement();
+                self.memory.write(self.SP.get(), self.HL.getLo());
+            },
+
+            // LD (C), A
+            // Load to the address specified by the 8-bit C register, data from the 8-bit A register. The full 16-bit
+            // address is obtained by setting the most significant byte to 0xff and the least significant byte to the
+            // value of C, so the possible range is 0xff00-0xffff.
+            0xE2 => {
+                const addr: u16 = HI_MASK | self.BC.getLo();
+                self.memory.write(addr, self.AF.getHi());
+            },
+
+            // LD (a16), A
+            // Store the contents of register A in the internal RAM or register specified by the 16-bit immediate
+            // operand a16.
+            0xEA => {
+                var addr: u16 = @as(u16, self.memory.read(self.PC.get())) << 8;
+                self.PC.increment();
+                addr |= self.memory.read(self.PC.get());
+                self.PC.increment();
+                self.memory.write(addr, self.AF.getHi());
+            },
+
+            // LD A, (a8)
+            // Load to the 8-bit A register, data from the address specified by the 8-bit immediate data a8. The full
+            // 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least
+            // significant byte to the value of a8, so the possible range is 0xff0-0xffff.
+            0xF0 => {
+                const addr: u16 = HI_MASK | self.memory.read(self.PC.get());
+                self.PC.increment();
+                self.AF.setHi(self.memory.read(addr));
+            },
+
+            // POP AF
+            // Pop the contents from the memory stack into register pair AF by doing the following:
+            // 1. Load the contents of memory specified by stack pointer SP into the lower portion of AF.
+            // 2. Add 1 to SP and load the contents from the new memory location into the upper portion AF.
+            // 3. By the end, SP should be 2 more than its initial value.
+            0xF1 => {
+                self.AF.setLo(self.memory.read(self.SP.get()));
+                self.SP.decrement();
+                self.AF.setHi(self.memory.read(self.SP.get()));
+                self.SP.decrement();
+            },
+
+            // LD A, (C)
+            // Load to the 8-bit A register, data from the address specified by the 8-bit C register. The full 16-bit
+            // address is obtianed by setting the most significant byte to 0xff and the least significant byte to the
+            // value of C, so the possible range is 0xff00-0xffff.
+            0xF2 => {
+                const addr: u16 = HI_MASK | self.BC.getLo();
+                self.AF.setHi(self.memory.read(addr));
+            },
+
+            // PUSH AF
+            // Push the contents of register pair AF onto the memory stack by doing the following:
+            // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of register pair
+            // BC on on the stack.
+            // 2. Subtract 1 from SP, and put the lower portion of register pair AF on the stack.
+            0xF5 => {
+                self.SP.decrement();
+                self.memory.write(self.SP.get(), self.AF.getHi());
+                self.SP.decrement();
+                self.memory.write(self.SP.get(), self.AF.getLo());
+            },
             //
             // // LD HL, SP+s8
             // // Add the 8-bit signed operand s8 (values -128 to +127) to the stack pointer SP, and
             // // store the result in register pair HL.
+            // Flags: 0 0 H CY
             // 0xf8 => {
             //     register.PC += 1;
             //     const imm: u8 = memory.get(register.PC);
@@ -913,26 +895,20 @@ pub const Processor = struct {
             //     register.L = @truncate(res);
             //     register.PC += 1;
             // },
-            //
-            // // LD SP, HL
-            // // Load the contents of register pair HL into the stack pointer SP.
-            // 0xf9 => {
-            //     register.SP = register.getHL();
-            //     register.PC += 1;
-            // },
-            //
-            // // LD A, (a16)
-            // // Load to the 8-bit A register, data from the absolute address specified by the 16-bit operand (a16).
-            // 0xfa => {
-            //     register.PC += 1;
-            //     var z: u16 = @as(u16, memory.get(register.PC)) << 8;
-            //
-            //     register.PC += 1;
-            //     z |= memory.get(register.PC);
-            //
-            //     register.A = memory.get(z);
-            //     register.PC += 1;
-            // },
+
+            // LD SP, HL
+            // Load the contents of register pair HL into the stack pointer SP.
+            0xF9 => self.SP.set(self.HL.get()),
+
+            // LD A, (a16)
+            // Load to the 8-bit A register, data from the absolute address specified by the 16-bit operand (a16).
+            0xfa => {
+                var addr: u16 = @as(u16, self.memory.read(self.PC.get())) << 8;
+                self.PC.increment();
+                addr |= self.memory.read(self.PC.get());
+                self.PC.increment();
+                self.AF.setHi(self.memory.read(addr));
+            },
 
             // TODO
             // We have to throw an error here to be exhaustive and have the correct error handling
