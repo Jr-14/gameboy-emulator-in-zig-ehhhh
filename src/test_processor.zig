@@ -2509,3 +2509,30 @@ test "decode and execute 0xF2" {
     try expectEqual(0x00, processor.HL.get());
     try expectEqual(0x00, processor.SP.get());
 }
+
+test "decode and execute 0xF5 [PUSH AF]" {
+    const op_code: u8 = 0xF5;
+    const initial_PC: u16 = 0x0100;
+    const SP: u16 = 0x0AFF;
+    const hi: u8 = 0x07;
+    const lo: u8 = 0x5B;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.SP.set(SP);
+    processor.AF.setHi(hi);
+    processor.AF.setLo(lo);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(SP - 2, processor.SP.get());
+    try expectEqual(0x075B, processor.AF.get());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(0x00, processor.HL.get());
+    try expectEqual(hi, processor.memory.read(SP - 1));
+    try expectEqual(lo, processor.memory.read(SP - 2));
+}
