@@ -1833,3 +1833,363 @@ test "decode and execute 0x6F [LD L, A]" {
     try expectEqual(A, processor.HL.getLo());
     try expectEqual(0x00, processor.SP.get());
 }
+
+test "decode and execute 0x70 [LD (HL), B]" {
+    const op_code: u8 = 0x70;
+    const initial_PC: u16 = 0x0100;
+    const B: u8 = 0x05;
+    const HL: u16 = 0x4E74;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.BC.setHi(B);
+    processor.HL.set(HL);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(0x00, processor.AF.get());
+    try expectEqual(B, processor.BC.getHi());
+    try expectEqual(0x00, processor.BC.getLo());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(HL, processor.HL.get());
+    try expectEqual(0x00, processor.SP.get());
+    try expectEqual(B, processor.memory.read(HL));
+}
+
+test "decode and execute 0x71 [LD (HL), C]" {
+    const op_code: u8 = 0x71;
+    const initial_PC: u16 = 0x0100;
+    const C: u8 = 0x05;
+    const HL: u16 = 0x4E74;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.BC.setLo(C);
+    processor.HL.set(HL);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(0x00, processor.AF.get());
+    try expectEqual(0x00, processor.BC.getHi());
+    try expectEqual(C, processor.BC.getLo());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(HL, processor.HL.get());
+    try expectEqual(0x00, processor.SP.get());
+    try expectEqual(C, processor.memory.read(HL));
+}
+
+test "decode and execute 0x72 [LD (HL), D]" {
+    const op_code: u8 = 0x72;
+    const initial_PC: u16 = 0x0100;
+    const D: u8 = 0x05;
+    const HL: u16 = 0x4E74;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.DE.setHi(D);
+    processor.HL.set(HL);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(0x00, processor.AF.get());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(D, processor.DE.getHi());
+    try expectEqual(0x00, processor.DE.getLo());
+    try expectEqual(HL, processor.HL.get());
+    try expectEqual(0x00, processor.SP.get());
+    try expectEqual(D, processor.memory.read(HL));
+}
+
+test "decode and execute 0x73 [LD (HL), E]" {
+    const op_code: u8 = 0x73;
+    const initial_PC: u16 = 0x0100;
+    const E: u8 = 0x05;
+    const HL: u16 = 0x4E74;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.DE.setLo(E);
+    processor.HL.set(HL);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(0x00, processor.AF.get());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.getHi());
+    try expectEqual(E, processor.DE.getLo());
+    try expectEqual(HL, processor.HL.get());
+    try expectEqual(0x00, processor.SP.get());
+    try expectEqual(E, processor.memory.read(HL));
+}
+
+test "decode and execute 0x74 [LD (HL), H]" {
+    const op_code: u8 = 0x74;
+    const initial_PC: u16 = 0x0100;
+    const H: u8 = 0x4E;
+    const L: u8 = 0x74;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.HL.setHi(H);
+    processor.HL.setLo(L);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(0x00, processor.AF.get());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(H, processor.HL.getHi());
+    try expectEqual(L, processor.HL.getLo());
+    try expectEqual(0x00, processor.SP.get());
+    try expectEqual(H, processor.memory.read(0x4E74));
+}
+
+test "decode and execute 0x75 [LD (HL), L]" {
+    const op_code: u8 = 0x75;
+    const initial_PC: u16 = 0x0100;
+    const H: u8 = 0x4E;
+    const L: u8 = 0x74;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.HL.setHi(H);
+    processor.HL.setLo(L);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(0x00, processor.AF.get());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(H, processor.HL.getHi());
+    try expectEqual(L, processor.HL.getLo());
+    try expectEqual(0x00, processor.SP.get());
+    try expectEqual(L, processor.memory.read(0x4E74));
+}
+
+test "decode and execute 0x77 [LD (HL), A]" {
+    const op_code: u8 = 0x77;
+    const initial_PC: u16 = 0x0100;
+    const HL: u16 = 0x4E74;
+    const A: u8 = 0x05;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.HL.set(HL);
+    processor.AF.setHi(A);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(A, processor.AF.getHi());
+    try expectEqual(0x00, processor.AF.getLo());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(HL, processor.HL.get());
+    try expectEqual(0x00, processor.SP.get());
+    try expectEqual(A, processor.memory.read(HL));
+}
+
+test "decode and execute 0x78 [LD A, B]" {
+    const op_code: u8 = 0x78;
+    const initial_PC: u16 = 0x0100;
+    const B: u8 = 0x05;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.BC.setHi(B);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(B, processor.AF.getHi());
+    try expectEqual(0x00, processor.AF.getLo());
+    try expectEqual(B, processor.BC.getHi());
+    try expectEqual(0x00, processor.BC.getLo());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(0x00, processor.HL.get());
+    try expectEqual(0x00, processor.SP.get());
+}
+
+test "decode and execute 0x79 [LD A, C]" {
+    const op_code: u8 = 0x79;
+    const initial_PC: u16 = 0x0100;
+    const C: u8 = 0x05;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.BC.setLo(C);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(C, processor.AF.getHi());
+    try expectEqual(0x00, processor.AF.getLo());
+    try expectEqual(0x00, processor.BC.getHi());
+    try expectEqual(C, processor.BC.getLo());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(0x00, processor.HL.get());
+    try expectEqual(0x00, processor.SP.get());
+}
+
+test "decode and execute 0x7A [LD A, D]" {
+    const op_code: u8 = 0x7A;
+    const initial_PC: u16 = 0x0100;
+    const D: u8 = 0x05;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.DE.setHi(D);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(D, processor.AF.getHi());
+    try expectEqual(0x00, processor.AF.getLo());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(D, processor.DE.getHi());
+    try expectEqual(0x00, processor.DE.getLo());
+    try expectEqual(0x00, processor.HL.get());
+    try expectEqual(0x00, processor.SP.get());
+}
+
+test "decode and execute 0x7B [LD A, E]" {
+    const op_code: u8 = 0x7B;
+    const initial_PC: u16 = 0x0100;
+    const E: u8 = 0x05;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.DE.setLo(E);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(E, processor.AF.getHi());
+    try expectEqual(0x00, processor.AF.getLo());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.getHi());
+    try expectEqual(E, processor.DE.getLo());
+    try expectEqual(0x00, processor.HL.get());
+    try expectEqual(0x00, processor.SP.get());
+}
+
+test "decode and execute 0x7C [LD A, H]" {
+    const op_code: u8 = 0x7C;
+    const initial_PC: u16 = 0x0100;
+    const H: u8 = 0x05;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.HL.setHi(H);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(H, processor.AF.getHi());
+    try expectEqual(0x00, processor.AF.getLo());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(H, processor.HL.getHi());
+    try expectEqual(0x00, processor.HL.getLo());
+    try expectEqual(0x00, processor.SP.get());
+}
+
+test "decode and execute 0x7D [LD A, L]" {
+    const op_code: u8 = 0x7D;
+    const initial_PC: u16 = 0x0100;
+    const L: u8 = 0x05;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.HL.setLo(L);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(L, processor.AF.getHi());
+    try expectEqual(0x00, processor.AF.getLo());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(0x00, processor.HL.getHi());
+    try expectEqual(L, processor.HL.getLo());
+    try expectEqual(0x00, processor.SP.get());
+}
+
+test "decode and execute 0x7E [LD A, (HL)]" {
+    const op_code: u8 = 0x7E;
+    const initial_PC: u16 = 0x0100;
+    const HL: u16 = 0x22A5;
+    const contents: u8 = 0x13;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.HL.set(HL);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(HL, contents);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(contents, processor.AF.getHi());
+    try expectEqual(0x00, processor.AF.getLo());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(HL, processor.HL.get());
+    try expectEqual(0x00, processor.SP.get());
+    try expectEqual(contents, processor.memory.read(HL));
+}
+
+test "decode and execute 0x7F [LD A, A]" {
+    const op_code: u8 = 0x7F;
+    const initial_PC: u16 = 0x0100;
+    const A: u8 = 0x05;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.AF.setHi(A);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(A, processor.AF.getHi());
+    try expectEqual(0x00, processor.AF.getLo());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(0x00, processor.HL.get());
+    try expectEqual(0x00, processor.SP.get());
+}
