@@ -8,4 +8,6 @@ Total time: 28 minutes
 
 + 30 minutes
 
-8.59PM -
+8.59PM - 10.57PM But some breaks 90 minutes
+
+Cumulative time: 202 minutes

@@ -794,6 +794,15 @@ pub const Processor = struct {
                 self.SP.increment();
             },
 
+            // LD (C), A
+            // Load to the address specified by the 8-bit C register, data from the 8-bit A register. The full 16-bit
+            // address is obtained by setting the most significant byte to 0xff and the least significant byte to the
+            // value of C, so the possible range is 0xff00-0xffff.
+            0xE2 => {
+                const addr: u16 = HI_MASK | self.BC.getLo();
+                self.memory.write(addr, self.AF.getHi());
+            },
+
             // PUSH HL
             // Push the contents of register pair HL onto the memory stack by doing the following:
             // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of register pair
@@ -805,15 +814,6 @@ pub const Processor = struct {
                 self.memory.write(self.SP.get(), self.HL.getHi());
                 self.SP.decrement();
                 self.memory.write(self.SP.get(), self.HL.getLo());
-            },
-
-            // LD (C), A
-            // Load to the address specified by the 8-bit C register, data from the 8-bit A register. The full 16-bit
-            // address is obtained by setting the most significant byte to 0xff and the least significant byte to the
-            // value of C, so the possible range is 0xff00-0xffff.
-            0xE2 => {
-                const addr: u16 = HI_MASK | self.BC.getLo();
-                self.memory.write(addr, self.AF.getHi());
             },
 
             // LD (a16), A
