@@ -39,3 +39,16 @@ a static method `.init` which we can call shorthand. The blk expression then res
 2.53PM
 Also learnt about [`@This()` file scope](https://ziglang.org/documentation/master/#This) which I've used first
 in register.zig.
+
+Before I had to explicitly declare the Register and Memory namespaces within the file as
+```zig
+const Register = @import("register.zig").Register;
+const Memory = @import("memory.zig").Memory;
+```
+
+After using `@This()` file scoping
+
+```zig
+const Register = @import("register.zig");
+const Memory = @import("memory.zig");
+```
