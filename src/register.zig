@@ -54,11 +54,11 @@ pub const Register = struct {
     }
 
     pub inline fn increment(self: *Self) void {
-        self.value += 1;
+        self.value = self.value +% 1;
     }
 
     pub inline fn decrement(self: *Self) void {
-        self.value -= 1;
+        self.value = self.value -% 1;
     }
 };
 
@@ -120,7 +120,7 @@ test "setting and getting 16 bit register" {
 
 test "increment" {
     var AF = Register{
-        .value = 0xf000,
+        .value = 0xF000,
     };
 
     AF.increment();
@@ -132,6 +132,18 @@ test "increment" {
 
     try expectEqual(0xf003, AF.value);
     try expectEqual(0xf003, AF.get());
+}
+
+test "wrapping increment" {
+    var AF = Register{
+        .value = 0xFFFF,
+    };
+
+    AF.increment();
+    try expectEqual(0x0000, AF.value);
+
+    AF.increment();
+    try expectEqual(0x0001, AF.value);
 }
 
 test "decrement" {
@@ -148,4 +160,16 @@ test "decrement" {
 
     try expectEqual(0xeffd, AF.value);
     try expectEqual(0xeffd, AF.get());
+}
+
+test "wrapping decrement" {
+    var AF = Register{
+        .value = 0x0000,
+    };
+
+    AF.decrement();
+    try expectEqual(0xFFFF, AF.value);
+
+    AF.decrement();
+    try expectEqual(0x0FFFE, AF.value);
 }
