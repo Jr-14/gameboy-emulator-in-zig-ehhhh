@@ -2508,6 +2508,66 @@ test "decode and execute 0xCA [JP Z, a16], NZ" {
     try expectEqual(0x00, processor.HL.get());
 }
 
+test "decode and execute 0xCC [CALL Z, a16], Z" {
+    const op_code: u8 = 0xCC;
+    const initial_PC: u16 = 0x0100;
+    const SP: u16 = 0x0AFF;
+    const hi: u8 = utils.getRNG().int(u8);
+    const lo: u8 = utils.getRNG().int(u8);
+
+    var memory: Memory = .init();
+    var processor: Processor = .init(&memory);
+    processor.PC.set(initial_PC);
+    processor.SP.set(SP);
+    processor.setFlag(.Z);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(initial_PC + 1, lo);
+    processor.memory.write(initial_PC + 2, hi);
+
+    const PC_hi: u8 = @truncate(((initial_PC + 3) & masks.HI_MASK) >> 8);
+    const PC_lo: u8 = @truncate((initial_PC + 3) & masks.LO_MASK);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(hi, processor.PC.getHi());
+    try expectEqual(lo, processor.PC.getLo());
+    try expectEqual(SP - 2, processor.SP.get());
+    try expectEqual(masks.Z_MASK, processor.AF.get());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(0x00, processor.HL.get());
+    try expectEqual(PC_hi, processor.memory.read(SP - 1));
+    try expectEqual(PC_lo, processor.memory.read(SP - 2));
+}
+
+test "decode and execute 0xCC [CALL Z, a16], NZ" {
+    const op_code: u8 = 0xCC;
+    const initial_PC: u16 = 0x0100;
+    const SP: u16 = 0x0AFF;
+    const hi: u8 = utils.getRNG().int(u8);
+    const lo: u8 = utils.getRNG().int(u8);
+
+    var memory: Memory = .init();
+    var processor: Processor = .init(&memory);
+    processor.PC.set(initial_PC);
+    processor.SP.set(SP);
+    processor.unsetFlag(.Z);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(initial_PC + 1, lo);
+    processor.memory.write(initial_PC + 2, hi);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 3, processor.PC.get());
+    try expectEqual(SP, processor.SP.get());
+    try expectEqual(0x00, processor.AF.get());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(0x00, processor.HL.get());
+    try expectEqual(0x00, processor.memory.read(SP - 1));
+    try expectEqual(0x00, processor.memory.read(SP - 2));
+}
+
 test "decode and execute 0xCD [CALL a16]" {
     const rand = utils.getRNG();
 

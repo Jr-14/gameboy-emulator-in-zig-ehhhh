@@ -864,6 +864,26 @@ pub const Processor = struct {
                 }
             },
 
+            // CALL Z, a16
+            // If the Z flag is 1, the program counter PC value corresponding to the memory location of the instruction following the
+            // CALL instruction is pushed to the 2 bytes following the memory byte specified by the stack pointer SP. The 16-bit immediate
+            // operand a16 is then loaded into PC.
+            // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed in byte 3.
+            0xCC => {
+                var addr: u16 = self.memory.read(self.PC.get());
+                self.PC.increment();
+                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
+                self.PC.increment();
+
+                if (self.isFlagSet(.Z)) {
+                    self.SP.decrement();
+                    self.memory.write(self.SP.get(), self.PC.getHi());
+                    self.SP.decrement();
+                    self.memory.write(self.SP.get(), self.PC.getLo());
+                    self.PC.set(addr);
+                }
+            },
+
             // CALL a16
             // In memory, push the program counter PC value corresponding to the address following the CALL instruction
             // to the 2 bytes following the byte specified by the current stack pointer SP. Then load the 16-bit
