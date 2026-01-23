@@ -14,7 +14,11 @@ pub fn addOffset(value: u16, offset: u16) u16 {
     return @bitCast(@as(i16, @bitCast(value)) + @as(i16, @bitCast(signExtendedOffset)));
 }
 
-pub fn generateRandom() !std.Random {
+pub fn toTwoBytes(hi: u8, lo: u8) u16 {
+    return (@as(u16, hi) << 8) | lo;
+}
+
+pub fn getRNG() !std.Random {
     var prng: std.Random.DefaultPrng = .init(blk: {
         var seed: u64 = undefined;
         try std.posix.getrandom(std.mem.asBytes(&seed));
@@ -52,4 +56,10 @@ test "addOffset - positive offset" {
     const initial_PC: u16 = 0b0000_0000_1111_1111; // 255
 
     try expectEqual(258, addOffset(initial_PC, positive_three_u8));
+}
+
+test "toTwoBytes" {
+    const hi: u8 = 0x34;
+    const lo: u8 = 0xA0;
+    try expectEqual(0x34A0, toTwoBytes(hi, lo));
 }

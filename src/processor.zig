@@ -3,6 +3,7 @@ const utils = @import("utils.zig");
 
 const Register = @import("register.zig");
 const Memory = @import("memory.zig");
+const Flag = Register.Flag;
 
 const masks = @import("masks.zig");
 
@@ -13,13 +14,6 @@ const Z_MASK = masks.Z_MASK;
 const N_MASK = masks.N_MASK;
 const H_MASK = masks.H_MASK;
 const C_MASK = masks.C_MASK;
-
-pub const Flag = enum {
-    Z,
-    N,
-    H,
-    C,
-};
 
 pub const Processor = struct {
     AF: Register = .{},
@@ -780,7 +774,12 @@ pub const Processor = struct {
                 self.PC.increment();
                 addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
                 self.PC.increment();
+
                 if (!self.isFlagSet(.Z)) {
+                    self.SP.decrement();
+                    self.memory.write(self.SP.get(), self.PC.getHi());
+                    self.SP.decrement();
+                    self.memory.write(self.SP.get(), self.PC.getLo());
                     self.PC.set(addr);
                 }
             },
