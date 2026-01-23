@@ -18,29 +18,29 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x00 - NOP
 - [ ] 0x10 - STOP
 - [ ] 0x27 - DAA
-- [ ] 0x2f - CPL
+- [ ] 0x2F - CPL
 - [ ] 0x37 - SCF
-- [ ] 0x3f - CCF
+- [ ] 0x3F - CCF
 - [ ] 0x76 - HALT
-- [ ] 0xFB - EI
+- [ ] 0xFb - EI
 
 **8-bit load instructions**
 - [x] 0x02 - LD (BC), A
 - [x] 0x06 - LD B, d8
-- [x] 0x0a - LD A, (BC)
-- [x] 0x0e - LD C, d8
+- [x] 0x0A - LD A, (BC)
+- [x] 0x0E - LD C, d8
 - [x] 0x12 - LD (DE), A
 - [x] 0x16 - LD D, d8
-- [x] 0x1a - LD A, (DE)
-- [x] 0x1e - LD E, d8
+- [x] 0x1A - LD A, (DE)
+- [x] 0x1E - LD E, d8
 - [x] 0x22 - LD (HL+), A
 - [x] 0x26 - LD H, d8
-- [x] 0x2a - LD A, (HL+)
-- [x] 0x2e - LD L, d8
+- [x] 0x2A - LD A, (HL+)
+- [x] 0x2E - LD L, d8
 - [x] 0x32 - LD (HL-), A
 - [x] 0x36 - LD (HL), d8
-- [x] 0x3a - LD A, (HL-)
-- [x] 0x3e - LD A, d8
+- [x] 0x3A - LD A, (HL-)
+- [x] 0x3E - LD A, d8
 - [x] 0x40 - LD B, B
 - [x] 0x41 - LD B, C
 - [x] 0x42 - LD B, D
@@ -51,12 +51,12 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x47 - LD B, A
 - [x] 0x48 - LD C, B
 - [x] 0x49 - LD C, C
-- [x] 0x4a - LD C, D
-- [x] 0x4b - LD C, E
-- [x] 0x4c - LD C, H
-- [x] 0x4d - LD C, L
-- [x] 0x4e - LD C, (HL)
-- [x] 0x4f - LD C, A
+- [x] 0x4A - LD C, D
+- [x] 0x4B - LD C, E
+- [x] 0x4C - LD C, H
+- [x] 0x4D - LD C, L
+- [x] 0x4E - LD C, (HL)
+- [x] 0x4F - LD C, A
 - [x] 0x50 - LD D, B
 - [x] 0x51 - LD D, C
 - [x] 0x52 - LD D, D
@@ -67,12 +67,12 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x57 - LD D, A
 - [x] 0x58 - LD E, B
 - [x] 0x59 - LD E, C
-- [x] 0x5a - LD E, D
-- [x] 0x5b - LD E, E
-- [x] 0x5c - LD E, H
-- [x] 0x5d - LD E, L
-- [x] 0x5e - LD E, (HL)
-- [x] 0x5f - LD E, A
+- [x] 0x5A - LD E, D
+- [x] 0x5B - LD E, E
+- [x] 0x5C - LD E, H
+- [x] 0x5D - LD E, L
+- [x] 0x5E - LD E, (HL)
+- [x] 0x5F - LD E, A
 - [x] 0x60 - LD H, B
 - [x] 0x61 - LD H, C
 - [x] 0x62 - LD H, D
@@ -83,12 +83,12 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x67 - LD H, A
 - [x] 0x68 - LD L, B
 - [x] 0x69 - LD L, C
-- [x] 0x6a - LD L, D
-- [x] 0x6b - LD L, E
-- [x] 0x6c - LD L, H
-- [x] 0x6d - LD L, L
-- [x] 0x6e - LD L, (HL)
-- [x] 0x6f - LD L, A
+- [x] 0x6A - LD L, D
+- [x] 0x6B - LD L, E
+- [x] 0x6C - LD L, H
+- [x] 0x6D - LD L, L
+- [x] 0x6E - LD L, (HL)
+- [x] 0x6F - LD L, A
 - [x] 0x70 - LD (HL), B
 - [x] 0x71 - LD (HL), C
 - [x] 0x72 - LD (HL), D
@@ -98,18 +98,18 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x77 - LD (HL), A
 - [x] 0x78 - LD A, B
 - [x] 0x79 - LD A, C
-- [x] 0x7a - LD A, D
-- [x] 0x7b - LD A, E
-- [x] 0x7c - LD A, H
-- [x] 0x7d - LD A, L
-- [x] 0x7e - LD A, (HL)
-- [x] 0x7f - LD A, A
-- [x] 0xe0 - LD (a8), A
-- [x] 0xe2 - LD (C), A
-- [x] 0xea - LD (a16), A
-- [x] 0xf0 - LD A, (a8)
-- [x] 0xf2 - LD A, (C)
-- [x] 0xfa - LD A, (a16)
+- [x] 0x7A - LD A, D
+- [x] 0x7B - LD A, E
+- [x] 0x7C - LD A, H
+- [x] 0x7D - LD A, L
+- [x] 0x7E - LD A, (HL)
+- [x] 0x7F - LD A, A
+- [x] 0xE0 - LD (a8), A
+- [x] 0xE2 - LD (C), A
+- [x] 0xEA - LD (a16), A
+- [x] 0xF0 - LD A, (a8)
+- [x] 0xF2 - LD A, (C)
+- [x] 0xFA - LD A, (a16)
 
 **16-bit load instructions**
 - [x] 0x01 - LD BC, d16
@@ -117,16 +117,16 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x12 - LD DE, d16
 - [x] 0x21 - LD HL, d16
 - [x] 0x31 - LD SP, d16
-- [x] 0xc1 - POP BC
-- [x] 0xc5 - PUSH BC
-- [x] 0xd1 - POP DE
-- [x] 0xd5 - PUSH DE
-- [x] 0xe1 - POP HL
-- [x] 0xe5 - PUSH HL
-- [x] 0xf1 - POP AF
-- [x] 0xf5 - PUSH AF
-- [x] 0xf8 - LD HL, SP+s8
-- [x] 0xf9 - LD SP, HL
+- [x] 0xC1 - POP BC
+- [x] 0xC5 - PUSH BC
+- [x] 0xD1 - POP DE
+- [x] 0xD5 - PUSH DE
+- [x] 0xE1 - POP HL
+- [x] 0xE5 - PUSH HL
+- [x] 0xF1 - POP AF
+- [x] 0xF5 - PUSH AF
+- [x] 0xF8 - LD HL, SP+s8
+- [x] 0xF9 - LD SP, HL
 
 **Control Flow Instructions**
 - [x] 0x18 - JR s8
@@ -134,31 +134,31 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0x28 - JR Z, s8
 - [x] 0x30 - JR NC, s8
 - [x] 0x38 - JR C, s8
-- [x] 0xc0 - RET NZ
-- [x] 0xc2 - JP NZ, a16
-- [x] 0xc3 - JP a16
-- [x] 0xc4 - CALL NZ, a16
-- [x] 0xc7 - RST 0
-- [x] 0xc8 - RET Z
-- [x] 0xc9 - RET
-- [x] 0xca - JP Z, a16
-- [x] 0xcc - CALL Z, a16
-- [ ] 0xcd - CALL a16
-- [ ] 0xcf - RST 1
-- [ ] 0xd0 - RET NC
-- [ ] 0xd2 - JP NC, a16
-- [ ] 0xd4 - CALL NC, a16
-- [ ] 0xd7 - RST 2
-- [ ] 0xd8 - RET C
-- [ ] 0xd9 - RETI
-- [ ] 0xda - JP C, a16
-- [ ] 0xdc - CALL C, a16
-- [ ] 0xdf - RST 3
-- [ ] 0xe7 - RST 4
-- [ ] 0xe9 - JP HL
-- [ ] 0xef - RST 5
-- [ ] 0xf7 - RST 6
-- [ ] 0xff - RST 7
+- [x] 0xC0 - RET NZ
+- [x] 0xC2 - JP NZ, a16
+- [x] 0xC3 - JP a16
+- [x] 0xC4 - CALL NZ, a16
+- [x] 0xC7 - RST 0
+- [x] 0xC8 - RET Z
+- [x] 0xC9 - RET
+- [x] 0xCA - JP Z, a16
+- [x] 0xCC - CALL Z, a16
+- [ ] 0xCD - CALL a16
+- [ ] 0xCF - RST 1
+- [ ] 0xD0 - RET NC
+- [ ] 0xD2 - JP NC, a16
+- [ ] 0xD4 - CALL NC, a16
+- [ ] 0xD7 - RST 2
+- [ ] 0xD8 - RET C
+- [ ] 0xD9 - RETI
+- [ ] 0xDA - JP C, a16
+- [ ] 0xDC - CALL C, a16
+- [ ] 0xDF - RST 3
+- [ ] 0xE7 - RST 4
+- [ ] 0xE9 - JP HL
+- [ ] 0xEF - RST 5
+- [ ] 0xF7 - RST 6
+- [ ] 0xFF - RST 7
 
 # Timeline
 Day 20 - Completed All 8-bit and 16-bit load instructions with tests (to the best of my knowledge)
