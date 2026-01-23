@@ -18,10 +18,10 @@ pub fn toTwoBytes(hi: u8, lo: u8) u16 {
     return (@as(u16, hi) << 8) | lo;
 }
 
-pub fn getRNG() !std.Random {
+pub fn getRNG() std.Random {
     var prng: std.Random.DefaultPrng = .init(blk: {
         var seed: u64 = undefined;
-        try std.posix.getrandom(std.mem.asBytes(&seed));
+        std.crypto.random.bytes(std.mem.asBytes(&seed));
         break: blk seed;
     });
 

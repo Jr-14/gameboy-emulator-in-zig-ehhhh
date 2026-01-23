@@ -815,6 +815,23 @@ pub const Processor = struct {
                 self.PC.set(0x0000);
             },
 
+            // RET Z
+            // If the Z flag is 1, control is returned to the source program by popping from the memory stack the
+            // program counter PC value that was pushed to the stack when the subroutine was called.
+            // The contents of the address specified by the stack pointer SP are loaded in the lower-order byte of PC,
+            // and the contents of SP are incremented by 1. The contents of the address specified by the new SP value
+            // are then loaded in the higher-order byte of PC, and the contents of SP are incremented by 1 again.
+            // (The value of SP is 2 larger than before instruction execution.) The next instruction is fetched from
+            // the address specified by the content of PC (as usual).
+            0xC8 => {
+                if (self.isFlagSet(.Z)) {
+                    self.PC.setLo(self.memory.read(self.SP.get()));
+                    self.SP.increment();
+                    self.PC.setHi(self.memory.read(self.SP.get()));
+                    self.SP.increment();
+                }
+            },
+
             // CALL a16
             // In memory, push the program counter PC value corresponding to the address following the CALL instruction
             // to the 2 bytes following the byte specified by the current stack pointer SP. Then load the 16-bit
