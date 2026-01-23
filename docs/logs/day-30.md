@@ -52,3 +52,5 @@ After using `@This()` file scoping
 const Register = @import("register.zig");
 const Memory = @import("memory.zig");
 ```
+
+Total time: 212 minutes

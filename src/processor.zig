@@ -910,6 +910,26 @@ pub const Processor = struct {
                 self.PC.set(addr);
             },
 
+            // RST 1
+            // Push the current value of the program counter PC onto the memory stack, and load into PC the 2th byte of
+            // page 0 memory addresses, 0x08. The next instruction is fetched from the address specified by the new
+            // content of PC (as usual).
+            // With the push, the contents of the stack pointer SP are decremented by 1, and the higher-order byte of
+            // PC is loaded in the memory address specified by the new SP value. The value of SP is then again
+            // decremented by 1, and the lower-order byte of the PC is loaded in the memory address specified by that
+            // value of SP.
+            // The RST instruction can be used to jump to 1 of 8 addresses. Because all of the addresses are held in
+            // page 0 memory, 0x00 is loaded in the higher-order byte of the PC, and 0x08 is loaded in the lower-order
+            // byte.
+            0xCF => {
+                self.SP.decrement();
+                self.memory.write(self.SP.get(), self.PC.getHi());
+                self.SP.decrement();
+                self.memory.write(self.SP.get(), self.PC.getLo());
+
+                self.PC.set(0x0008);
+            },
+
             // POP DE
             // Pop the contents from the memory stack into register pair DE by doing the following:
             // 1. Load the contents of memory specified by stack pointer SP into the lower portion of DE.
