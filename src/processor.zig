@@ -847,6 +847,23 @@ pub const Processor = struct {
                 self.SP.increment();
             },
 
+            // JP Z, a16
+            // Load the 16-bit immediate operand a16 into the program counter PC if the Z flag is 1. If the Z flag is
+            // 1, then the subsequent instruction starts at address a16. If not, the contents of PC are incremented,
+            // and the next instruction following the current JP instruction is executed (as usual).
+            // The second byte of the object code (immediately following the opcode) corresponds to the lower-order byte
+            // of a16 (bits 0-7), and the third byte of the object code corresponds to the higher-order byte
+            // (bits 8-15).
+            0xCA => {
+                var addr: u16 = self.memory.read(self.PC.get());
+                self.PC.increment();
+                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
+                self.PC.increment();
+                if (self.isFlagSet(.Z)) {
+                    self.PC.set(addr);
+                }
+            },
+
             // CALL a16
             // In memory, push the program counter PC value corresponding to the address following the CALL instruction
             // to the 2 bytes following the byte specified by the current stack pointer SP. Then load the 16-bit
