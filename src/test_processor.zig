@@ -2249,6 +2249,29 @@ test "decode and execute 0xC2 [JP NZ, a16], NZ" {
     try expectEqual(0x00, processor.HL.get());
 }
 
+test "decode and execute 0xC3 [JP a16]" {
+    const op_code: u8 = 0xC3;
+    const initial_PC: u16 = 0x0100;
+    const hi: u8 = 0x0E;
+    const lo: u8 = 0xE3;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(initial_PC + 1, lo);
+    processor.memory.write(initial_PC + 2, hi);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(0x0EE3, processor.PC.get());
+    try expectEqual(0x00, processor.SP.get());
+    try expectEqual(0x00, processor.AF.get());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(0x00, processor.HL.get());
+}
+
 test "decode and execute 0xC2 [JP NZ, a16], Z" {
     const op_code: u8 = 0xC2;
     const initial_PC: u16 = 0x0100;
@@ -2274,6 +2297,10 @@ test "decode and execute 0xC2 [JP NZ, a16], Z" {
     try expectEqual(0x00, processor.HL.get());
 }
 
+test "decode and execute 0xC4 [CALL NZ, a16]" {
+    return TestError.NotImplemented;
+}
+
 test "decode and execute 0xC5 [PUSH BC]" {
     const op_code: u8 = 0xC5;
     const initial_PC: u16 = 0x0100;
@@ -2297,6 +2324,36 @@ test "decode and execute 0xC5 [PUSH BC]" {
     try expectEqual(SP - 2, processor.SP.get());
     try expectEqual(0x14, processor.memory.read(SP - 1));
     try expectEqual(0xFA, processor.memory.read(SP - 2));
+}
+
+test "decode and execute 0xCD [CALL a16]" {
+    const op_code: u8 = 0xCD;
+    const initial_PC: u16 = 0x0100;
+    const SP: u16 = 0xAFF;
+    const hi: u8 = 0x39;
+    const lo: u8 = 0xEF;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    processor.PC.set(initial_PC);
+    processor.SP.set(SP);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(initial_PC + 1, lo);
+    processor.memory.write(initial_PC + 2, hi);
+
+    const PC_hi_addr: u8 = @truncate(((initial_PC + 3) & masks.HI_MASK) >> 8);
+    const PC_lo_addr: u8 = @truncate((initial_PC + 3) & masks.LO_MASK);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(0x39EF, processor.PC.get());
+    try expectEqual(SP - 2, processor.SP.get());
+    try expectEqual(0x00, processor.AF.get());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(0x00, processor.HL.get());
+    try expectEqual(PC_hi_addr, processor.memory.read(SP - 1));
+    try expectEqual(PC_lo_addr, processor.memory.read(SP - 2));
 }
 
 test "decode and execute 0xD1 [POP DE]" {

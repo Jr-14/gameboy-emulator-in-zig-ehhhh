@@ -31,6 +31,7 @@ idea to catalogue them.
 - [fetch-decode-execute cycle](https://www.baeldung.com/cs/fetch-execute-cycle)
 - [Flag register in 8085 microprocessor](https://www.geeksforgeeks.org/computer-organization-architecture/flag-register-8085-microprocessor/)
 - [Ep 083: Introduction to the Flags Register](https://www.youtube.com/watch?v=7eaTT8PekE0)
+- [Endianness](https://en.wikipedia.org/wiki/Endianness)
 
 # Memory
 - [What's a Memory Allocator Anyway? - Benjamin Feng](https://www.youtube.com/watch?v=vHWiDx_l4V0)

@@ -754,6 +754,37 @@ pub const Processor = struct {
                 }
             },
 
+            // JP a16
+            // Load the 16-bit immediate operand a16 into the program counter (PC). a16 specifies the address of the
+            // subsequently executed instruction.
+            // The second byte of the object code (immediately following the opcode) corresponds to the lower-order
+            // byte of a16 (bits 0-7), and the third byte of the object code corresponds to the higher-order byte
+            // (bits 8-15).
+            0xC3 => {
+                var addr: u16 = self.memory.read(self.PC.get());
+                self.PC.increment();
+                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
+                self.PC.increment();
+                self.PC.set(addr);
+            },
+
+            // CALL NZ, a16
+            // If the Z flag is 0, the program counter PC value corresponding to the memory location of the instruction
+            // following the CALL instruction is pushed to the 2 bytes following the memory byte specified by the stack
+            // pointer SP. The 16-bit immediate operand a16 is then loaded into PC.
+            //
+            // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed
+            // in byte 3.
+            0xC4 => {
+                var addr: u16 = self.memory.read(self.PC.get());
+                self.PC.increment();
+                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
+                self.PC.increment();
+                if (!self.isFlagSet(.Z)) {
+                    self.PC.set(addr);
+                }
+            },
+
             // PUSH BC
             // Push the contents of register pair BC onto the memory stack by doing the following:
             // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of register pair
@@ -764,6 +795,32 @@ pub const Processor = struct {
                 self.memory.write(self.SP.get(), self.BC.getHi());
                 self.SP.decrement();
                 self.memory.write(self.SP.get(), self.BC.getLo());
+            },
+
+            // CALL a16
+            // In memory, push the program counter PC value corresponding to the address following the CALL instruction
+            // to the 2 bytes following the byte specified by the current stack pointer SP. Then load the 16-bit
+            // immediate operand a16 into PC.
+            // The subroutine is placed after the location specified by the new PC value. When the subroutine finishes,
+            // control is returned to the source program using a return instruction and by popping the starting address
+            // of the next instruction (which was just pushed) and moving it to the PC.
+            // With the push, the current value of SP is decremented by 1, and the higher-order byte of PC is loaded in
+            // the memory address specified by the new SP value. The value of SP is then decremented by 1 again, and
+            // the lower-order byte of PC is loaded in the memory address specified by that value of SP.
+            // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed
+            // in byte 3.
+            0xCD => {
+                var addr: u16 = self.memory.read(self.PC.get());
+                self.PC.increment();
+                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
+                self.PC.increment();
+
+                self.SP.decrement();
+                self.memory.write(self.SP.get(), self.PC.getHi());
+                self.SP.decrement();
+                self.memory.write(self.SP.get(), self.PC.getLo());
+
+                self.PC.set(addr);
             },
 
             // POP DE
