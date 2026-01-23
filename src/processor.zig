@@ -820,9 +820,9 @@ pub const Processor = struct {
             // Store the contents of register A in the internal RAM or register specified by the 16-bit immediate
             // operand a16.
             0xEA => {
-                var addr: u16 = @as(u16, self.memory.read(self.PC.get())) << 8;
+                var addr: u16 = self.memory.read(self.PC.get());
                 self.PC.increment();
-                addr |= self.memory.read(self.PC.get());
+                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
                 self.PC.increment();
                 self.memory.write(addr, self.AF.getHi());
             },
@@ -902,10 +902,10 @@ pub const Processor = struct {
 
             // LD A, (a16)
             // Load to the 8-bit A register, data from the absolute address specified by the 16-bit operand (a16).
-            0xfa => {
-                var addr: u16 = @as(u16, self.memory.read(self.PC.get())) << 8;
+            0xFA => {
+                var addr: u16 = self.memory.read(self.PC.get());
                 self.PC.increment();
-                addr |= self.memory.read(self.PC.get());
+                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
                 self.PC.increment();
                 self.AF.setHi(self.memory.read(addr));
             },
