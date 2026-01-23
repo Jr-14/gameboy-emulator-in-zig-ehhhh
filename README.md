@@ -140,7 +140,7 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0xc4 - CALL NZ, a16
 - [x] 0xc7 - RST 0
 - [x] 0xc8 - RET Z
-- [ ] 0xc9 - RET
+- [x] 0xc9 - RET
 - [ ] 0xca - JP Z, a16
 - [ ] 0xcc - CALL Z, a16
 - [x] 0xcd - CALL a16
