@@ -1,4 +1,5 @@
 const std = @import("std");
+const utils = @import("utils.zig");
 const register = @import("register.zig");
 const Register = register.Register;
 const Processor = @import("processor.zig").Processor;
@@ -12,13 +13,14 @@ const expectEqual = std.testing.expectEqual;
 const STOP_OP_CODE: u8 = 0x10;
 
 test "decode and execute 0x01 [LD BC, d16]" {
+    const rand = try utils.generateRandom();
     const op_code: u8 = 0x01;
     const initial_PC: u16 = 0x0100;
-    const hi: u8 = 0x89;
-    const lo: u8 = 0xc4;
+    const hi: u8 = rand.int(u8);
+    const lo: u8 = rand.int(u8);
 
-    var memory = Memory.init();
-    var processor = Processor.init(&memory);
+    var memory: Memory = .init();
+    var processor: Processor = .init(&memory);
     processor.PC.set(initial_PC);
     processor.memory.write(initial_PC, op_code);
     processor.memory.write(initial_PC + 1, lo);
@@ -29,7 +31,8 @@ test "decode and execute 0x01 [LD BC, d16]" {
 
     try expectEqual(initial_PC + 3, processor.PC.get());
     try expectEqual(0x0000, processor.AF.get());
-    try expectEqual(0x89c4, processor.BC.get());
+    try expectEqual(hi, processor.BC.getHi());
+    try expectEqual(lo, processor.BC.getLo());
     try expectEqual(0x0000, processor.DE.get());
     try expectEqual(0x0000, processor.HL.get());
 }

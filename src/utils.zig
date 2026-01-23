@@ -14,6 +14,16 @@ pub fn addOffset(value: u16, offset: u16) u16 {
     return @bitCast(@as(i16, @bitCast(value)) + @as(i16, @bitCast(signExtendedOffset)));
 }
 
+pub fn generateRandom() !std.Random {
+    var prng: std.Random.DefaultPrng = .init(blk: {
+        var seed: u64 = undefined;
+        try std.posix.getrandom(std.mem.asBytes(&seed));
+        break: blk seed;
+    });
+
+    return prng.random();
+}
+
 const expectEqual = std.testing.expectEqual;
 
 test "sign extend - negative two's complement" {

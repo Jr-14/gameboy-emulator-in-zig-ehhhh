@@ -8,3 +8,30 @@ I think I've misunderstood the little endian and big endian of load instructions
 I wasn't too familiar with the CALL instruction and how it works, but I think I have an understanding
 now.
 
+2.15PM
+[Zig result locations](https://ziglang.org/documentation/0.15.2/#Result-Location-Semantics) as a result of
+looking into random number generation and seeing some zig code I was unfamiliar with.
+
+E.g.
+
+```zig
+test "random numbers" {
+    var prng: std.Random.DefaultPrng = .init(blk: {
+        var seed: u64 = undefined;
+        try std.posix.getrandom(std.mem.asBytes(&seed));
+        break :blk seed;
+    });
+    const rand = prng.random();
+
+    const a = rand.float(f32);
+    const b = rand.boolean();
+    const c = rand.int(u8);
+    const d = rand.intRangeAtMost(u8, 0, 255);
+
+    //suppress unused constant compile error
+    _ = .{ a, b, c, d };
+}
+```
+
+To me this reads as `prng` has the type std.Random.DefaultPrng which is its result type and therefore has
+a static method `.init` which we can call shorthand. The blk expression then resolves to a u64 value.
