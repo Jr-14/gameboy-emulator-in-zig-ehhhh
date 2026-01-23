@@ -2363,6 +2363,29 @@ test "decode and execute 0xC5 [PUSH BC]" {
     try expectEqual(0xFA, processor.memory.read(SP - 2));
 }
 
+test "decode and execute 0xC7 [RST 0]" {
+    const op_code: u8 = 0xC7;
+    const initial_PC: u16 = 0x0102;
+    const SP: u16 = 0x0AFF;
+
+    var memory: Memory = .init();
+    var processor: Processor = .init(&memory);
+    processor.PC.set(initial_PC);
+    processor.SP.set(SP);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(0x0000, processor.PC.get());
+    try expectEqual(SP - 2, processor.SP.get());
+    try expectEqual(0x01, processor.memory.read(SP - 1));
+    try expectEqual(0x03, processor.memory.read(SP - 2));
+}
+
+test "decode and execute 0xC8 [RET Z]" {
+    return TestError.NotImplemented;
+}
+
 test "decode and execute 0xCD [CALL a16]" {
     const rand = try utils.getRNG();
 
