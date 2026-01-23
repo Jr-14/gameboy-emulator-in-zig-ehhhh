@@ -1,12 +1,15 @@
+const Register = @This();
+
 const std = @import("std");
+const masks = @import("masks.zig");
 
-pub const HI_MASK: u16 = 0xFF00;
-pub const LO_MASK: u8 = 0x00FF;
+const HI_MASK = masks.HI_MASK;
+const LO_MASK = masks.LO_MASK;
 
-pub const Z_MASK: u8 = 0x80; // 0b1000_0000
-pub const N_MASK: u8 = 0x40; // 0b0100_0000
-pub const H_MASK: u8 = 0x20; // 0b0010_0000
-pub const C_MASK: u8 = 0x10; // 0b0001_0000
+const Z_MASK = masks.Z_MASK;
+const N_MASK = masks.N_MASK;
+const H_MASK = masks.H_MASK;
+const C_MASK = masks.C_MASK;
 
 pub const Flag = enum {
     Z,
@@ -15,52 +18,48 @@ pub const Flag = enum {
     C,
 };
 
-pub const Register = struct {
-    const Self = @This();
+value: u16 = 0,
 
-    value: u16 = 0,
+pub fn init(hi: u8, lo: u8) Register {
+    const value: u16 = (@as(u16, hi) << 8) | lo;
+    return .{
+        .value = value,
+    };
+}
 
-    pub fn init(hi: u8, lo: u8) Self {
-        const value: u16 = (@as(u16, hi) << 8) | lo;
-        return .{
-            .value = value,
-        };
-    }
+pub inline fn get(r: Register) u16 {
+    return r.value;
+}
 
-    pub inline fn get(self: Self) u16 {
-        return self.value;
-    }
+pub inline fn getHi(r: Register) u8 {
+    return @truncate((r.value & HI_MASK) >> 8);
+}
 
-    pub inline fn getHi(self: Self) u8 {
-        return @truncate((self.value & HI_MASK) >> 8);
-    }
+pub inline fn getLo(r: Register) u8 {
+    return @truncate((r.value & LO_MASK));
+}
 
-    pub inline fn getLo(self: Self) u8 {
-        return @truncate((self.value & LO_MASK));
-    }
+pub inline fn set(r: *Register, val: u16) void {
+    r.value = val;
+}
 
-    pub inline fn set(self: *Self, val: u16) void {
-        self.value = val;
-    }
+pub inline fn setHi(r: *Register, val: u8) void {
+    const new_hi: u16 = @as(u16, val) << 8;
+    const curr_lo: u16 = (r.value & LO_MASK);
+    r.value = new_hi | curr_lo;
+}
 
-    pub inline fn setHi(self: *Self, val: u8) void {
-        const new_hi: u16 = @as(u16, val) << 8;
-        const curr_lo: u16 = (self.value & LO_MASK);
-        self.value = new_hi | curr_lo;
-    }
+pub inline fn setLo(r: *Register, val: u8) void {
+    r.value = (r.value & HI_MASK) | val;
+}
 
-    pub inline fn setLo(self: *Self, val: u8) void {
-        self.value = (self.value & HI_MASK) | val;
-    }
+pub inline fn increment(r: *Register) void {
+    r.value = r.value +% 1;
+}
 
-    pub inline fn increment(self: *Self) void {
-        self.value = self.value +% 1;
-    }
-
-    pub inline fn decrement(self: *Self) void {
-        self.value = self.value -% 1;
-    }
-};
+pub inline fn decrement(r: *Register) void {
+    r.value = r.value -% 1;
+}
 
 const expectEqual = std.testing.expectEqual;
 

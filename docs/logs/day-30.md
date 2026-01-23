@@ -35,3 +35,7 @@ test "random numbers" {
 
 To me this reads as `prng` has the type std.Random.DefaultPrng which is its result type and therefore has
 a static method `.init` which we can call shorthand. The blk expression then resolves to a u64 value.
+
+2.53PM
+Also learnt about [`@This()` file scope](https://ziglang.org/documentation/master/#This) which I've used first
+in register.zig.

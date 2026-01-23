@@ -14,6 +14,7 @@ const STOP_OP_CODE: u8 = 0x10;
 
 test "decode and execute 0x01 [LD BC, d16]" {
     const rand = try utils.generateRandom();
+
     const op_code: u8 = 0x01;
     const initial_PC: u16 = 0x0100;
     const hi: u8 = rand.int(u8);
@@ -38,11 +39,13 @@ test "decode and execute 0x01 [LD BC, d16]" {
 }
 
 test "decode and execute 0x02 [LD (BC), A]" {
+    const rand = try utils.generateRandom();
+
     const op_code: u8 = 0x02;
     const initial_PC: u16 = 0x0100;
-    const A: u8 = 0x93;
-    const F: u8 = 0x00;
-    const BC: u16 = 0x1d49;
+    const A: u8 = rand.int(u8);
+    const F: u8 = rand.int(u8);
+    const BC: u16 = rand.int(u16);
 
     var memory = Memory.init();
     var processor = Processor.init(&memory);
@@ -2330,11 +2333,13 @@ test "decode and execute 0xC5 [PUSH BC]" {
 }
 
 test "decode and execute 0xCD [CALL a16]" {
+    const rand = try utils.generateRandom();
+
     const op_code: u8 = 0xCD;
     const initial_PC: u16 = 0x0100;
     const SP: u16 = 0xAFF;
-    const hi: u8 = 0x39;
-    const lo: u8 = 0xEF;
+    const hi: u8 = rand.int(u8);
+    const lo: u8 = rand.int(u8);
 
     var memory = Memory.init();
     var processor = Processor.init(&memory);
@@ -2349,7 +2354,8 @@ test "decode and execute 0xCD [CALL a16]" {
 
     const instruction = processor.fetch();
     try processor.decodeAndExecute(instruction);
-    try expectEqual(0x39EF, processor.PC.get());
+    try expectEqual(hi, processor.PC.getHi());
+    try expectEqual(lo, processor.PC.getLo());
     try expectEqual(SP - 2, processor.SP.get());
     try expectEqual(0x00, processor.AF.get());
     try expectEqual(0x00, processor.BC.get());
