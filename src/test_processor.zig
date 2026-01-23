@@ -12,11 +12,15 @@ const expectEqual = std.testing.expectEqual;
 
 const STOP_OP_CODE: u8 = 0x10;
 
+const SEED: u64 = 0xBCDE_1234_FE3D_89A0;
+var prng = std.Random.DefaultPrng.init(SEED);
+const rand = prng.random();
+
 test "decode and execute 0x01 [LD BC, d16]" {
     const op_code: u8 = 0x01;
     const initial_PC: u16 = 0x0100;
-    const hi = utils.getRNG().int(u8);
-    const lo = utils.getRNG().int(u8);
+    const hi = rand.int(u8);
+    const lo = rand.int(u8);
 
     var memory: Memory = .init();
     var processor: Processor = .init(&memory);
@@ -37,8 +41,6 @@ test "decode and execute 0x01 [LD BC, d16]" {
 }
 
 test "decode and execute 0x02 [LD (BC), A]" {
-    const rand = utils.getRNG();
-
     const op_code: u8 = 0x02;
     const initial_PC: u16 = 0x0100;
     const A: u8 = rand.int(u8);
@@ -2303,8 +2305,6 @@ test "decode and execute 0xC3 [JP a16]" {
 }
 
 test "decode and execute 0xC4 [CALL NZ, a16]" {
-    const rand = utils.getRNG();
-
     const op_code: u8 = 0xC4;
     const initial_PC: u16 = 0x0100;
     const SP: u16 = 0x0AFF;
@@ -2384,8 +2384,8 @@ test "decode and execute 0xC8 [RET Z], Z" {
     const op_code: u8 = 0xC8;
     const initial_PC: u16 = 0x0100;
     const SP: u16 = 0x0AFF;
-    const hi: u8 = utils.getRNG().int(u8);
-    const lo: u8 = utils.getRNG().int(u8);
+    const hi: u8 = rand.int(u8);
+    const lo: u8 = rand.int(u8);
 
     var memory: Memory = .init();
     var processor: Processor = .init(&memory);
@@ -2411,8 +2411,8 @@ test "decode and execute 0xC8 [RET Z], NZ" {
     const op_code: u8 = 0xC8;
     const initial_PC: u16 = 0x0100;
     const SP: u16 = 0x0AFF;
-    const hi: u8 = utils.getRNG().int(u8);
-    const lo: u8 = utils.getRNG().int(u8);
+    const hi: u8 = rand.int(u8);
+    const lo: u8 = rand.int(u8);
 
     var memory: Memory = .init();
     var processor: Processor = .init(&memory);
@@ -2437,8 +2437,8 @@ test "decode and execute 0xC9 [RET]" {
     const op_code: u8 = 0xC9;
     const initial_PC: u16 = 0x0100;
     const SP: u16 = 0x0AFF;
-    const hi = utils.getRNG().int(u8);
-    const lo = utils.getRNG().int(u8);
+    const hi = rand.int(u8);
+    const lo = rand.int(u8);
 
     var memory: Memory = .init();
     var processor: Processor = .init(&memory);
@@ -2462,8 +2462,8 @@ test "decode and execute 0xC9 [RET]" {
 test "decode and execute 0xCA [JP Z, a16], Z" {
     const op_code: u8 = 0xCA;
     const initial_PC: u16 = 0x0100;
-    const hi = utils.getRNG().int(u8);
-    const lo = utils.getRNG().int(u8);
+    const hi = rand.int(u8);
+    const lo = rand.int(u8);
 
     var memory: Memory = .init();
     var processor: Processor = .init(&memory);
@@ -2487,8 +2487,8 @@ test "decode and execute 0xCA [JP Z, a16], Z" {
 test "decode and execute 0xCA [JP Z, a16], NZ" {
     const op_code: u8 = 0xCA;
     const initial_PC: u16 = 0x0100;
-    const hi = utils.getRNG().int(u8);
-    const lo = utils.getRNG().int(u8);
+    const hi = rand.int(u8);
+    const lo = rand.int(u8);
 
     var memory: Memory = .init();
     var processor: Processor = .init(&memory);
@@ -2512,8 +2512,8 @@ test "decode and execute 0xCC [CALL Z, a16], Z" {
     const op_code: u8 = 0xCC;
     const initial_PC: u16 = 0x0100;
     const SP: u16 = 0x0AFF;
-    const hi: u8 = utils.getRNG().int(u8);
-    const lo: u8 = utils.getRNG().int(u8);
+    const hi: u8 = rand.int(u8);
+    const lo: u8 = rand.int(u8);
 
     var memory: Memory = .init();
     var processor: Processor = .init(&memory);
@@ -2544,8 +2544,8 @@ test "decode and execute 0xCC [CALL Z, a16], NZ" {
     const op_code: u8 = 0xCC;
     const initial_PC: u16 = 0x0100;
     const SP: u16 = 0x0AFF;
-    const hi: u8 = utils.getRNG().int(u8);
-    const lo: u8 = utils.getRNG().int(u8);
+    const hi: u8 = rand.int(u8);
+    const lo: u8 = rand.int(u8);
 
     var memory: Memory = .init();
     var processor: Processor = .init(&memory);
@@ -2569,8 +2569,6 @@ test "decode and execute 0xCC [CALL Z, a16], NZ" {
 }
 
 test "decode and execute 0xCD [CALL a16]" {
-    const rand = utils.getRNG();
-
     const op_code: u8 = 0xCD;
     const initial_PC: u16 = 0x0100;
     const SP: u16 = 0xAFF;

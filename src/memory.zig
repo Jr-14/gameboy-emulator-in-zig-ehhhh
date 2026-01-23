@@ -14,7 +14,7 @@ pub fn init() Memory {
     return m;
 }
 
-pub inline fn read(m: Memory, index: u32) u8 {
+pub inline fn read(m: *Memory, index: u32) u8 {
     return m.address[index];
 }
 
