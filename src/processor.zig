@@ -38,10 +38,23 @@ pub const Processor = struct {
     }
 
     // Fetches the next instruction to be executed from the current memory address pointed at by PC
-    pub inline fn fetch(self: *Self) u16 {
-        const instruction: u16 = self.memory.read(self.PC.value);
+    pub inline fn fetch(self: *Self) u8 {
+        const instruction = self.memory.read(self.PC.value);
         self.PC.increment();
         return instruction;
+    }
+
+    // Pop the current value from the stack pointed to by SP
+    pub inline fn popStack(self: *Self) u8 {
+        const val = self.memory.read(self.SP.get());
+        self.SP.increment();
+        return val;
+    }
+
+    // Push a value into the stack
+    pub inline fn pushStack(self: *Self, val: u8) void {
+        self.SP.decrement();
+        self.memory.write(self.SP.get(), val);
     }
 
     pub inline fn isFlagSet(self: *Self, flag: Flag) bool {
@@ -96,10 +109,8 @@ pub const Processor = struct {
             // The first byte of immediate data is the lower byte (i.e. bits 0-7), and
             // the second byte of immediate data is the higher byte (i.e., bits 8-15)
             0x01 => {
-                self.BC.setLo(self.memory.read(self.PC.get()));
-                self.PC.increment();
-                self.BC.setHi(self.memory.read(self.PC.get()));
-                self.PC.increment();
+                self.BC.setLo(self.fetch());
+                self.BC.setHi(self.fetch());
             },
 
             // LD (BC), A
@@ -133,10 +144,7 @@ pub const Processor = struct {
 
             // LD B, d8
             // Load the 8-bit immediate operand d8 into register B.
-            0x06 => {
-                self.BC.setHi(self.memory.read(self.PC.get()));
-                self.PC.increment();
-            },
+            0x06 => self.BC.setHi(self.fetch()),
 
             // Rotate the contents of register A to the left. That is, the contents of bit 0
             // are copied to bit 1, and the previous contents of bit 1 (before the copy operation)
@@ -151,15 +159,9 @@ pub const Processor = struct {
             // // Store the lower byte of stack pointer SP at the address specified by the 16-bit
             // // immediate operand 16, and store the upper byte of SP at address a16 + 1.
             0x08 => {
-                var z: u16 = self.memory.read(self.PC.get());
-                self.PC.increment();
-                z |= (@as(u16, self.memory.read(self.PC.get())) << 8);
-                self.PC.increment();
-
-                const sp_lsb: u8 = @truncate(self.SP.get() & LO_MASK);
-                const sp_msb: u8 = @truncate((self.SP.get() & HI_MASK) >> 8);
-                self.memory.write(z, sp_lsb);
-                self.memory.write(z + 1, sp_msb);
+                const addr: u16 = utils.toTwoBytes(self.fetch(), self.fetch());
+                self.memory.write(addr, utils.getLoByte(self.SP.get()));
+                self.memory.write(addr + 1, utils.getHiByte(self.SP.get()));
             },
 
             // Add the contents of register pair BC to the contents of register pair HL, and
@@ -170,10 +172,7 @@ pub const Processor = struct {
 
             // LD A, (BC)
             // Load the 8-bit contents of memory specified by register pair BC into register A.
-            0x0A => {
-                self.AF.setHi(self.memory.read(self.BC.get()));
-                self.PC.increment();
-            },
+            0x0A => self.AF.setHi(self.memory.read(self.BC.get())),
 
             // Decrement the contents of register pair BC by 1.
             // 0x0b => "DEC BC",
@@ -190,10 +189,7 @@ pub const Processor = struct {
 
             // LD C, d8
             // Load the 8-bit immediate operand d8 into register C
-            0x0E => {
-                self.BC.setLo(self.memory.read(self.PC.get()));
-                self.PC.increment();
-            },
+            0x0E => self.BC.setLo(self.fetch()),
 
             // Rotate the contents of register A to the right. That is, the contents of bit 7 are
             // copied to bit 6, and the previous contents of bit 6 (before the copy) are copied to
@@ -222,10 +218,8 @@ pub const Processor = struct {
             // The first byte of immediate data is the lower byte (i.e., bit 0-7), and the second byte
             // of immediate data is the higher byte (i.e., bits 8-15)
             0x11 => {
-                self.DE.setLo(self.memory.read(self.PC.get()));
-                self.PC.increment();
-                self.DE.setHi(self.memory.read(self.PC.get()));
-                self.PC.increment();
+                self.DE.setLo(self.fetch());
+                self.DE.setHi(self.fetch());
             },
 
             // LD (DE), A
@@ -248,10 +242,7 @@ pub const Processor = struct {
 
             // LD D, d8
             // Load the 8-bit immediate operand d8 into register D.
-            0x16 => {
-                self.DE.setHi(self.memory.read(self.PC.get()));
-                self.PC.increment();
-            },
+            0x16 => self.DE.setHi(self.fetch()),
 
             // Rotate the contents of register A to the left, through the carry (CY) flag. That is, the
             // contents of bit 0 are copied to bit 1, and the previous contents of bit 1 (before the copy
@@ -264,8 +255,7 @@ pub const Processor = struct {
             // JR s8
             // Jump s8 steps from the current address in the program counter (PC). (Jump relative.)
             0x18 => {
-                const offset = self.memory.read(self.PC.get());
-                self.PC.increment();
+                const offset = self.fetch();
                 const address: u16 = utils.addOffset(self.PC.get(), offset);
                 self.PC.set(address);
             },
@@ -280,8 +270,7 @@ pub const Processor = struct {
             // If the Z flag is 0, jump s8 steps from the current address stored in the program counter (PC). If not, the
             // instruction following the current JP instruction is executed (as usual).
             0x20 => {
-                const offset: u8 = self.memory.read(self.PC.get());
-                self.PC.increment();
+                const offset = self.fetch();
                 if (!self.isFlagSet(.Z)) {
                     self.PC.set(utils.addOffset(self.PC.get(), offset));
                 }
@@ -292,18 +281,15 @@ pub const Processor = struct {
             // The first byte of immediate data is the lower byte (i.e., bits 0-7), and the second byte of immediate data
             // is the higher byte (i.e., bits 8-15)
             0x21 => {
-                self.HL.setLo(self.memory.read(self.PC.get()));
-                self.PC.increment();
-                self.HL.setHi(self.memory.read(self.PC.get()));
-                self.PC.increment();
+                self.HL.setLo(self.fetch());
+                self.HL.setHi(self.fetch());
             },
 
             // JR Z, s8
             // If the Z flag is 1, jump s8 steps from the current address stored in the program counter (PC). If not, the
             // instruction following the current JP instruction is executed (as usual).
             0x28 => {
-                const offset: u8 = self.memory.read(self.PC.get());
-                self.PC.increment();
+                const offset: u8 = self.fetch();
                 if (self.isFlagSet(.Z)) {
                     self.PC.set(utils.addOffset(self.PC.get(), offset));
                 }
@@ -313,8 +299,7 @@ pub const Processor = struct {
             // If the CY flag is 0, jump s8 steps from the current address stored in the program counter (PC). If not, the
             // instruction following the current JP instruction is executed (as usual).
             0x30 => {
-                const offset: u8 = self.memory.read(self.PC.get());
-                self.PC.increment();
+                const offset: u8 = self.fetch();
                 if (!self.isFlagSet(.C)) {
                     self.PC.set(utils.addOffset(self.PC.get(), offset));
                 }
@@ -324,8 +309,7 @@ pub const Processor = struct {
             // IF the CY flag is 1, jump s8 steps from the current address stored in the program counter (PC). If not, the
             // instruction following the current JP instruction is executed (as usual).
             0x38 => {
-                const offset: u8 = self.memory.read(self.PC.get());
-                self.PC.increment();
+                const offset: u8 = self.fetch();
                 if(self.isFlagSet(.C)) {
                     self.PC.set(utils.addOffset(self.PC.get(), offset));
                 }
@@ -348,10 +332,7 @@ pub const Processor = struct {
 
             // LD E, d8
             // Load the 8-bit immediate operand d8 into register E.
-            0x1E => {
-                self.DE.setLo(self.memory.read(self.PC.get()));
-                self.PC.increment();
-            },
+            0x1E => self.DE.setLo(self.fetch()),
 
             // Rotate the contents of register A to the right, through the carry (CY) flag. That is, the contents
             // of bit 7 are copied to bit 6, and the previous contents of bit 6 (before the copy) are copied to bit
@@ -369,10 +350,7 @@ pub const Processor = struct {
 
             // LD H, d8
             // Load the 8-bit immediate operand d8 into register H.
-            0x26 => {
-                self.HL.setHi(self.memory.read(self.PC.get()));
-                self.PC.increment();
-            },
+            0x26 => self.HL.setHi(self.fetch()),
 
             // LD A, (HL+)
             // Load the contents of memory specified by register pair HL into register A, and simultaneously
@@ -384,20 +362,15 @@ pub const Processor = struct {
 
             // LD L, d8
             // Load the 8-bit immediate operand d8 into register L.
-            0x2E => {
-                self.HL.setLo(self.memory.read(self.PC.get()));
-                self.PC.increment();
-            },
+            0x2E => self.HL.setLo(self.fetch()),
 
             // LD SP, d16
             // Load the 2 bytes of immediate data into register pair SP.
             // The first byte of immedaite data is the lower byte (i.e., bits 0-7), and the second byte of immediate data
             // is the higher byte (i.e., bits 8-15).
             0x31 => {
-                self.SP.setLo(self.memory.read(self.PC.get()));
-                self.PC.increment();
-                self.SP.setHi(self.memory.read(self.PC.get()));
-                self.PC.increment();
+                self.SP.setLo(self.fetch());
+                self.SP.setHi(self.fetch());
             },
 
             // LD (HL-), A
@@ -411,10 +384,7 @@ pub const Processor = struct {
             // LD (HL), d8
             // Store the contents of 8-bit immediate operand d8 in the memory location
             // specified by register pair HL.
-            0x36 => {
-                self.memory.write(self.HL.get(), self.memory.read(self.PC.get()));
-                self.PC.increment();
-            },
+            0x36 => self.memory.write(self.HL.get(), self.fetch()),
 
             // LD A, (HL-)
             // Load the contents of memory specified by register pair HL into register A, and
@@ -426,10 +396,7 @@ pub const Processor = struct {
 
             // LD A, d8
             // Load the 8-bit immediate operand d8 into register A.
-            0x3E => {
-                self.AF.setHi(self.memory.read(self.PC.get()));
-                self.PC.increment();
-            },
+            0x3E => self.AF.setHi(self.fetch()),
 
             // LD B, B
             // Load the contents of register B into register B
@@ -712,12 +679,8 @@ pub const Processor = struct {
             // by the content of PC (as usual).
             0xC0 => {
                 if (!self.isFlagSet(.Z)) {
-                    self.PC.setLo(self.memory.read(self.SP.get()));
-                    self.SP.increment();
-                    self.PC.setHi(self.memory.read(self.SP.get()));
-                    self.SP.increment();
-                } else {
-                    self.PC.increment();
+                    self.PC.setLo(self.popStack());
+                    self.PC.setHi(self.popStack());
                 }
             },
 
@@ -727,10 +690,8 @@ pub const Processor = struct {
             // 2. Add 1 to SP and load the contents from the new memory location into the upper portion BC.
             // 3. By the end, SP should be 2 more than its initial value.
             0xC1 => {
-                self.BC.setLo(self.memory.read(self.SP.get()));
-                self.SP.increment();
-                self.BC.setHi(self.memory.read(self.SP.get()));
-                self.SP.increment();
+                self.BC.setLo(self.popStack());
+                self.BC.setHi(self.popStack());
             },
 
             // JP NZ, a16
@@ -774,16 +735,10 @@ pub const Processor = struct {
             // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed
             // in byte 3.
             0xC4 => {
-                var addr: u16 = self.memory.read(self.PC.get());
-                self.PC.increment();
-                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
-                self.PC.increment();
-
+                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
                 if (!self.isFlagSet(.Z)) {
-                    self.SP.decrement();
-                    self.memory.write(self.SP.get(), self.PC.getHi());
-                    self.SP.decrement();
-                    self.memory.write(self.SP.get(), self.PC.getLo());
+                    self.pushStack(self.PC.getHi());
+                    self.pushStack(self.PC.getLo());
                     self.PC.set(addr);
                 }
             },
@@ -794,10 +749,8 @@ pub const Processor = struct {
             // BC on on the stack.
             // 2. Subtract 1 from SP, and put the lower portion of register pair BC on the stack.
             0xC5 => {
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.BC.getHi());
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.BC.getLo());
+                self.pushStack(self.BC.getHi());
+                self.pushStack(self.BC.getLo());
             },
 
             // RST 0
@@ -812,10 +765,8 @@ pub const Processor = struct {
             // page 0 memory, 0x00 is loaded in the higher-order byte of the PC, and 0x00 is loaded in the lower-order 
             // byte.
             0xC7 => {
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getHi());
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getLo());
+                self.pushStack(self.PC.getHi());
+                self.pushStack(self.PC.getLo());
                 self.PC.set(0x0000);
             },
 
@@ -829,10 +780,8 @@ pub const Processor = struct {
             // the address specified by the content of PC (as usual).
             0xC8 => {
                 if (self.isFlagSet(.Z)) {
-                    self.PC.setLo(self.memory.read(self.SP.get()));
-                    self.SP.increment();
-                    self.PC.setHi(self.memory.read(self.SP.get()));
-                    self.SP.increment();
+                    self.PC.setLo(self.popStack());
+                    self.PC.setHi(self.popStack());
                 }
             },
 
@@ -845,10 +794,8 @@ pub const Processor = struct {
             // (The value of SP is 2 larger than before instruction execution.) The next instruction is fetched from
             // the address specified by the content of PC (as usual).
             0xC9 => {
-                self.PC.setLo(self.memory.read(self.SP.get()));
-                self.SP.increment();
-                self.PC.setHi(self.memory.read(self.SP.get()));
-                self.SP.increment();
+                self.PC.setLo(self.popStack());
+                self.PC.setHi(self.popStack());
             },
 
             // JP Z, a16
@@ -859,10 +806,7 @@ pub const Processor = struct {
             // of a16 (bits 0-7), and the third byte of the object code corresponds to the higher-order byte
             // (bits 8-15).
             0xCA => {
-                var addr: u16 = self.memory.read(self.PC.get());
-                self.PC.increment();
-                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
-                self.PC.increment();
+                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
                 if (self.isFlagSet(.Z)) {
                     self.PC.set(addr);
                 }
@@ -874,16 +818,10 @@ pub const Processor = struct {
             // operand a16 is then loaded into PC.
             // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed in byte 3.
             0xCC => {
-                var addr: u16 = self.memory.read(self.PC.get());
-                self.PC.increment();
-                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
-                self.PC.increment();
-
+                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
                 if (self.isFlagSet(.Z)) {
-                    self.SP.decrement();
-                    self.memory.write(self.SP.get(), self.PC.getHi());
-                    self.SP.decrement();
-                    self.memory.write(self.SP.get(), self.PC.getLo());
+                    self.pushStack(self.PC.getHi());
+                    self.pushStack(self.PC.getLo());
                     self.PC.set(addr);
                 }
             },
@@ -901,16 +839,9 @@ pub const Processor = struct {
             // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed
             // in byte 3.
             0xCD => {
-                var addr: u16 = self.memory.read(self.PC.get());
-                self.PC.increment();
-                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
-                self.PC.increment();
-
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getHi());
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getLo());
-
+                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
+                self.pushStack(self.PC.getHi());
+                self.pushStack(self.PC.getLo());
                 self.PC.set(addr);
             },
 
@@ -926,11 +857,8 @@ pub const Processor = struct {
             // page 0 memory, 0x00 is loaded in the higher-order byte of the PC, and 0x08 is loaded in the lower-order
             // byte.
             0xCF => {
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getHi());
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getLo());
-
+                self.pushStack(self.PC.getHi());
+                self.pushStack(self.PC.getLo());
                 self.PC.set(0x0008);
             },
 
@@ -944,10 +872,8 @@ pub const Processor = struct {
             // the address specified by the content of PC (as usual).
             0xD0 => {
                 if (!self.isFlagSet(.C)) {
-                    self.PC.setLo(self.memory.read(self.SP.get()));
-                    self.SP.increment();
-                    self.PC.setHi(self.memory.read(self.SP.get()));
-                    self.SP.increment();
+                    self.PC.setLo(self.popStack());
+                    self.PC.setHi(self.popStack());
                 }
             },
 
@@ -957,10 +883,8 @@ pub const Processor = struct {
             // 2. Add 1 to SP and load the contents from the new memory location into the upper portion of DE.
             // 3. By the end, SP should be 2 more than its initial value.
             0xD1 => {
-                self.DE.setLo(self.memory.read(self.SP.get()));
-                self.SP.increment();
-                self.DE.setHi(self.memory.read(self.SP.get()));
-                self.SP.increment();
+                self.DE.setLo(self.popStack());
+                self.DE.setHi(self.popStack());
             },
 
             // JP NC, a16
@@ -970,10 +894,7 @@ pub const Processor = struct {
                 // bit operations
                 // And if it is C, then we just increment PC by 2 without
                 // reading from memory?
-                var addr: u16 = self.memory.read(self.PC.get());
-                self.PC.increment();
-                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
-                self.PC.increment();
+                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
                 if (!self.isFlagSet(.C)) {
                     self.PC.set(addr);
                 }
@@ -986,15 +907,10 @@ pub const Processor = struct {
             // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed
             // in byte 3.
             0xD4 => {
-                var addr: u16 = self.memory.read(self.PC.get());
-                self.PC.increment();
-                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
-                self.PC.increment();
+                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
                 if (!self.isFlagSet(.C)) {
-                    self.SP.decrement();
-                    self.memory.write(self.SP.get(), self.PC.getHi());
-                    self.SP.decrement();
-                    self.memory.write(self.SP.get(), self.PC.getLo());
+                    self.pushStack(self.PC.getHi());
+                    self.pushStack(self.PC.getLo());
                     self.PC.set(addr);
                 }
             },
@@ -1006,10 +922,8 @@ pub const Processor = struct {
             // 2. Subtract 1 from SP, and put the lower portion of register pair DE on the stack.
             // 3. By the end, SP should be 2 less than its initial value.
             0xD5 => {
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.DE.getHi());
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.DE.getLo());
+                self.pushStack(self.DE.getHi());
+                self.pushStack(self.DE.getLo());
             },
 
             // RST 2
@@ -1024,10 +938,8 @@ pub const Processor = struct {
             // page 0 memory, 0x00 is loaded in the higher-order byte of the PC, and 0x10 is loaded in the lower-order
             // byte.
             0xD7 => {
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getHi());
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getLo());
+                self.pushStack(self.PC.getHi());
+                self.pushStack(self.PC.getLo());
                 self.PC.set(0x0010);
             },
 
@@ -1041,10 +953,8 @@ pub const Processor = struct {
             // the address specified by the content of PC (as usual).
             0xD8 => {
                 if (self.isFlagSet(.C)) {
-                    self.PC.setLo(self.memory.read(self.SP.get()));
-                    self.SP.increment();
-                    self.PC.setHi(self.memory.read(self.SP.get()));
-                    self.SP.increment();
+                    self.PC.setLo(self.popStack());
+                    self.PC.setHi(self.popStack());
                 }
             },
 
@@ -1057,10 +967,8 @@ pub const Processor = struct {
             // (THe value of SP is 2 larger than before instruction execution.) The next instruction is fetched from
             // the address specified by the content of PC (as usual).
             0xD9 => {
-                self.PC.setLo(self.memory.read(self.SP.get()));
-                self.SP.increment();
-                self.PC.setHi(self.memory.read(self.SP.get()));
-                self.SP.increment();
+                self.PC.setLo(self.popStack());
+                self.PC.setHi(self.popStack());
                 self.IME = true;
             },
 
@@ -1072,10 +980,7 @@ pub const Processor = struct {
             // byte of a16 (bits 0-7), and the third byte of the object code corresponds to the higher-order byte
             // (bits 8-15).
             0xDA => {
-                var addr: u16 = self.memory.read(self.PC.get());
-                self.PC.increment();
-                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
-                self.PC.increment();
+                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
                 if (self.isFlagSet(.C)) {
                     self.PC.set(addr);
                 }
@@ -1088,16 +993,10 @@ pub const Processor = struct {
             // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed
             // in byte 3.
             0xDC => {
-                var addr: u16 = self.memory.read(self.PC.get());
-                self.PC.increment();
-                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
-                self.PC.increment();
-
+                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
                 if (self.isFlagSet(.C)) {
-                    self.SP.decrement();
-                    self.memory.write(self.SP.get(), self.PC.getHi());
-                    self.SP.decrement();
-                    self.memory.write(self.SP.get(), self.PC.getLo());
+                    self.pushStack(self.PC.getHi());
+                    self.pushStack(self.PC.getLo());
                     self.PC.set(addr);
                 }
             },
@@ -1113,10 +1012,8 @@ pub const Processor = struct {
             // page
             // 0 memory, 0x00 is loaded in the higher-order byte of the PC, and 0x18 is loaded in the lower-order byte.
             0xDF => {
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getHi());
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getLo());
+                self.pushStack(self.PC.getHi());
+                self.pushStack(self.PC.getLo());
                 self.PC.set(0x0018);
             },
 
@@ -1125,8 +1022,7 @@ pub const Processor = struct {
             // 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least significant
             // byte to the value of a8, so the possible range is 0xff00-0xffff.
             0xE0 => {
-                const addr: u16 = HI_MASK | self.memory.read(self.PC.get());
-                self.PC.increment();
+                const addr: u16 = HI_MASK | self.fetch();
                 self.memory.write(addr, self.AF.getHi());
             },
 
@@ -1136,10 +1032,8 @@ pub const Processor = struct {
             // 2. Add 1 to SP and load the contents from thew new memory location into the upper portion of HL.
             // 3. By the end, SP should be 2 more than its initial value.
             0xE1 => {
-                self.HL.setLo(self.memory.read(self.SP.get()));
-                self.SP.increment();
-                self.HL.setHi(self.memory.read(self.SP.get()));
-                self.SP.increment();
+                self.HL.setLo(self.popStack());
+                self.HL.setHi(self.popStack());
             },
 
             // LD (C), A
@@ -1175,10 +1069,8 @@ pub const Processor = struct {
             // page 0 memory, 0x00 is loaded in the higher-order byte of the PC, and 0x20 is loaded in the lower-order
             // byte.
             0xE7 => {
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getHi());
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getLo());
+                self.pushStack(self.PC.getHi());
+                self.pushStack(self.PC.getLo());
                 self.PC.set(0x0020);
             },
 
@@ -1191,19 +1083,14 @@ pub const Processor = struct {
             // Store the contents of register A in the internal RAM or register specified by the 16-bit immediate
             // operand a16.
             0xEA => {
-                var addr: u16 = self.memory.read(self.PC.get());
-                self.PC.increment();
-                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
-                self.PC.increment();
+                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
                 self.memory.write(addr, self.AF.getHi());
             },
 
             // RST 5
             0xEF => {
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getHi());
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getLo());
+                self.pushStack(self.PC.getHi());
+                self.pushStack(self.PC.getLo());
                 self.PC.set(0x0028);
             },
 
@@ -1212,8 +1099,7 @@ pub const Processor = struct {
             // 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least
             // significant byte to the value of a8, so the possible range is 0xff0-0xffff.
             0xF0 => {
-                const addr: u16 = HI_MASK | self.memory.read(self.PC.get());
-                self.PC.increment();
+                const addr: u16 = HI_MASK | self.fetch();
                 self.AF.setHi(self.memory.read(addr));
             },
 
@@ -1223,10 +1109,8 @@ pub const Processor = struct {
             // 2. Add 1 to SP and load the contents from the new memory location into the upper portion AF.
             // 3. By the end, SP should be 2 more than its initial value.
             0xF1 => {
-                self.AF.setLo(self.memory.read(self.SP.get()));
-                self.SP.decrement();
-                self.AF.setHi(self.memory.read(self.SP.get()));
-                self.SP.decrement();
+                self.AF.setLo(self.popStack());
+                self.AF.setHi(self.popStack());
             },
 
             // LD A, (C)
@@ -1244,10 +1128,8 @@ pub const Processor = struct {
             // BC on on the stack.
             // 2. Subtract 1 from SP, and put the lower portion of register pair AF on the stack.
             0xF5 => {
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.AF.getHi());
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.AF.getLo());
+                self.pushStack(self.AF.getHi());
+                self.pushStack(self.AF.getLo());
             },
             //
             // // LD HL, SP+s8
@@ -1288,10 +1170,8 @@ pub const Processor = struct {
             // page 0 memory, 0x00 is loaded in the higher-order byte of the PC, and 0x30 is loaded in the lower-order
             // byte.
             0xF7 => {
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getHi());
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getLo());
+                self.pushStack(self.PC.getHi());
+                self.pushStack(self.PC.getLo());
                 self.PC.set(0x0030);
             },
 
@@ -1302,10 +1182,7 @@ pub const Processor = struct {
             // LD A, (a16)
             // Load to the 8-bit A register, data from the absolute address specified by the 16-bit operand (a16).
             0xFA => {
-                var addr: u16 = self.memory.read(self.PC.get());
-                self.PC.increment();
-                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
-                self.PC.increment();
+                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
                 self.AF.setHi(self.memory.read(addr));
             },
 
@@ -1321,10 +1198,8 @@ pub const Processor = struct {
             // page 0 memory, 0x00 is loaded in the higher-order byte of the PC, and 0x38 is loaded in the lower-order
             // byte.
             0xFF => {
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getHi());
-                self.SP.decrement();
-                self.memory.write(self.SP.get(), self.PC.getLo());
+                self.pushStack(self.PC.getHi());
+                self.pushStack(self.PC.getLo());
                 self.PC.set(0x0038);
             },
 

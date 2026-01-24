@@ -146,12 +146,11 @@ test "decode and execute 0x0A [LD A, (BC)]" {
     processor.PC.set(initial_PC);
     processor.BC.set(BC);
     processor.memory.write(initial_PC, op_code);
-    processor.memory.write(initial_PC + 1, op_code);
     processor.memory.write(processor.BC.get(), contents);
 
     const instruction = processor.fetch();
     try processor.decodeAndExecute(instruction);
-    try expectEqual(initial_PC + 2, processor.PC.get());
+    try expectEqual(initial_PC + 1, processor.PC.get());
     try expectEqual(contents, processor.AF.getHi());
     try expectEqual(0x00, processor.AF.getLo());
     try expectEqual(BC, processor.BC.get());
@@ -2201,8 +2200,56 @@ test "decode and execute 0x7F [LD A, A]" {
     try expectEqual(0x00, processor.SP.get());
 }
 
-test "decode and execute 0xC0 [RET NZ]" {
-    return TestError.NotImplemented;
+test "decode and execute 0xC0 [RET NZ], NZ" {
+    const op_code: u8 = 0xC0;
+    const initial_PC: u16 = 0x0100;
+    const SP: u16 = 0x0AFF;
+    const lo = rand.int(u8);
+    const hi = rand.int(u8);
+
+    var memory: Memory = .init();
+    var processor: Processor = .init(&memory);
+    processor.PC.set(initial_PC);
+    processor.SP.set(SP);
+    processor.unsetFlag(.Z);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(SP, lo);
+    processor.memory.write(SP + 1, hi);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(utils.toTwoBytes(lo, hi), processor.PC.get());
+    try expectEqual(SP + 2, processor.SP.get());
+    try expectEqual(0x00, processor.AF.get());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(0x00, processor.HL.get());
+}
+
+test "decode and execute 0xC0 [RET NZ], Z" {
+    const op_code: u8 = 0xC0;
+    const initial_PC: u16 = 0x0100;
+    const SP: u16 = 0x0AFF;
+    const lo = rand.int(u8);
+    const hi = rand.int(u8);
+
+    var memory: Memory = .init();
+    var processor: Processor = .init(&memory);
+    processor.PC.set(initial_PC);
+    processor.SP.set(SP);
+    processor.setFlag(.Z);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(SP, lo);
+    processor.memory.write(SP + 1, hi);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(initial_PC + 1, processor.PC.get());
+    try expectEqual(SP, processor.SP.get());
+    try expectEqual(masks.Z_MASK, processor.AF.get());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(0x00, processor.HL.get());
 }
 
 test "decode and execute 0xC1 [POP BC]" {
@@ -2642,7 +2689,7 @@ test "decode and execute 0xD0 [RET NC]" {
 
     const instruction = processor.fetch();
     try processor.decodeAndExecute(instruction);
-    try expectEqual(utils.toTwoBytes(hi, lo), processor.PC.get());
+    try expectEqual(utils.toTwoBytes(lo, hi), processor.PC.get());
     try expectEqual(SP + 2, processor.SP.get());
     try expectEqual(0x00, processor.AF.get());
     try expectEqual(0x00, processor.BC.get());
@@ -2692,7 +2739,7 @@ test "decode and execute 0xD2 [JP NC, a16], NC" {
 
     const instruction = processor.fetch();
     try processor.decodeAndExecute(instruction);
-    try expectEqual(utils.toTwoBytes(hi, lo), processor.PC.get());
+    try expectEqual(utils.toTwoBytes(lo, hi), processor.PC.get());
     try expectEqual(0x00, processor.SP.get());
     try expectEqual(0x00, processor.AF.get());
     try expectEqual(0x00, processor.BC.get());
@@ -3274,12 +3321,12 @@ test "decode and execute 0xF1 [POP AF]" {
     processor.SP.set(SP);
     processor.memory.write(initial_PC, op_code);
     processor.memory.write(SP, lo);
-    processor.memory.write(SP - 1, hi);
+    processor.memory.write(SP + 1, hi);
 
     const instruction = processor.fetch();
     try processor.decodeAndExecute(instruction);
     try expectEqual(initial_PC + 1, processor.PC.get());
-    try expectEqual(SP - 2, processor.SP.get());
+    try expectEqual(SP + 2, processor.SP.get());
     try expectEqual(hi, processor.AF.getHi());
     try expectEqual(lo, processor.AF.getLo());
     try expectEqual(0x00, processor.BC.get());
