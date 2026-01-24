@@ -1064,6 +1064,23 @@ pub const Processor = struct {
                 self.IME = true;
             },
 
+            // JP C, a16
+            // Load the 16-bit immediate operand a16 into the program counter PC if the CY flag is 1. If the CY flag is
+            // 1, then the subsequent instruction starts at address a16. If not, the contents of PC are incremented,
+            // and the next instruction following the current JP instruction is executed (as usual).
+            // The second byte of the object code (immediately following the opcode) corresponds to the lower-order
+            // byte of a16 (bits 0-7), and the third byte of the object code corresponds to the higher-order byte
+            // (bits 8-15).
+            0xDA => {
+                var addr: u16 = self.memory.read(self.PC.get());
+                self.PC.increment();
+                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
+                self.PC.increment();
+                if (self.isFlagSet(.C)) {
+                    self.PC.set(addr);
+                }
+            },
+
             // LD (a8), A
             // Load to the address specified by the 8-bit immediate data a8, data from the 8-bit A register. The full
             // 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least significant
