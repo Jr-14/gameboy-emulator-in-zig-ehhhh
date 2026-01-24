@@ -3166,6 +3166,27 @@ test "decode and execute 0xE7 [RST 4]" {
     try expectEqual(utils.getLoByte(initial_PC + 1), processor.memory.read(SP - 2));
 }
 
+test "decode and execute 0xE9 [JP HL]" {
+    const op_code: u8 = 0xE9;
+    const initial_PC: u16 = 0x0100;
+    const HL: u16 = 0x1C89;
+
+    var memory: Memory = .init();
+    var processor: Processor = .init(&memory);
+    processor.PC.set(initial_PC);
+    processor.HL.set(HL);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(HL, processor.PC.get());
+    try expectEqual(0x00, processor.SP.get());
+    try expectEqual(0x00, processor.AF.get());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(HL, processor.HL.get());
+}
+
 test "decode and execute 0xEA [LD (a16), A]" {
     const op_code: u8 = 0xEA;
     const initial_PC: u16 = 0x0100;

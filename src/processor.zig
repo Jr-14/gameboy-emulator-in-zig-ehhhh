@@ -1182,6 +1182,11 @@ pub const Processor = struct {
                 self.PC.set(0x0020);
             },
 
+            // JP HL
+            // Load the contents of register pair HL into the program counter PC. The next instruction is fetched from
+            // the location specified by the new value of PC.
+            0xE9 => self.PC.set(self.HL.get()),
+
             // LD (a16), A
             // Store the contents of register A in the internal RAM or register specified by the 16-bit immediate
             // operand a16.

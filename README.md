@@ -155,7 +155,7 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0xDC - CALL C, a16
 - [x] 0xDF - RST 3
 - [x] 0xE7 - RST 4
-- [ ] 0xE9 - JP HL
+- [x] 0xE9 - JP HL
 - [ ] 0xEF - RST 5
 - [ ] 0xF7 - RST 6
 - [ ] 0xFF - RST 7
