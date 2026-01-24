@@ -1363,3 +1363,30 @@ test "unsetFlag, C" {
     try expectEqual(true, processor.isFlagSet(.H));
     try expectEqual(false, processor.isFlagSet(.C));
 }
+
+test "popStack" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    const SP: u16 = 0x0AFF;
+    const content: u8 = 0x13;
+
+    processor.SP.set(SP);
+    processor.memory.write(SP, content);
+
+    const val = processor.popStack();
+    try expectEqual(content, val);
+    try expectEqual(SP + 1, processor.SP.get());
+}
+
+test "pushStack" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory);
+    const SP: u16 = 0x0AFF;
+    const content: u8 = 0x13;
+
+    processor.SP.set(SP);
+
+    processor.pushStack(content);
+    try expectEqual(content, processor.memory.read(SP - 1));
+    try expectEqual(SP - 1, processor.SP.get());
+}
