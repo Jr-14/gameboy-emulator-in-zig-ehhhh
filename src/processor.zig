@@ -23,6 +23,9 @@ pub const Processor = struct {
     PC: Register = .{},
     SP: Register = .{},
 
+    // Interupt Master Enable Flag
+    IME: bool = false,
+
     memory: *Memory = undefined,
 
     const Self = @This();
@@ -30,6 +33,7 @@ pub const Processor = struct {
     pub fn init(memory: *Memory) Processor {
         return .{
             .memory = memory,
+            .IME = false,
         };
     }
 
@@ -1042,6 +1046,22 @@ pub const Processor = struct {
                     self.PC.setHi(self.memory.read(self.SP.get()));
                     self.SP.increment();
                 }
+            },
+
+            // RETI
+            // Used when an interrupt-service routine finishes. The address for the return from the interrupt is loaded
+            // in the program counter PC. The master interrupt enable flag is returned to its pre-interrupt status.
+            // The contents of the address specified by the stack pointer SP are loaded in the lower-order byte of PC,
+            // and the contents of SP are incremented by 1. The contents of the address specified by the new SP value
+            // are then loaded in the higher-order byte of PC, and the contents of SP are incremented by 1 again. 
+            // (THe value of SP is 2 larger than before instruction execution.) The next instruction is fetched from
+            // the address specified by the content of PC (as usual).
+            0xD9 => {
+                self.PC.setLo(self.memory.read(self.SP.get()));
+                self.SP.increment();
+                self.PC.setHi(self.memory.read(self.SP.get()));
+                self.SP.increment();
+                self.IME = true;
             },
 
             // LD (a8), A
