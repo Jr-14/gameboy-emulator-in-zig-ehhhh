@@ -3006,6 +3006,26 @@ test "decode and execute 0xDC [CALL C, a16], NC" {
     try expectEqual(0x00, processor.HL.get());
 }
 
+test "decode and execute 0xDF [RST 3]" {
+    const op_code: u8 = 0xDF;
+    const initial_PC: u16 = 0x0100;
+    const SP: u16 = 0x0AFF;
+    const hi = rand.int(u8);
+    const lo = rand.int(u8);
+
+    var memory: Memory = .init();
+    var processor: Processor = .init(&memory);
+    processor.PC.set(initial_PC);
+    processor.SP.set(SP);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(SP - 1, hi);
+    processor.memory.write(SP - 2, lo);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(0x0018, processor.PC.get());
+}
+
 test "decode and execute 0xE0 [LD (a8), A]" {
     const op_code: u8 = 0xE0;
     const initial_PC: u16 = 0x0100;
