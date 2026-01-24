@@ -1198,6 +1198,15 @@ pub const Processor = struct {
                 self.memory.write(addr, self.AF.getHi());
             },
 
+            // RST 5
+            0xEF => {
+                self.SP.decrement();
+                self.memory.write(self.SP.get(), self.PC.getHi());
+                self.SP.decrement();
+                self.memory.write(self.SP.get(), self.PC.getLo());
+                self.PC.set(0x0028);
+            },
+
             // LD A, (a8)
             // Load to the 8-bit A register, data from the address specified by the 8-bit immediate data a8. The full
             // 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least

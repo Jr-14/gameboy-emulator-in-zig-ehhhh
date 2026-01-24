@@ -3214,6 +3214,29 @@ test "decode and execute 0xEA [LD (a16), A]" {
     try expectEqual(A, processor.memory.read(0x78A2));
 }
 
+test "decode and execute 0xEF [RST 5]" {
+    const op_code: u8 = 0xEF;
+    const initial_PC: u16 = 0x0100;
+    const SP: u16 = 0x0AFF;
+
+    var memory: Memory = .init();
+    var processor: Processor = .init(&memory);
+    processor.PC.set(initial_PC);
+    processor.SP.set(SP);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(0x0028, processor.PC.get());
+    try expectEqual(SP - 2, processor.SP.get());
+    try expectEqual(utils.getHiByte(initial_PC + 1), processor.memory.read(SP - 1));
+    try expectEqual(utils.getLoByte(initial_PC + 1), processor.memory.read(SP - 2));
+    try expectEqual(0x00, processor.AF.get());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(0x00, processor.HL.get());
+}
+
 test "decode and execute 0xF0 [LD A, (a8)]" {
     const op_code: u8 = 0xF0;
     const initial_PC: u16 = 0x0100;
