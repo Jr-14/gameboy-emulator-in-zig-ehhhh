@@ -930,6 +930,23 @@ pub const Processor = struct {
                 self.PC.set(0x0008);
             },
 
+            // RET NC
+            // If the CY flag is 0, control is returned to the source program by popping from the memory stack the
+            // program counter PC value that was pushed to the stack when the subroutine was called.
+            // The contents of the address specified by the stack pointer SP are loaded in the lower-order byte of PC,
+            // and the contents of SP are incremented by 1. The contents of the address specified by the new SP value
+            // are then loaded in the higher-order byte of PC, and the contents of SP are incremented by 1 again.
+            // (The value of SP is 2 larger than before instruction execution.) The next instruction is fetched from
+            // the address specified by the content of PC (as usual).
+            0xD0 => {
+                if (!self.isFlagSet(.C)) {
+                    self.PC.setLo(self.memory.read(self.SP.get()));
+                    self.SP.increment();
+                    self.PC.setHi(self.memory.read(self.SP.get()));
+                    self.SP.increment();
+                }
+            },
+
             // POP DE
             // Pop the contents from the memory stack into register pair DE by doing the following:
             // 1. Load the contents of memory specified by stack pointer SP into the lower portion of DE.

@@ -2625,6 +2625,31 @@ test "decode and execute 0xCF [RST 1]" {
     try expectEqual(PC_lo, processor.memory.read(SP - 2));
 }
 
+test "decode and execute 0xD0 [RET NC]" {
+    const op_code: u8 = 0xD0;
+    const initial_PC: u16 = 0x0100;
+    const SP: u16 = 0x0AFF;
+    const hi: u8 = rand.int(u8);
+    const lo: u8 = rand.int(u8);
+
+    var memory: Memory = .init();
+    var processor: Processor = .init(&memory);
+    processor.PC.set(initial_PC);
+    processor.SP.set(SP);
+    processor.memory.write(initial_PC, op_code);
+    processor.memory.write(SP, lo);
+    processor.memory.write(SP + 1, hi);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(utils.toTwoBytes(hi, lo), processor.PC.get());
+    try expectEqual(SP + 2, processor.SP.get());
+    try expectEqual(0x00, processor.AF.get());
+    try expectEqual(0x00, processor.BC.get());
+    try expectEqual(0x00, processor.DE.get());
+    try expectEqual(0x00, processor.HL.get());
+}
+
 test "decode and execute 0xD1 [POP DE]" {
     const op_code: u8 = 0xD1;
     const initial_PC: u16 = 0x0100;
