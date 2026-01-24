@@ -1081,6 +1081,27 @@ pub const Processor = struct {
                 }
             },
 
+            // CALL C, a16
+            // If the CY flag is 1, the program counter PC value corresponding to the memory location of the instruction
+            // following the CALL instruction is pushed to the 2 bytes following the memory byte specified by the stack
+            // pointer SP. The 16-bit immediate operand a16 is then loaded into PC.
+            // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed
+            // in byte 3.
+            0xDC => {
+                var addr: u16 = self.memory.read(self.PC.get());
+                self.PC.increment();
+                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
+                self.PC.increment();
+
+                if (self.isFlagSet(.C)) {
+                    self.SP.decrement();
+                    self.memory.write(self.SP.get(), self.PC.getHi());
+                    self.SP.decrement();
+                    self.memory.write(self.SP.get(), self.PC.getLo());
+                    self.PC.set(addr);
+                }
+            },
+
             // LD (a8), A
             // Load to the address specified by the 8-bit immediate data a8, data from the 8-bit A register. The full
             // 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least significant
