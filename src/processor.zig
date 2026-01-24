@@ -959,6 +959,22 @@ pub const Processor = struct {
                 self.SP.increment();
             },
 
+            // JP NC, a16
+            0xD2 => {
+                // Would a better implementation be to only read the operands
+                // and then write to lo and hi for PC so that we get away with
+                // bit operations
+                // And if it is C, then we just increment PC by 2 without
+                // reading from memory?
+                var addr: u16 = self.memory.read(self.PC.get());
+                self.PC.increment();
+                addr |= (@as(u16, self.memory.read(self.PC.get())) << 8);
+                self.PC.increment();
+                if (!self.isFlagSet(.C)) {
+                    self.PC.set(addr);
+                }
+            },
+
             // PUSH DE
             // Push the contents of register pair DE onto the memory stack by doing the following:
             // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of regiser pair DE on
