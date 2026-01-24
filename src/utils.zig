@@ -4,6 +4,8 @@ const NEG_SIGN_MASK: u16 = 0x80; // 0b1000_0000
 const NEG_SIGN_EXT_MASK: u16 = 0xFF00;
 const POST_SIGN_EXT_MASK: u16 = 0x0000;
 
+const masks = @import("masks.zig");
+
 pub fn signExtend(value: u16) u16 {
     const sign: u16 = if ((value & NEG_SIGN_MASK) == NEG_SIGN_MASK) NEG_SIGN_EXT_MASK else POST_SIGN_EXT_MASK;
     return (value | sign);
@@ -16,6 +18,14 @@ pub fn addOffset(value: u16, offset: u16) u16 {
 
 pub fn toTwoBytes(hi: u8, lo: u8) u16 {
     return (@as(u16, hi) << 8) | lo;
+}
+
+pub fn getHiByte(val: u16) u8 {
+    return @truncate((val & masks.HI_MASK) >> 8);
+}
+
+pub fn getLoByte(val: u16) u8 {
+    return @truncate(val & masks.LO_MASK);
 }
 
 const expectEqual = std.testing.expectEqual;
@@ -52,4 +62,14 @@ test "toTwoBytes" {
     const hi: u8 = 0x34;
     const lo: u8 = 0xA0;
     try expectEqual(0x34A0, toTwoBytes(hi, lo));
+}
+
+test "getHiByte" {
+    const val: u16 = 0xFACE;
+    try expectEqual(0xFA, getHiByte(val));
+}
+
+test "getLoByte" {
+    const val: u16 = 0xFACE;
+    try expectEqual(0xCE, getLoByte(val));
 }
