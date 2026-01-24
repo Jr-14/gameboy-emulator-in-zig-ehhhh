@@ -158,7 +158,7 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0xE9 - JP HL
 - [x] 0xEF - RST 5
 - [x] 0xF7 - RST 6
-- [ ] 0xFF - RST 7
+- [x] 0xFF - RST 7
 
 # Timeline
 Day 20 - Completed All 8-bit and 16-bit load instructions with tests (to the best of my knowledge)
