@@ -87,10 +87,7 @@ pub const Processor = struct {
     }
 
     pub inline fn resetFlags(self: *Self) void {
-        self.unsetFlag(.Z);
-        self.unsetFlag(.H);
-        self.unsetFlag(.N);
-        self.unsetFlag(.C);
+        self.AF.setLo(0);
     }
 
     pub fn decodeAndExecute(self: *Self, instruction: u16) !void {

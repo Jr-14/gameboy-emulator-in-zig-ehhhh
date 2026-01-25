@@ -15,6 +15,8 @@ idea to catalogue them.
 - [Game boy dealing with carry flags when handling](https://www.reddit.com/r/EmuDev/comments/y51i1c/game_boy_dealing_with_carry_flags_when_handling/)
 - [Gameboy Half Carry](https://www.robm.dev/articles/gameboy-half-carry/)
 - [game-boy-what-constitutes-a-half-carry](https://stackoverflow.com/questions/8868396/game-boy-what-constitutes-a-half-carry/8874607#8874607)
+- [Game Boy carry & half-carry flags](https://gist.github.com/meganesu/9e228b6b587decc783aa9be34ae27841)
+
 
 # Zig
 - [Payload Captures](https://zig.guide/language-basics/payload-captures/)
@@ -43,6 +45,7 @@ idea to catalogue them.
 
 # Bit handling?
 - [Bit Twiddling Hacks](https://graphics.stanford.edu/~seander/bithacks.html)
+- [Half-carry flag](https://en.wikipedia.org/wiki/Half-carry_flag)
 
 # Programming
 - [Inline Functions](https://www.geeksforgeeks.org/cpp/inline-functions-cpp/)

@@ -4,8 +4,6 @@ const NEG_SIGN_MASK: u16 = 0x80; // 0b1000_0000
 const NEG_SIGN_EXT_MASK: u16 = 0xFF00;
 const POST_SIGN_EXT_MASK: u16 = 0x0000;
 
-const BYTE_LOWER_NIBBLE: u8 = 0x0F; // 0b0000_1111;
-
 const masks = @import("masks.zig");
 
 pub fn signExtend(value: u16) u16 {
@@ -27,16 +25,51 @@ pub fn getHiByte(val: u16) u8 {
 }
 
 pub fn getLoByte(val: u16) u8 {
-    return @truncate(val & masks.LO_MASK);
+    return @truncate(val);
 }
 
 const ByteAdditionResult = struct {
     result: u8,
     half_carry: u1,
+    carry: u1,
 };
-pub fn byteAdd() void {}
+
+pub fn byteAdd(a: u8, b: u8) ByteAdditionResult {
+    const sum: u16 = a +% b;
+    const c: u1 = if ((sum & 0x100) == 0x100) 1 else 0;
+    const hc: u1 = if ((((a & 0xF) + (b & 0xF)) & 0x10) == 0x10) 1 else 0;
+    return .{
+        .result = @truncate(sum),
+        .half_carry = hc,
+        .carry = c,
+    };
+}
 
 const expectEqual = std.testing.expectEqual;
+
+test "byteAdd - half carry" {
+    var sum = byteAdd(0x0F, 0x01);
+    try expectEqual(sum.result, 0x10);
+    try expectEqual(sum.half_carry, 1);
+    try expectEqual(sum.carry, 0);
+
+    sum = byteAdd(0x0F, 0x0F);
+    try expectEqual(sum.result, 0x1E);
+    try expectEqual(sum.half_carry, 1);
+    try expectEqual(sum.carry, 0);
+
+    sum = byteAdd(0x0E, 0x01);
+    try expectEqual(sum.result, 0x0F);
+    try expectEqual(sum.half_carry, 0);
+    try expectEqual(sum.carry, 0);
+}
+
+test "byteAdd - overflow" {
+    const sum = byteAdd(0xFF, 0x01);
+    try expectEqual(sum.result, 0x00);
+    try expectEqual(sum.half_carry, 1);
+    try expectEqual(sum.carry, 1);
+}
 
 test "sign extend - negative two's complement" {
     const negative_three_u8: u8 = 0b1111_1101;
