@@ -11,6 +11,10 @@ answer with my own critical thinking.
 
 Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) told me I should make a GameBoy emulator.
 
+# Resources
+See [RESOURCES.md](./RESOURCES.md) for resources I'm using to fill gaps in my knowledge. Mainly around zig, GameBoy Emulation, and
+emulators, and a bit of systems programming.
+
 # To Do
 ## CPU Instructions
 

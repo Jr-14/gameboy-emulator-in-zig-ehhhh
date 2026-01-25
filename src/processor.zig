@@ -128,10 +128,10 @@ pub const Processor = struct {
             // Increment the contents of register B by 1.
             // TODO:
             // This has some flags? e.g. Z 0 8-bit -
-            // 0x04 => {
-            //     register.B += 1;
-            //     register.PC += 1;
-            // },
+            0x04 => {
+                register.B += 1;
+                register.PC += 1;
+            },
 
             // DEC B
             // Decrement the contents of register B by 1
