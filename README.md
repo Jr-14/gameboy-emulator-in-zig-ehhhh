@@ -160,6 +160,100 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 - [x] 0xF7 - RST 6
 - [x] 0xFF - RST 7
 
+**8-bit Arithmetic Instructions**
+- [ ] 0x04 - INC B
+- [ ] 0x05 - DEC B
+- [ ] 0x0C - INC C
+- [ ] 0x0D - DEC C
+- [ ] 0x0D - DEC C
+- [ ] 0x14 - INC D
+- [ ] 0x15 - DEC D
+- [ ] 0x1C - INC E
+- [ ] 0x1D - DEC E
+- [ ] 0x24 - INC H
+- [ ] 0x25 - DEC H
+- [ ] 0x2C - INC L
+- [ ] 0x2D - DEC L
+- [ ] 0x34 - INC (HL)
+- [ ] 0x35 - DEC (HL)
+- [ ] 0x3C - INC A
+- [ ] 0x3D - DEC A
+- [ ] 0x80 - ADD A, B
+- [ ] 0x81 - ADD A, C
+- [ ] 0x82 - ADD A, D
+- [ ] 0x83 - ADD A, E
+- [ ] 0x84 - ADD A, H
+- [ ] 0x85 - ADD A, L
+- [ ] 0x86 - ADD A, (HL)
+- [ ] 0x87 - ADD A, A
+- [ ] 0x88 - ADC A, B
+- [ ] 0x89 - ADC A, C
+- [ ] 0x8A - ADC A, D
+- [ ] 0x8B - ADC A, E
+- [ ] 0x8C - ADC A, H
+- [ ] 0x8D - ADC A, L
+- [ ] 0x8E - ADC A, (HL)
+- [ ] 0x8F - ADC A, A
+- [ ] 0x90 - SUB B
+- [ ] 0x91 - SUB C
+- [ ] 0x92 - SUB D
+- [ ] 0x93 - SUB E
+- [ ] 0x94 - SUB H
+- [ ] 0x95 - SUB L
+- [ ] 0x96 - SUB (HL)
+- [ ] 0x97 - SUB A
+- [ ] 0x98 - SBC A, B
+- [ ] 0x99 - SBC A, C
+- [ ] 0x9A - SBC A, D
+- [ ] 0x9B - SBC A, E
+- [ ] 0x9C - SBC A, H
+- [ ] 0x9D - SBC A, L
+- [ ] 0x9E - SBC A, (HL)
+- [ ] 0x9F - SBC A, A
+- [ ] 0xA0 - AND B
+- [ ] 0xA1 - AND C
+- [ ] 0xA2 - AND D
+- [ ] 0xA3 - AND E
+- [ ] 0xA4 - AND H
+- [ ] 0xA5 - AND L
+- [ ] 0xA6 - AND (HL)
+- [ ] 0xA7 - AND A
+- [ ] 0xA8 - XOR B
+- [ ] 0xA9 - XOR C
+- [ ] 0xAA - XOR D
+- [ ] 0xAB - XOR E
+- [ ] 0xAC - XOR H
+- [ ] 0xAD - XOR L
+- [ ] 0xAE - XOR (HL)
+- [ ] 0xAF - XOR A
+- [ ] 0xB0 - OR B
+- [ ] 0xB1 - OR C
+- [ ] 0xB2 - OR D
+- [ ] 0xB3 - OR E
+- [ ] 0xB4 - OR H
+- [ ] 0xB5 - OR L
+- [ ] 0xB6 - OR (HL)
+- [ ] 0xB7 - OR A
+- [ ] 0xB8 - CP B
+- [ ] 0xB9 - CP C
+- [ ] 0xBA - CP D
+- [ ] 0xBB - CP E
+- [ ] 0xBC - CP H
+- [ ] 0xBD - CP L
+- [ ] 0xBE - CP (HL)
+- [ ] 0xBF - CP A
+- [ ] 0xC6 - ADD A, d8
+- [ ] 0xCE - ADC A, d8
+- [ ] 0xD6 - SUB d8
+- [ ] 0xDE - SBC A, d8
+- [ ] 0xE6 - AND d8
+- [ ] 0xEE - XOR d8
+- [ ] 0xF6 - OR d8
+- [ ] 0xFE - CP d8
+
+**16-bit Arithmetic Instructions**
+
+
 # Timeline
 Day 20 - Completed All 8-bit and 16-bit load instructions with tests (to the best of my knowledge)
 Day 31 - Completed All control flow instructions
