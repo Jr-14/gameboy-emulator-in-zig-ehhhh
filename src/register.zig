@@ -54,11 +54,11 @@ pub inline fn setLo(r: *Register, val: u8) void {
 }
 
 pub inline fn increment(r: *Register) void {
-    r.value = r.value +% 1;
+    r.value +%= 1;
 }
 
 pub inline fn decrement(r: *Register) void {
-    r.value = r.value -% 1;
+    r.value -%= 1;
 }
 
 const expectEqual = std.testing.expectEqual;
