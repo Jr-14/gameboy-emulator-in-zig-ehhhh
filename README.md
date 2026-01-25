@@ -256,4 +256,5 @@ Also because [System of Levers](https://www.youtube.com/watch?v=hy2yY5a1Z-0) tol
 
 # Timeline
 Day 20 - Completed All 8-bit and 16-bit load instructions with tests (to the best of my knowledge)
+
 Day 31 - Completed All control flow instructions
