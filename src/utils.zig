@@ -4,6 +4,8 @@ const NEG_SIGN_MASK: u16 = 0x80; // 0b1000_0000
 const NEG_SIGN_EXT_MASK: u16 = 0xFF00;
 const POST_SIGN_EXT_MASK: u16 = 0x0000;
 
+const BYTE_LOWER_NIBBLE: u8 = 0x0F; // 0b0000_1111;
+
 const masks = @import("masks.zig");
 
 pub fn signExtend(value: u16) u16 {
@@ -27,6 +29,12 @@ pub fn getHiByte(val: u16) u8 {
 pub fn getLoByte(val: u16) u8 {
     return @truncate(val & masks.LO_MASK);
 }
+
+const ByteAdditionResult = struct {
+    result: u8,
+    half_carry: u1,
+};
+pub fn byteAdd() void {}
 
 const expectEqual = std.testing.expectEqual;
 
