@@ -169,7 +169,6 @@ emulators, and a bit of systems programming.
 - [x] 0x05 - DEC B
 - [x] 0x0C - INC C
 - [ ] 0x0D - DEC C
-- [ ] 0x0D - DEC C
 - [ ] 0x14 - INC D
 - [ ] 0x15 - DEC D
 - [ ] 0x1C - INC E

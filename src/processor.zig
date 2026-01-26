@@ -170,16 +170,15 @@ pub const Processor = struct {
 
             // INC C
             // Increment the contents of register C by 1.
-            0x0C => instructions.incrLoReg(self, &self.BC),
+            0x0C => instructions.incLoReg(self, &self.BC),
 
+            // DEC C
             // Decrement the contents of register C by 1
-            // TODO:
-            // Flags: Z 1 8-bit -
-            // 0x0d => "DEC C",
+            0x0D => instructions.decLoReg(self, &self.BC),
 
             // LD C, d8
             // Load the 8-bit immediate operand d8 into register C
-            0x0E => self.BC.setLo(self.fetch()),
+            0x0E => instructions.loadLoFromImm(self, &self.BC),
 
             // Rotate the contents of register A to the right. That is, the contents of bit 7 are
             // copied to bit 6, and the previous contents of bit 6 (before the copy) are copied to
@@ -207,10 +206,7 @@ pub const Processor = struct {
             // Load the 2 bytes of immediate data into register pair DE.
             // The first byte of immediate data is the lower byte (i.e., bit 0-7), and the second byte
             // of immediate data is the higher byte (i.e., bits 8-15)
-            0x11 => {
-                self.DE.setLo(self.fetch());
-                self.DE.setHi(self.fetch());
-            },
+            0x11 => instructions.loadRRFromImm16(self, &self.DE),
 
             // LD (DE), A
             // Store the contents of register A in the memory location specified by register pair DE.

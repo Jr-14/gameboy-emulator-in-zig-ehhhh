@@ -22,7 +22,7 @@ pub fn incHiReg(proc: *Processor, reg: *Register) void {
     incReg(proc, reg, Register.setHi, Register.getHi);
 }
 
-pub fn incrLoReg(proc: *Processor, reg: *Register) void {
+pub fn incLoReg(proc: *Processor, reg: *Register) void {
     incReg(proc, reg, Register.setLo, Register.getLo);
 }
 
@@ -47,6 +47,19 @@ pub fn decLoReg(proc: *Processor, reg: *Register) void {
     decReg(proc, reg, Register.setLo, Register.getLo);
 }
 
+pub fn loadHiFromImm(proc: *Processor, reg: *Register) void {
+    reg.setHi(proc.fetch());
+}
+
+pub fn loadLoFromImm(proc: *Processor, reg: *Register) void {
+    reg.setLo(proc.fetch());
+}
+
+// Load into two byte registers immediate two byte data.
+pub fn loadRRFromImm16(proc: *Processor, reg: *Register) void {
+    reg.setLo(proc.fetch());
+    reg.setHi(proc.fetch());
+}
 
 const expectEqual = std.testing.expectEqual;
 
@@ -156,13 +169,13 @@ test "incHiReg, AF" {
     try expectEqual(true, processor.isFlagSet(.H));
 }
 
-test "incrLoReg, BC" {
+test "incLoReg, BC" {
     var memory: Memory = .init();
     var processor: Processor = .init(&memory);
 
     const reg = &processor.BC;
     reg.setLo(0x0F);
-    incrLoReg(&processor, reg);
+    incLoReg(&processor, reg);
 
     try expectEqual(0x10, reg.getLo());
     try expectEqual(false, processor.isFlagSet(.Z));
