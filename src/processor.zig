@@ -168,10 +168,9 @@ pub const Processor = struct {
             // Decrement the contents of register pair BC by 1.
             // 0x0b => "DEC BC",
 
+            // INC C
             // Increment the contents of register C by 1.
-            // TODO:
-            // Flags: Z 0 8-bit -
-            // 0x0c => "INC C",
+            0x0C => instructions.incrLoReg(self, &self.BC),
 
             // Decrement the contents of register C by 1
             // TODO:

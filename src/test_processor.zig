@@ -220,6 +220,61 @@ test "decode and execute 0x05 [DEC B], HC" {
     try expectEqual(0x00, processor.HL.get());
 }
 
+test "decode and execute 0x0C [INC C]" {
+    const op_code: u8 = 0x0C;
+    const initial_PC: u16 = 0x0100;
+
+    var memory: Memory = .init();
+    var processor: Processor = .init(&memory);
+    processor.PC.set(initial_PC);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(1, processor.BC.getLo());
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.C));
+}
+
+test "decode and execute 0x0C [INC C], Z" {
+    const op_code: u8 = 0x0C;
+    const initial_PC: u16 = 0x0100;
+    const C: u8 = 0xFF;
+
+    var memory: Memory = .init();
+    var processor: Processor = .init(&memory);
+    processor.PC.set(initial_PC);
+    processor.BC.setLo(C);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(0x00, processor.BC.getLo());
+    try expectEqual(true, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.H));
+}
+
+test "decode and execute 0x0C [INC C], HC" {
+    const op_code: u8 = 0x0C;
+    const initial_PC: u16 = 0x0100;
+    const C: u8 = 0x1F;
+
+    var memory: Memory = .init();
+    var processor: Processor = .init(&memory);
+    processor.PC.set(initial_PC);
+    processor.BC.setLo(C);
+    processor.memory.write(initial_PC, op_code);
+
+    const instruction = processor.fetch();
+    try processor.decodeAndExecute(instruction);
+    try expectEqual(0x20, processor.BC.getLo());
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.H));
+}
+
 test "decode and execute 0x06 [LD B, d8]" {
     const op_code: u8 = 0x06;
     const initial_PC: u16 = 0x0100;

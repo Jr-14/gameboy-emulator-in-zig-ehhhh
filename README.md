@@ -167,7 +167,7 @@ emulators, and a bit of systems programming.
 **8-bit Arithmetic Instructions**
 - [x] 0x04 - INC B
 - [x] 0x05 - DEC B
-- [ ] 0x0C - INC C
+- [x] 0x0C - INC C
 - [ ] 0x0D - DEC C
 - [ ] 0x0D - DEC C
 - [ ] 0x14 - INC D
