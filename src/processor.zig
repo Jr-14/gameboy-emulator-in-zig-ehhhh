@@ -114,8 +114,6 @@ pub const Processor = struct {
             // LD (BC), A
             // Store the contents of register A in the memory location specified by
             // register pair BC
-            // TODO:
-            // I may need to swap endianness as the CPU is little endian
             0x02 => self.memory.write(self.BC.get(), self.AF.getHi()),
 
             // INC BC
@@ -124,16 +122,11 @@ pub const Processor = struct {
 
             // INC B
             // Increment the contents of register B by 1.
-            0x04 => instructions.incrHiReg(self, &self.BC),
+            0x04 => instructions.incHiReg(self, &self.BC),
 
             // DEC B
             // Decrement the contents of register B by 1
-            // TODO:
-            // Flags: Z 1 8-bit -
-            // 0x05 => {
-            //     register.B -= 1;
-            //     register.PC += 1;
-            // },
+            0x05 => instructions.decHiReg(self, &self.BC),
 
             // LD B, d8
             // Load the 8-bit immediate operand d8 into register B.

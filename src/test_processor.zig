@@ -142,6 +142,9 @@ test "decode and execute 0x04 [INC B], HC" {
     try expectEqual(true, processor.isFlagSet(.H));
 }
 
+test "decode and execute 0x05 [DEC B]" {
+}
+
 test "decode and execute 0x06 [LD B, d8]" {
     const op_code: u8 = 0x06;
     const initial_PC: u16 = 0x0100;

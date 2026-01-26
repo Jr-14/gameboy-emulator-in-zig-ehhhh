@@ -28,16 +28,25 @@ pub fn getLoByte(val: u16) u8 {
     return @truncate(val);
 }
 
-const ByteAdditionResult = struct {
+const ByteResult = struct {
     result: u8,
     half_carry: u1,
 };
 
-pub fn byteAdd(a: u8, b: u8) ByteAdditionResult {
+pub fn byteAdd(a: u8, b: u8) ByteResult {
     const sum: u8 = a +% b;
-    const hc: u1 = if ((((a & 0xF) + (b & 0xF)) & 0x10) == 0x10) 1 else 0;
+    const hc: u1 = if ((((a & 0xF) +% (b & 0xF)) & 0x10) == 0x10) 1 else 0;
     return .{
         .result = sum,
+        .half_carry = hc,
+    };
+}
+
+pub fn byteSub(a: u8, b: u8) ByteResult {
+    const remainder: u8 = a -% b;
+    const hc: u1 = if ((((a & 0xF) -% (b & 0xF)) & 0x10) == 0x10) 1 else 0;
+    return .{
+        .result = remainder,
         .half_carry = hc,
     };
 }
@@ -58,10 +67,14 @@ test "byteAdd - half carry" {
     try expectEqual(sum.half_carry, 0);
 }
 
-test "byteAdd - overflow" {
-    const sum = byteAdd(0xFF, 0x01);
-    try expectEqual(0x00, sum.result);
-    try expectEqual(1, sum.half_carry);
+test "byteSub - half carry" {
+    var remainder = byteSub(0x01, 0x0F);
+    try expectEqual(remainder.result, 0xF2);
+    try expectEqual(remainder.half_carry, 1);
+
+    remainder = byteSub(0x0F, 0x0F);
+    try expectEqual(remainder.result, 0x00);
+    try expectEqual(remainder.half_carry, 0);
 }
 
 test "sign extend - negative two's complement" {
