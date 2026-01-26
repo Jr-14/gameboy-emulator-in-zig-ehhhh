@@ -38,16 +38,21 @@ pub const Processor = struct {
         };
     }
 
+    // Read from memory the value pointed to by PC
+    pub inline fn readFromPC(self: *Self) u8 {
+        return self.memory.read(self.PC.value);
+    }
+
     // Fetches the next instruction to be executed from the current memory address pointed at by PC
     pub inline fn fetch(self: *Self) u8 {
-        const instruction = self.memory.read(self.PC.value);
+        const instruction = self.readFromPC();
         self.PC.increment();
         return instruction;
     }
 
     // Pop the current value from the stack pointed to by SP
     pub inline fn popStack(self: *Self) u8 {
-        const val = self.memory.read(self.SP.get());
+        const val = self.memory.read(self.SP.value);
         self.SP.increment();
         return val;
     }

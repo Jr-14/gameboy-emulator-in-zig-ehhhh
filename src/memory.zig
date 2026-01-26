@@ -6,12 +6,9 @@ pub const ARRAY_SIZE: u32 = 0xFFFF + 1;
 address: [ARRAY_SIZE]u8 = undefined,
 
 pub fn init() Memory {
-    var memory: [ARRAY_SIZE]u8 = undefined;
-    @memset(&memory, 0);
-    const m: Memory = .{
-        .address = memory,
+    return .{
+        .address = @splat(0),
     };
-    return m;
 }
 
 pub inline fn read(m: *Memory, index: u32) u8 {
