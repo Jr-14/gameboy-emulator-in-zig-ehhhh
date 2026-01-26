@@ -126,8 +126,7 @@ pub const Processor = struct {
             // TODO:
             // This has some flags? e.g. Z 0 8-bit -
             // 0x04 => {
-            //     register.B += 1;
-            //     register.PC += 1;
+            //     const sum = utils.byteAdd(self.BC.getHi(), 1);
             // },
 
             // DEC B

@@ -27,15 +27,15 @@ pub fn init(hi: u8, lo: u8) Register {
     };
 }
 
-pub inline fn get(r: Register) u16 {
+pub inline fn get(r: *Register) u16 {
     return r.value;
 }
 
-pub inline fn getHi(r: Register) u8 {
+pub inline fn getHi(r: *Register) u8 {
     return @truncate((r.value & HI_MASK) >> 8);
 }
 
-pub inline fn getLo(r: Register) u8 {
+pub inline fn getLo(r: *Register) u8 {
     return @truncate((r.value & LO_MASK));
 }
 

@@ -5,3 +5,8 @@ Here's one of the recommendation summarised
 A packed struct can be used to represent the encoding of the instruction so we could just bitcast the instructions to
 it. It's nice as long as the encoding is not too complex and even then you can use methods for more complex
 encodings. For the registers I used an std.EnumArray
+
+Learning about [`anytype`](https://ziglang.org/documentation/0.15.2/#Function-Parameter-Type-Inference) for function
+type inference.
+
+Learning about function pointers and dynamic dispatch.

@@ -165,7 +165,7 @@ emulators, and a bit of systems programming.
 - [x] 0xFF - RST 7
 
 **8-bit Arithmetic Instructions**
-- [ ] 0x04 - INC B
+- [x] 0x04 - INC B
 - [ ] 0x05 - DEC B
 - [ ] 0x0C - INC C
 - [ ] 0x0D - DEC C
