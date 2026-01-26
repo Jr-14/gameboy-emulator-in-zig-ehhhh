@@ -4,6 +4,7 @@ const utils = @import("utils.zig");
 const Register = @import("register.zig");
 const Memory = @import("memory.zig");
 const Flag = Register.Flag;
+const instructions = @import("instruction.zig");
 
 const masks = @import("masks.zig");
 
@@ -90,13 +91,13 @@ pub const Processor = struct {
         self.AF.setLo(0);
     }
 
-    pub fn decodeAndExecute(self: *Self, instruction: u16) !void {
+    pub fn decodeAndExecute(self: *Self, op_code: u16) !void {
         // TODO:
         // state all the different instructions for 8-bit opcodes
         //
         // TODO:
         // Look at 16-bit opcodes? Is this required?
-        switch (instruction) {
+        switch (op_code) {
             // NOP (No operation) Only advances the program counter by 1.
             // Performs no other operations that would have an effect
             0x00 => {},
@@ -123,11 +124,7 @@ pub const Processor = struct {
 
             // INC B
             // Increment the contents of register B by 1.
-            // TODO:
-            // This has some flags? e.g. Z 0 8-bit -
-            // 0x04 => {
-            //     const sum = utils.byteAdd(self.BC.getHi(), 1);
-            // },
+            0x04 => instructions.incrHiReg(self, &(self.BC)),
 
             // DEC B
             // Decrement the contents of register B by 1
