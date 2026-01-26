@@ -53,4 +53,11 @@ test "incrementRegister, BC" {
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(true, processor.isFlagSet(.H));
+
+    processor.DE.setLo(0x0F);
+    incrementRegister(&processor, &processor.DE, Register.setLo, Register.getLo);
+    try expectEqual(0x10, processor.DE.getLo());
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.H));
 }
