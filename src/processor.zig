@@ -124,7 +124,7 @@ pub const Processor = struct {
 
             // INC B
             // Increment the contents of register B by 1.
-            0x04 => instructions.incrHiReg(self, &(self.BC)),
+            0x04 => instructions.incrHiReg(self, &self.BC),
 
             // DEC B
             // Decrement the contents of register B by 1

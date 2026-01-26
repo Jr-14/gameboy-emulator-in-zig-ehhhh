@@ -72,10 +72,25 @@ test "incrHiReg, AF" {
     var memory: Memory = .init();
     var processor: Processor = .init(&memory);
 
-    processor.AF.setHi(0x0F);
-    incrHiReg(&processor, &(processor.AF));
+    const reg = &processor.AF;
+    reg.setHi(0x0F);
+    incrHiReg(&processor, reg);
 
-    try expectEqual(0x10, processor.AF.getHi());
+    try expectEqual(0x10, reg.getHi());
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.H));
+}
+
+test "incrLoReg, BC" {
+    var memory: Memory = .init();
+    var processor: Processor = .init(&memory);
+
+    const reg = &processor.BC;
+    reg.setLo(0x0F);
+    incrLoReg(&processor, reg);
+
+    try expectEqual(0x10, reg.getLo());
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(true, processor.isFlagSet(.H));
