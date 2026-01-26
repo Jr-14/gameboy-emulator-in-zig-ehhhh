@@ -38,7 +38,7 @@ a static method `.init` which we can call shorthand. The blk expression then res
 
 2.53PM
 Also learnt about [`@This()` file scope](https://ziglang.org/documentation/master/#This) which I've used first
-in register.zig.
+in register.zig. Therefore, I can now use source file stuct [Source-File-Structs](https://ziglang.org/documentation/0.15.2/#Source-File-Structs)
 
 Before I had to explicitly declare the Register and Memory namespaces within the file as
 ```zig
