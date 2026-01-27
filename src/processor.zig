@@ -2,6 +2,7 @@ const std = @import("std");
 const utils = @import("utils.zig");
 
 const Register = @import("register.zig");
+const RegisterNew = @import("register_new.zig");
 const Memory = @import("memory.zig");
 const Flag = Register.Flag;
 const instructions = @import("instruction.zig");
@@ -150,7 +151,7 @@ pub const Processor = struct {
             // // Store the lower byte of stack pointer SP at the address specified by the 16-bit
             // // immediate operand 16, and store the upper byte of SP at address a16 + 1.
             0x08 => {
-                const addr: u16 = utils.toTwoBytes(self.fetch(), self.fetch());
+                const addr: u16 = utils.fromTwoBytes(self.fetch(), self.fetch());
                 self.memory.write(addr, utils.getLoByte(self.SP.get()));
                 self.memory.write(addr + 1, utils.getHiByte(self.SP.get()));
             },
@@ -721,7 +722,7 @@ pub const Processor = struct {
             // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed
             // in byte 3.
             0xC4 => {
-                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
+                const addr = utils.fromTwoBytes(self.fetch(), self.fetch());
                 if (!self.isFlagSet(.Z)) {
                     self.pushStack(self.PC.getHi());
                     self.pushStack(self.PC.getLo());
@@ -792,7 +793,7 @@ pub const Processor = struct {
             // of a16 (bits 0-7), and the third byte of the object code corresponds to the higher-order byte
             // (bits 8-15).
             0xCA => {
-                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
+                const addr = utils.fromTwoBytes(self.fetch(), self.fetch());
                 if (self.isFlagSet(.Z)) {
                     self.PC.set(addr);
                 }
@@ -804,7 +805,7 @@ pub const Processor = struct {
             // operand a16 is then loaded into PC.
             // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed in byte 3.
             0xCC => {
-                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
+                const addr = utils.fromTwoBytes(self.fetch(), self.fetch());
                 if (self.isFlagSet(.Z)) {
                     self.pushStack(self.PC.getHi());
                     self.pushStack(self.PC.getLo());
@@ -825,7 +826,7 @@ pub const Processor = struct {
             // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed
             // in byte 3.
             0xCD => {
-                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
+                const addr = utils.fromTwoBytes(self.fetch(), self.fetch());
                 self.pushStack(self.PC.getHi());
                 self.pushStack(self.PC.getLo());
                 self.PC.set(addr);
@@ -880,7 +881,7 @@ pub const Processor = struct {
                 // bit operations
                 // And if it is C, then we just increment PC by 2 without
                 // reading from memory?
-                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
+                const addr = utils.fromTwoBytes(self.fetch(), self.fetch());
                 if (!self.isFlagSet(.C)) {
                     self.PC.set(addr);
                 }
@@ -893,7 +894,7 @@ pub const Processor = struct {
             // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed
             // in byte 3.
             0xD4 => {
-                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
+                const addr = utils.fromTwoBytes(self.fetch(), self.fetch());
                 if (!self.isFlagSet(.C)) {
                     self.pushStack(self.PC.getHi());
                     self.pushStack(self.PC.getLo());
@@ -966,7 +967,7 @@ pub const Processor = struct {
             // byte of a16 (bits 0-7), and the third byte of the object code corresponds to the higher-order byte
             // (bits 8-15).
             0xDA => {
-                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
+                const addr = utils.fromTwoBytes(self.fetch(), self.fetch());
                 if (self.isFlagSet(.C)) {
                     self.PC.set(addr);
                 }
@@ -979,7 +980,7 @@ pub const Processor = struct {
             // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed
             // in byte 3.
             0xDC => {
-                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
+                const addr = utils.fromTwoBytes(self.fetch(), self.fetch());
                 if (self.isFlagSet(.C)) {
                     self.pushStack(self.PC.getHi());
                     self.pushStack(self.PC.getLo());
@@ -1069,7 +1070,7 @@ pub const Processor = struct {
             // Store the contents of register A in the internal RAM or register specified by the 16-bit immediate
             // operand a16.
             0xEA => {
-                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
+                const addr = utils.fromTwoBytes(self.fetch(), self.fetch());
                 self.memory.write(addr, self.AF.getHi());
             },
 
@@ -1168,7 +1169,7 @@ pub const Processor = struct {
             // LD A, (a16)
             // Load to the 8-bit A register, data from the absolute address specified by the 16-bit operand (a16).
             0xFA => {
-                const addr = utils.toTwoBytes(self.fetch(), self.fetch());
+                const addr = utils.fromTwoBytes(self.fetch(), self.fetch());
                 self.AF.setHi(self.memory.read(addr));
             },
 

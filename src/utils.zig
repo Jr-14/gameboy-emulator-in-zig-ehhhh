@@ -16,7 +16,7 @@ pub fn addOffset(value: u16, offset: u16) u16 {
     return @bitCast(@as(i16, @bitCast(value)) + @as(i16, @bitCast(signExtendedOffset)));
 }
 
-pub fn toTwoBytes(lo: u8, hi: u8) u16 {
+pub inline fn fromTwoBytes(lo: u8, hi: u8) u16 {
     return (@as(u16, hi) << 8) | lo;
 }
 
@@ -105,10 +105,10 @@ test "addOffset - positive offset" {
     try expectEqual(258, addOffset(initial_PC, positive_three_u8));
 }
 
-test "toTwoBytes" {
+test "fromTwoBytes" {
     const hi: u8 = 0x34;
     const lo: u8 = 0xA0;
-    try expectEqual(0x34A0, toTwoBytes(lo, hi));
+    try expectEqual(0x34A0, fromTwoBytes(lo, hi));
 }
 
 test "getHiByte" {

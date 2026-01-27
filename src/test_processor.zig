@@ -2406,7 +2406,7 @@ test "decode and execute 0xC0 [RET NZ], NZ" {
 
     const instruction = processor.fetch();
     try processor.decodeAndExecute(instruction);
-    try expectEqual(utils.toTwoBytes(lo, hi), processor.PC.get());
+    try expectEqual(utils.fromTwoBytes(lo, hi), processor.PC.get());
     try expectEqual(SP + 2, processor.SP.get());
     try expectEqual(0x00, processor.AF.get());
     try expectEqual(0x00, processor.BC.get());
@@ -2877,7 +2877,7 @@ test "decode and execute 0xD0 [RET NC]" {
 
     const instruction = processor.fetch();
     try processor.decodeAndExecute(instruction);
-    try expectEqual(utils.toTwoBytes(lo, hi), processor.PC.get());
+    try expectEqual(utils.fromTwoBytes(lo, hi), processor.PC.get());
     try expectEqual(SP + 2, processor.SP.get());
     try expectEqual(0x00, processor.AF.get());
     try expectEqual(0x00, processor.BC.get());
@@ -2927,7 +2927,7 @@ test "decode and execute 0xD2 [JP NC, a16], NC" {
 
     const instruction = processor.fetch();
     try processor.decodeAndExecute(instruction);
-    try expectEqual(utils.toTwoBytes(lo, hi), processor.PC.get());
+    try expectEqual(utils.fromTwoBytes(lo, hi), processor.PC.get());
     try expectEqual(0x00, processor.SP.get());
     try expectEqual(0x00, processor.AF.get());
     try expectEqual(0x00, processor.BC.get());
