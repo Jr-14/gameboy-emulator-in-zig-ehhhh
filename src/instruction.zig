@@ -17,42 +17,53 @@ const FlagCondition = enum {
 
 const utils = @import("utils.zig");
 
-
-/// Increment the contents of register reg by 1.
-/// Example: 0x05 -> DEC B
-pub fn inc_reg(
-    proc: *Processor,
-    reg: *Register,
-) void {
-    const sum = utils.byteAdd(reg.value, 1);
-    reg.value = sum.result;
-    proc.unsetFlag(.N);
-    if (sum.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-    if (sum.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
-}
-
-/// Decrement the contents of register reg by 1
-/// Example: 0x0D -> DEC C
-pub fn dec_reg(
-    proc: *Processor,
-    reg: *Register,
-) void {
-    const remainder = utils.byteSub(reg.value, 1);
-    reg.value = remainder.result;
-    proc.setFlag(.N);
-    if (remainder.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-    if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
-}
-
-/// Increment the contents of register pair rr by 1
-pub fn inc_rr(proc: *Processor, regPair: Processor.RegisterPair) void {
-    switch (regPair) {
-        .AF => proc.setAF(proc.getAF() + 1),
-        .BC => proc.setBC(proc.getBC() + 1),
-        .DE => proc.setDE(proc.getDE() + 1),
-        .HL => proc.setHL(proc.getHL() + 1),
+pub const arithmetic = struct {
+    /// Increment the contents of register reg by 1.
+    /// Example: 0x05 -> DEC B
+    pub fn inc_reg(
+        proc: *Processor,
+        reg: *Register,
+    ) void {
+        const sum = utils.byteAdd(reg.value, 1);
+        reg.value = sum.result;
+        proc.unsetFlag(.N);
+        if (sum.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        if (sum.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
     }
-}
+
+    /// Decrement the contents of register reg by 1
+    /// Example: 0x0D -> DEC C
+    pub fn dec_reg(
+        proc: *Processor,
+        reg: *Register,
+    ) void {
+        const remainder = utils.byteSub(reg.value, 1);
+        reg.value = remainder.result;
+        proc.setFlag(.N);
+        if (remainder.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
+    }
+
+    /// Increment the contents of register pair rr by 1
+    pub fn inc_rr(proc: *Processor, regPair: Processor.RegisterPair) void {
+        switch (regPair) {
+            .AF => proc.setAF(proc.getAF() +% 1),
+            .BC => proc.setBC(proc.getBC() +% 1),
+            .DE => proc.setDE(proc.getDE() +% 1),
+            .HL => proc.setHL(proc.getHL() +% 1),
+        }
+    }
+
+    /// Decrement the contents of register pair rr by 1
+    pub fn dec_rr(proc: *Processor, regPair: Processor.RegisterPair) void {
+        switch (regPair) {
+            .AF => proc.setAF(proc.getAF() -% 1),
+            .BC => proc.setBC(proc.getBC() -% 1),
+            .DE => proc.setDE(proc.getDE() -% 1),
+            .HL => proc.setHL(proc.getHL() -% 1),
+        }
+    }
+};
 
 pub const load = struct {
     /// Load the 8-bit immediate operand d8 into register reg.

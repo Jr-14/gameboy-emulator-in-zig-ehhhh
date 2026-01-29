@@ -191,13 +191,13 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         0x02 => instructions.load.rrMem_reg(proc, .BC, &proc.A),
 
         // INC BC
-        0x03 => instructions.inc_rr(proc, .BC),
+        0x03 => instructions.arithmetic.inc_rr(proc, .BC),
 
         // INC B
-        0x04 => instructions.inc_reg(proc, &proc.B),
+        0x04 => instructions.arithmetic.inc_reg(proc, &proc.B),
 
         // DEC B
-        0x05 => instructions.dec_reg(proc, &proc.B),
+        0x05 => instructions.arithmetic.dec_reg(proc, &proc.B),
 
         // LD B, d8
         0x06 => instructions.load.reg_imm8(proc, &proc.B),
@@ -209,10 +209,10 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         0x0A => instructions.load.reg_rrMem(proc, &proc.A, .BC),
 
         // INC C
-        0x0C => instructions.inc_reg(proc, &proc.C),
+        0x0C => instructions.arithmetic.inc_reg(proc, &proc.C),
 
         // DEC C
-        0x0D => instructions.dec_reg(proc, &proc.C),
+        0x0D => instructions.arithmetic.dec_reg(proc, &proc.C),
 
         // LD C, d8
         0x0E => instructions.load.reg_imm8(proc, &proc.C),
@@ -223,11 +223,23 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // LD (DE), A
         0x12 => instructions.load.rrMem_reg(proc, .DE, &proc.A),
 
+        // INC D
+        0x14 => instructions.arithmetic.inc_reg(proc, &proc.D),
+
+        // DEC D
+        0x15 => instructions.arithmetic.dec_reg(proc, &proc.D),
+
         // LD D, d8
         0x16 => instructions.load.reg_imm8(proc, &proc.D),
 
         // JR s8
         0x18 => instructions.controlFlow.jump_rel_imm8(proc),
+
+        // INC E
+        0x1C => instructions.arithmetic.inc_reg(proc, &proc.E),
+
+        // DEC E
+        0x1D => instructions.arithmetic.dec_reg(proc, &proc.E),
 
         // JR NZ, s8
         0x20 => instructions.controlFlow.jump_rel_cc_imm8(proc, .NZ),
@@ -235,14 +247,38 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // LD HL, d16
         0x21 => instructions.load.rr_imm16(proc, .HL),
 
+        // INC H
+        0x24 => instructions.arithmetic.inc_reg(proc, &proc.H),
+
+        // DEC H
+        0x25 => instructions.arithmetic.dec_reg(proc, &proc.H),
+
         // JR Z, s8
         0x28 => instructions.controlFlow.jump_rel_cc_imm8(proc, .Z),
+
+        // INC L
+        0x2C => instructions.arithmetic.inc_reg(proc, &proc.L),
+        
+        // DEC L
+        0x2D => instructions.arithmetic.dec_reg(proc, &proc.L),
 
         // JR NC, s8
         0x30 => instructions.controlFlow.jump_rel_cc_imm8(proc, .NC),
 
+        // INC (HL)
+        0x34 => instructions.arithmetic.inc_rr(proc, .HL),
+
+        // DEC (HL)
+        0x35 => instructions.arithmetic.dec_rr(proc, .HL),
+
         // JR C, s8
         0x38 => instructions.controlFlow.jump_rel_cc_imm8(proc, .C),
+
+        // INC A
+        0x3C => instructions.arithmetic.inc_reg(proc, &proc.A),
+
+        // DEC A
+        0x3D => instructions.arithmetic.dec_reg(proc, &proc.A),
 
         // LD A, (DE)
         0x1A => instructions.load.reg_rrMem(proc, &proc.A, .DE),

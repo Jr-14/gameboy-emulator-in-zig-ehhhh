@@ -168,19 +168,19 @@ emulators, and a bit of systems programming.
 - [x] 0x04 - INC B
 - [x] 0x05 - DEC B
 - [x] 0x0C - INC C
-- [ ] 0x0D - DEC C
-- [ ] 0x14 - INC D
-- [ ] 0x15 - DEC D
-- [ ] 0x1C - INC E
-- [ ] 0x1D - DEC E
-- [ ] 0x24 - INC H
-- [ ] 0x25 - DEC H
-- [ ] 0x2C - INC L
-- [ ] 0x2D - DEC L
-- [ ] 0x34 - INC (HL)
-- [ ] 0x35 - DEC (HL)
-- [ ] 0x3C - INC A
-- [ ] 0x3D - DEC A
+- [x] 0x0D - DEC C
+- [x] 0x14 - INC D
+- [x] 0x15 - DEC D
+- [x] 0x1C - INC E
+- [x] 0x1D - DEC E
+- [x] 0x24 - INC H
+- [x] 0x25 - DEC H
+- [x] 0x2C - INC L
+- [x] 0x2D - DEC L
+- [x] 0x34 - INC (HL)
+- [x] 0x35 - DEC (HL)
+- [x] 0x3C - INC A
+- [x] 0x3D - DEC A
 - [ ] 0x80 - ADD A, B
 - [ ] 0x81 - ADD A, C
 - [ ] 0x82 - ADD A, D
