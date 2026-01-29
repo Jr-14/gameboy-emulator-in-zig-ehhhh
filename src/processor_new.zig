@@ -602,6 +602,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // SBC A, A
         0x9F => instructions.arithmetic.subc_reg(proc, &proc.A),
 
+        // AND B
+        0xA0 => instructions.arithmetic.And(proc, &proc.B),
+
         // RET NZ
         0xC0 => instructions.controlFlow.ret_cc(proc, .NZ),
 

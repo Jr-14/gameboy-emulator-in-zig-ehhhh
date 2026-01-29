@@ -195,6 +195,41 @@ pub const arithmetic = struct {
         if (remainder.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
         if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
     }
+
+    fn and_aux(proc: *Processor, value: u8) void {
+        proc.A.value &= value;
+        if (proc.A.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.setFlag(.H);
+        proc.unsetFlag(.C);
+    }
+    /// Take the logical AND for each bit of the contents of register reg and the contents of register A,
+    /// and store the results in register A.
+    /// Example: 0xA0 -> AND A, B
+    pub fn And(proc: *Processor, reg: *Register) void {
+        and_aux(proc, reg.value);
+    }
+
+    pub fn and_imm8(proc: *Processor) void {
+        const imm = proc.fetch();
+        and_aux(proc, imm);
+    }
+
+    pub fn Or(proc: *Processor, reg: *Register) void {
+        proc.A.value |= reg.value;
+        if (proc.A.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        proc.unsetFlag(.C);
+    }
+
+    pub fn Xor(proc: *Processor, reg: *Register) void {
+        proc.A.value ^= reg.value;
+        if (proc.A.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        proc.unsetFlag(.C);
+    }
 };
 
 pub const load = struct {
