@@ -531,153 +531,63 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         0xD8 => instructions.controlFlow.ret_cc(proc, .C),
 
         // RETI
-        // Used when an interrupt-service routine finishes. The address for the return from the interrupt is loaded
-        // in the program counter PC. The master interrupt enable flag is returned to its pre-interrupt status.
-        // The contents of the address specified by the stack pointer SP are loaded in the lower-order byte of PC,
-        // and the contents of SP are incremented by 1. The contents of the address specified by the new SP value
-        // are then loaded in the higher-order byte of PC, and the contents of SP are incremented by 1 again. 
-        // (THe value of SP is 2 larger than before instruction execution.) The next instruction is fetched from
-        // the address specified by the content of PC (as usual).
         0xD9 => instructions.controlFlow.reti(proc),
 
         // JP C, a16
-        // Load the 16-bit immediate operand a16 into the program counter PC if the CY flag is 1. If the CY flag is
-        // 1, then the subsequent instruction starts at address a16. If not, the contents of PC are incremented,
-        // and the next instruction following the current JP instruction is executed (as usual).
-        // The second byte of the object code (immediately following the opcode) corresponds to the lower-order
-        // byte of a16 (bits 0-7), and the third byte of the object code corresponds to the higher-order byte
-        // (bits 8-15).
         0xDA => instructions.controlFlow.jump_cc_imm16(proc, .C),
 
         // CALL C, a16
-        // If the CY flag is 1, the program counter PC value corresponding to the memory location of the instruction
-        // following the CALL instruction is pushed to the 2 bytes following the memory byte specified by the stack
-        // pointer SP. The 16-bit immediate operand a16 is then loaded into PC.
-        // The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed
-        // in byte 3.
         0xDC => instructions.controlFlow.call_cc_imm16(proc, .C),
 
         // RST 3
-        // Push the current value of the program counter PC onto the memory stack, and load into PC the 4th byte of
-        // page 0 memory addresses, 0x18. The next instruction is fetched from the address specified by the new
-        // content of PC (as usual).
-        // With the push, the contents of the stack pointer SP are decremented by 1, and the higher-order byte of PC
-        // is loaded in the memory address specified by the new SP value. The value of SP is then again decremented
-        // by 1, and the lower-order byte of the PC is loaded in the memory address specified by that value of SP.
-        // The RST instruction can be used to jump to 1 of 8 addresses. Because all of the addresses are held in
-        // page
-        // 0 memory, 0x00 is loaded in the higher-order byte of the PC, and 0x18 is loaded in the lower-order byte.
         0xDF => instructions.controlFlow.rst(proc, 3),
 
         // LD (a8), A
-        // Load to the address specified by the 8-bit immediate data a8, data from the 8-bit A register. The full
-        // 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least significant
-        // byte to the value of a8, so the possible range is 0xff00-0xffff.
         0xE0 => instructions.load.imm8Mem_reg(proc, &proc.A),
 
         // POP HL
-        // Pop the contents from the memory stack into register pair HL by doing the following:
-        // 1. Load the contents of memory specified by stack pointer SP into the lower portion of HL.
-        // 2. Add 1 to SP and load the contents from thew new memory location into the upper portion of HL.
-        // 3. By the end, SP should be 2 more than its initial value.
         0xE1 => instructions.controlFlow.pop_rr(proc, .HL),
 
         // LD (C), A
-        // Load to the address specified by the 8-bit C register, data from the 8-bit A register. The full 16-bit
-        // address is obtained by setting the most significant byte to 0xff and the least significant byte to the
-        // value of C, so the possible range is 0xff00-0xffff.
         0xE2 => instructions.load.regMem_reg(proc, &proc.C, &proc.A),
 
         // PUSH HL
-        // Push the contents of register pair HL onto the memory stack by doing the following:
-        // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of register pair
-        // HL on the stack.
-        // 2. Subtract 1 from SP, and put the lower portion of register pair HL on the stack.
-        // 3. By the end, SP should be 2 less than its initial value.
         0xE5 => instructions.controlFlow.push_rr(proc, .HL),
         
         // RST 4
-        // Push the current value of the program counter PC onto the memory stack, and load into PC the 5th byte of
-        // page 0 memory addresses, 0x20. The next instruction is fetched from the address specified by the new
-        // content of PC (as usual).
-        // With the push, the contents of the stack pointer SP are decremented by 1, and the higher-order byte of PC
-        // is loaded in the memory address specified by the new SP value. The value of SP is then again decremented
-        // by 1, and the lower-order byte of the PC is loaded in the memory address specified by that value of SP.
-        // The RST instruction can be used to jump to 1 of 8 addresses. Because all of the addresses are held in
-        // page 0 memory, 0x00 is loaded in the higher-order byte of the PC, and 0x20 is loaded in the lower-order
-        // byte.
         0xE7 => instructions.controlFlow.rst(proc, 4),
 
         // JP HL
-        // Load the contents of register pair HL into the program counter PC. The next instruction is fetched from
-        // the location specified by the new value of PC.
         0xE9 => instructions.controlFlow.jump_rr(proc, .HL),
 
         // LD (a16), A
-        // Store the contents of register A in the internal RAM or register specified by the 16-bit immediate
-        // operand a16.
         0xEA => instructions.load.imm16Mem_reg(proc, &proc.A),
 
         // RST 5
         0xEF => instructions.controlFlow.rst(proc, 5),
 
         // LD A, (a8)
-        // Load to the 8-bit A register, data from the address specified by the 8-bit immediate data a8. The full
-        // 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least
-        // significant byte to the value of a8, so the possible range is 0xff0-0xffff.
         0xF0 => instructions.load.reg_imm8Mem(proc, &proc.A),
 
         // POP AF
-        // Pop the contents from the memory stack into register pair AF by doing the following:
-        // 1. Load the contents of memory specified by stack pointer SP into the lower portion of AF.
-        // 2. Add 1 to SP and load the contents from the new memory location into the upper portion AF.
-        // 3. By the end, SP should be 2 more than its initial value.
         0xF1 => instructions.controlFlow.pop_rr(proc, .AF),
 
         // LD A, (C)
-        // Load to the 8-bit A register, data from the address specified by the 8-bit C register. The full 16-bit
-        // address is obtianed by setting the most significant byte to 0xff and the least significant byte to the
-        // value of C, so the possible range is 0xff00-0xffff.
         0xF2 => instructions.load.reg_regMem(proc, &proc.A, &proc.C),
 
         // PUSH AF
-        // Push the contents of register pair AF onto the memory stack by doing the following:
-        // 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of register pair
-        // BC on on the stack.
-        // 2. Subtract 1 from SP, and put the lower portion of register pair AF on the stack.
         0xF5 => instructions.controlFlow.push_rr(proc, .AF),
 
         // RST 6
-        // Push the current value of the program counter PC onto the memory stack, and load into PC the 7th byte of
-        // page 0 memory addresses, 0x30. The next instruction is fetched from the address specified by the new
-        // content of PC (as usual).
-        // With the push, the contents of the stack pointer SP are decremented by 1, and the higher-order byte of
-        // PC is loaded in the memory address specified by the new SP value. The value of SP is then again
-        // decremented by 1, and the lower-order byte of the PC is loaded in the memory address specified by that
-        // value of SP.
-        // The RST instruction can be used to jump to 1 of 8 addresses. Because all of the addresses are held in
-        // page 0 memory, 0x00 is loaded in the higher-order byte of the PC, and 0x30 is loaded in the lower-order
-        // byte.
         0xF7 => instructions.controlFlow.rst(proc, 6),
 
         // LD SP, HL
-        // Load the contents of register pair HL into the stack pointer SP.
         0xF9 => instructions.load.spr_rr(proc, &proc.SP, .HL),
 
         // LD A, (a16)
-        // Load to the 8-bit A register, data from the absolute address specified by the 16-bit operand (a16).
         0xFA => instructions.load.reg_imm16Mem(proc, &proc.A),
+
         // RST 7
-        // Push the current value of the program counter PC onto the memory stack, and load into PC the 8th byte of
-        // page 0 memory addresses, 0x38. The next instruction is fetched from the address specified by the new
-        // content of PC (as usual).
-        // With the push, the contents of the stack pointer SP are decremented by 1, and the higher-order byte of
-        // PC is loaded in the memory address specified by the new SP value. The value of SP is then again
-        // decremented by 1, and the lower-order byte of the PC is loaded in the memory address specified by that
-        // value of SP.
-        // The RST instruction can be used to jump to 1 of 8 addresses. Because all of the addresses are held in
-        // page 0 memory, 0x00 is loaded in the higher-order byte of the PC, and 0x38 is loaded in the lower-order
-        // byte.
         0xFF => instructions.controlFlow.rst(proc, 7),
 
         else => {

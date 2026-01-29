@@ -61,6 +61,10 @@ pub const load = struct {
         reg.value = proc.fetch();
     }
 
+    /// Load to the 8-bit register reg, data from the address specified by the 8-bit immediate data a8. The full
+    /// 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least
+    /// significant byte to the value of a8, so the possible range is 0xff0-0xffff.
+    /// Example: 0xF0 -> LD A, (a8)
     pub fn reg_imm8Mem(proc: *Processor, reg: *Register) void {
         const imm = proc.fetch();
         const addr = utils.fromTwoBytes(imm, 0xFF);
@@ -77,10 +81,16 @@ pub const load = struct {
         proc.memory.write(addr, src.value);
     }
 
+    /// Load to the 8-bit A register, data from the address specified by the 8-bit C register. The full 16-bit
+    /// address is obtianed by setting the most significant byte to 0xff and the least significant byte to the
+    /// value of C, so the possible range is 0xff00-0xffff.
+    /// Example: 0xF2 -> LD A, (C)
     pub fn reg_regMem(proc: *Processor, dest: *Register, src: *Register) void {
         dest.value = proc.memory.read(utils.fromTwoBytes(src.value, 0xFF));
     }
 
+    /// Load to the 8-bit register reg, data from the absolute address specified by the 16-bit operand (a16).
+    /// Example: 0xFA -> LD A, (a16)
     pub fn reg_imm16Mem(proc: *Processor, dest: *Register) void {
         const lo = proc.fetch();
         const hi = proc.fetch();
@@ -177,6 +187,9 @@ pub const load = struct {
         }
     }
 
+    /// Store the contents of register A in the internal RAM or register specified by the 16-bit immediate
+    /// operand a16.
+    /// Example: 0xEA -> LD (a16), A
     pub fn imm16Mem_reg(proc: *Processor, reg: *Register) void {
         const lo = proc.fetch();
         const hi = proc.fetch();
@@ -202,6 +215,8 @@ pub const load = struct {
         spr.* = utils.fromTwoBytes(proc.fetch(), proc.fetch());
     }
 
+    /// Load the contents of register pair rr into the Special Purpose Register.
+    /// Example: 0xF9 -> LD SP, HL
     pub fn spr_rr(proc: *Processor, spr: *u16, regPair: Processor.RegisterPair) void {
         var loReg: *Register = undefined;
         var hiReg: *Register = undefined;
@@ -342,6 +357,9 @@ pub const controlFlow = struct {
         }
     }
 
+    /// Load the contents of register pair HL into the program counter PC. The next instruction is fetched from
+    /// the location specified by the new value of PC.
+    /// Example: 0xE9 -> JP HL
     pub fn jump_rr(proc: *Processor, regPair: Processor.RegisterPair) void {
         var loReg: *Register = undefined;
         var hiReg: *Register = undefined;
