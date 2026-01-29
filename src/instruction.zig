@@ -586,14 +586,14 @@ test "inc_reg" {
     var memory: Memory = .init();
     var processor = Processor.init(&memory, .{});
 
-    inc_reg(&processor, &processor.B);
+    arithmetic.inc_reg(&processor, &processor.B);
 
     try expectEqual(0x01, processor.B.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.H));
 
-    inc_reg(&processor, &processor.B);
+    arithmetic.inc_reg(&processor, &processor.B);
 
     try expectEqual(0x02, processor.B.value);
     try expectEqual(false, processor.isFlagSet(.Z));
@@ -601,7 +601,7 @@ test "inc_reg" {
     try expectEqual(false, processor.isFlagSet(.H));
 
     processor.B.value = 0xFF;
-    inc_reg(&processor, &processor.B);
+    arithmetic.inc_reg(&processor, &processor.B);
 
     try expectEqual(0x00, processor.B.value);
     try expectEqual(true, processor.isFlagSet(.Z));
@@ -609,14 +609,14 @@ test "inc_reg" {
     try expectEqual(true, processor.isFlagSet(.H));
 
     processor.B.value = 0x0F;
-    inc_reg(&processor, &processor.B);
+    arithmetic.inc_reg(&processor, &processor.B);
     try expectEqual(0x10, processor.B.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(true, processor.isFlagSet(.H));
 
     processor.E.value = 0x0F;
-    inc_reg(&processor, &processor.E);
+    arithmetic.inc_reg(&processor, &processor.E);
     try expectEqual(0x10, processor.E.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
@@ -627,19 +627,19 @@ test "dec_reg" {
     var memory: Memory = .init();
     var processor = Processor.init(&memory, .{ .D = 0x02 });
 
-    dec_reg(&processor, &processor.D);
+    arithmetic.dec_reg(&processor, &processor.D);
     try expectEqual(0x01, processor.D.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(true, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.H));
 
-    dec_reg(&processor, &processor.D);
+    arithmetic.dec_reg(&processor, &processor.D);
     try expectEqual(0x00, processor.D.value);
     try expectEqual(true, processor.isFlagSet(.Z));
     try expectEqual(true, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.H));
 
-    dec_reg(&processor, &processor.D);
+    arithmetic.dec_reg(&processor, &processor.D);
     try expectEqual(0xFF, processor.D.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(true, processor.isFlagSet(.N));
