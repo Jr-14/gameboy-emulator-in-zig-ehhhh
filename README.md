@@ -181,20 +181,20 @@ emulators, and a bit of systems programming.
 - [x] 0x35 - DEC (HL)
 - [x] 0x3C - INC A
 - [x] 0x3D - DEC A
-- [ ] 0x80 - ADD A, B
-- [ ] 0x81 - ADD A, C
-- [ ] 0x82 - ADD A, D
-- [ ] 0x83 - ADD A, E
-- [ ] 0x84 - ADD A, H
-- [ ] 0x85 - ADD A, L
-- [ ] 0x86 - ADD A, (HL)
-- [ ] 0x87 - ADD A, A
-- [ ] 0x88 - ADC A, B
-- [ ] 0x89 - ADC A, C
-- [ ] 0x8A - ADC A, D
-- [ ] 0x8B - ADC A, E
-- [ ] 0x8C - ADC A, H
-- [ ] 0x8D - ADC A, L
+- [x] 0x80 - ADD A, B
+- [x] 0x81 - ADD A, C
+- [x] 0x82 - ADD A, D
+- [x] 0x83 - ADD A, E
+- [x] 0x84 - ADD A, H
+- [x] 0x85 - ADD A, L
+- [x] 0x86 - ADD A, (HL)
+- [x] 0x87 - ADD A, A
+- [x] 0x88 - ADC A, B
+- [x] 0x89 - ADC A, C
+- [x] 0x8A - ADC A, D
+- [x] 0x8B - ADC A, E
+- [x] 0x8C - ADC A, H
+- [x] 0x8D - ADC A, L
 - [ ] 0x8E - ADC A, (HL)
 - [ ] 0x8F - ADC A, A
 - [ ] 0x90 - SUB B

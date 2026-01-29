@@ -506,6 +506,48 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // LD A, A
         0x7F => instructions.load.reg_reg(&proc.A, &proc.A),
 
+        // ADD B
+        0x80 => instructions.arithmetic.add_reg(proc, &proc.B),
+
+        // ADD C
+        0x81 => instructions.arithmetic.add_reg(proc, &proc.C),
+
+        // ADD D
+        0x82 => instructions.arithmetic.add_reg(proc, &proc.D),
+
+        // ADD E
+        0x83 => instructions.arithmetic.add_reg(proc, &proc.E),
+
+        // ADD H
+        0x84 => instructions.arithmetic.add_reg(proc, &proc.H),
+
+        // ADD L
+        0x85 => instructions.arithmetic.add_reg(proc, &proc.L),
+
+        // ADD A, (HL)
+        0x86 => instructions.arithmetic.add_hlMem(proc),
+
+        // ADD A ,A
+        0x87 => instructions.arithmetic.add_reg(proc, &proc.A),
+
+        // ADC B
+        0x88 => instructions.arithmetic.addc_reg(proc, &proc.B),
+
+        // ADC C
+        0x89 => instructions.arithmetic.addc_reg(proc, &proc.C),
+
+        // ADC D
+        0x8A => instructions.arithmetic.addc_reg(proc, &proc.D),
+
+        // ADC E
+        0x8B => instructions.arithmetic.addc_reg(proc, &proc.E),
+
+        // ADC H
+        0x8C => instructions.arithmetic.addc_reg(proc, &proc.H),
+
+        // ADC H
+        0x8D => instructions.arithmetic.addc_reg(proc, &proc.L),
+
         // RET NZ
         0xC0 => instructions.controlFlow.ret_cc(proc, .NZ),
 

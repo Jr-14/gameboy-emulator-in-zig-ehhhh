@@ -24,7 +24,10 @@ pub const arithmetic = struct {
         proc: *Processor,
         reg: *Register,
     ) void {
-        const sum = utils.byteAdd(reg.value, 1);
+        const sum = utils.byteAdd(.{
+            .a = reg.value,
+            .b = 1
+        });
         reg.value = sum.result;
         proc.unsetFlag(.N);
         if (sum.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
@@ -62,6 +65,66 @@ pub const arithmetic = struct {
             .DE => proc.setDE(proc.getDE() -% 1),
             .HL => proc.setHL(proc.getHL() -% 1),
         }
+    }
+
+    /// Add the contents of register reg to the contents of accumulator (A) register,
+    /// and store the results in the accumulator (A) register.
+    /// Example: 0x80 ADD A, B
+    pub fn add_reg(proc: *Processor, reg: *Register) void {
+        const sum = utils.byteAdd(.{
+            .a = proc.A.value,
+            .b = reg.value
+        });
+        proc.A.value = sum.result;
+        proc.unsetFlag(.N);
+        if (sum.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        if (sum.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        if (sum.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
+    }
+
+    /// Add the contents of memory specified by register pair HL to the contents of register A, and store the results
+    /// in register A.
+    /// Example: 0x86 -> ADD A, (HL)
+    pub fn add_hlMem(proc: *Processor) void {
+        const val: u8 = proc.memory.read(proc.getHL());
+        const sum = utils.byteAdd(.{
+            .a = proc.A.value,
+            .b = val
+        });
+        proc.A.value = sum.result;
+        proc.unsetFlag(.N);
+        if (sum.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        if (sum.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        if (sum.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
+    }
+
+    /// Add the contents of register reg and the CY flag to the contents of the accumulator (A) register, and
+    /// store the results in accumulator (A) register.
+    /// Example: 0x88 -> ADC A, B
+    pub fn addc_reg(proc: *Processor, reg: *Register) void {
+        const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
+        const sum = utils.byteAdd(.{
+            .a = proc.A.value,
+            .b = reg.value,
+            .carry = cy
+        });
+        proc.A.value = sum.result;
+        proc.unsetFlag(.N);
+        if (sum.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        if (sum.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        if (sum.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
+    }
+
+
+    /// Subtract the contents of register reg to the contents of accumulator (A) register,
+    /// and store the results in the accumulator (A) register.
+    pub fn sub_reg(proc: *Processor, reg: *Register) void {
+        const remainder = utils.byteSub(proc.A.value, reg.value);
+        proc.A.value = remainder.result;
+        proc.setFlag(.N);
+        if (remainder.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        if (remainder.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
     }
 };
 
@@ -659,4 +722,44 @@ test "load.rr_imm16" {
     load.rr_imm16(&processor, .BC);
     try expectEqual(immHi, processor.B.value);
     try expectEqual(immLo, processor.C.value);
+}
+
+test "arithmetic.add_reg" {
+    const PC: u16 = 0x0100;
+    const A: u8 = 0x14;
+    const B: u8 = 0x07;
+    var memory: Memory = .init();
+    var processor = Processor.init(&memory, .{ .PC = PC, .A = A, .B = B });
+
+    arithmetic.add_reg(&processor, &processor.B);
+    try expectEqual(0x1B, processor.A.value);
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.C));
+    try expectEqual(false, processor.isFlagSet(.H));
+
+    processor.A.value = 0xFF;
+    processor.C.value = 0xFF;
+    arithmetic.add_reg(&processor, &processor.C);
+    try expectEqual(0xFE, processor.A.value);
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.C));
+    try expectEqual(true, processor.isFlagSet(.H));
+
+    processor.D.value = 0x02;
+    arithmetic.add_reg(&processor, &processor.D);
+    try expectEqual(0x00, processor.A.value);
+    try expectEqual(true, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.C));
+    try expectEqual(true, processor.isFlagSet(.H));
+
+    processor.E.value = 0x01;
+    arithmetic.add_reg(&processor, &processor.E);
+    try expectEqual(0x01, processor.A.value);
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.C));
+    try expectEqual(false, processor.isFlagSet(.H));
 }
