@@ -548,6 +548,60 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // ADC H
         0x8D => instructions.arithmetic.addc_reg(proc, &proc.L),
 
+        // ADC (HL)
+        0x8E => instructions.arithmetic.addc_hlMem(proc),
+
+        // ADC A
+        0x8F => instructions.arithmetic.addc_reg(proc, &proc.A),
+
+        // SUB B
+        0x90 => instructions.arithmetic.sub_reg(proc, &proc.B),
+
+        // SUB C
+        0x91 => instructions.arithmetic.sub_reg(proc, &proc.C),
+
+        // SUB D
+        0x92 => instructions.arithmetic.sub_reg(proc, &proc.D),
+
+        // SUB E
+        0x93 => instructions.arithmetic.sub_reg(proc, &proc.E),
+        
+        // SUB H
+        0x94 => instructions.arithmetic.sub_reg(proc, &proc.H),
+
+        // SUB L
+        0x95 => instructions.arithmetic.sub_reg(proc, &proc.L),
+
+        // SUB (HL)
+        0x96 => instructions.arithmetic.sub_hlMem(proc),
+
+        // SUB A, A
+        0x97 => instructions.arithmetic.sub_reg(proc, &proc.A),
+
+        // SBC B
+        0x98 => instructions.arithmetic.subc_reg(proc, &proc.B),
+
+        // SBC C
+        0x99 => instructions.arithmetic.subc_reg(proc, &proc.C),
+
+        // SBC D
+        0x9A => instructions.arithmetic.subc_reg(proc, &proc.D),
+
+        // SBC E
+        0x9B => instructions.arithmetic.subc_reg(proc, &proc.E),
+
+        // SBC H
+        0x9C => instructions.arithmetic.subc_reg(proc, &proc.H),
+
+        // SBC L
+        0x9D => instructions.arithmetic.subc_reg(proc, &proc.L),
+
+        // SBC A, (HL)
+        0x9E => instructions.arithmetic.subc_hlMem(proc),
+
+        // SBC A, A
+        0x9F => instructions.arithmetic.subc_reg(proc, &proc.A),
+
         // RET NZ
         0xC0 => instructions.controlFlow.ret_cc(proc, .NZ),
 

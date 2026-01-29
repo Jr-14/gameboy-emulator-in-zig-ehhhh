@@ -195,24 +195,24 @@ emulators, and a bit of systems programming.
 - [x] 0x8B - ADC A, E
 - [x] 0x8C - ADC A, H
 - [x] 0x8D - ADC A, L
-- [ ] 0x8E - ADC A, (HL)
-- [ ] 0x8F - ADC A, A
-- [ ] 0x90 - SUB B
-- [ ] 0x91 - SUB C
-- [ ] 0x92 - SUB D
-- [ ] 0x93 - SUB E
-- [ ] 0x94 - SUB H
-- [ ] 0x95 - SUB L
-- [ ] 0x96 - SUB (HL)
-- [ ] 0x97 - SUB A
-- [ ] 0x98 - SBC A, B
-- [ ] 0x99 - SBC A, C
-- [ ] 0x9A - SBC A, D
-- [ ] 0x9B - SBC A, E
-- [ ] 0x9C - SBC A, H
-- [ ] 0x9D - SBC A, L
-- [ ] 0x9E - SBC A, (HL)
-- [ ] 0x9F - SBC A, A
+- [x] 0x8E - ADC A, (HL)
+- [x] 0x8F - ADC A, A
+- [x] 0x90 - SUB B
+- [x] 0x91 - SUB C
+- [x] 0x92 - SUB D
+- [x] 0x93 - SUB E
+- [x] 0x94 - SUB H
+- [x] 0x95 - SUB L
+- [x] 0x96 - SUB (HL)
+- [x] 0x97 - SUB A
+- [x] 0x98 - SBC A, B
+- [x] 0x99 - SBC A, C
+- [x] 0x9A - SBC A, D
+- [x] 0x9B - SBC A, E
+- [x] 0x9C - SBC A, H
+- [x] 0x9D - SBC A, L
+- [x] 0x9E - SBC A, (HL)
+- [x] 0x9F - SBC A, A
 - [ ] 0xA0 - AND B
 - [ ] 0xA1 - AND C
 - [ ] 0xA2 - AND D

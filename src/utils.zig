@@ -48,7 +48,7 @@ pub fn byteAdd(opts: struct {
 }) ByteResult {
     const sum: u16 = @as(u16, opts.a) + @as(u16, opts.b) + opts.carry;
     const cy: u1 = if ((sum & 0x0100) == 0x0100) 1 else 0;
-    const hc: u1 = if ((((opts.a & 0xF) +% (opts.b & 0xF)) & 0x10) == 0x10) 1 else 0;
+    const hc: u1 = if ((((opts.a & 0xF) +% (opts.b & 0xF) +% opts.carry) & 0x10) == 0x10) 1 else 0;
     return .{
         .result = @truncate(sum),
         .half_carry = hc,
@@ -56,13 +56,18 @@ pub fn byteAdd(opts: struct {
     };
 }
 
-pub fn byteSub(a: u8, b: u8) ByteResult {
-    const remainder: u8, const carry: u1 = @subWithOverflow(a, b);
-    const hc: u1 = if ((((a & 0xF) -% (b & 0xF)) & 0x10) == 0x10) 1 else 0;
+pub fn byteSub(opts: struct {
+    a: u8,
+    b: u8,
+    carry: u1 = 0,
+}) ByteResult {
+    const remainder: u16 = @as(u16, opts.a) -% @as(u16, opts.b) +% opts.carry;
+    const cy: u1 = if ((remainder & 0x0100) == 0x0100) 1 else 0;
+    const hc: u1 = if ((((opts.a & 0xF) -% (opts.b & 0xF) -% opts.carry) & 0x10) == 0x10) 1 else 0;
     return .{
-        .result = remainder,
+        .result = @truncate(remainder),
         .half_carry = hc,
-        .carry = carry,
+        .carry = cy,
     };
 }
 
@@ -103,12 +108,18 @@ test "byteAdd" {
 }
 
 test "byteSub" {
-    var remainder = byteSub(0x01, 0x0F);
+    var remainder = byteSub(. {
+        .a = 0x01,
+        .b = 0x0F
+    });
     try expectEqual(0xF2, remainder.result);
     try expectEqual(0x01, remainder.half_carry);
     try expectEqual(0x01, remainder.carry);
 
-    remainder = byteSub(0x0F, 0x0F);
+    remainder = byteSub(.{
+        .a = 0x0F,
+        .b = 0x0F
+    });
     try expectEqual(0x00, remainder.result);
     try expectEqual(0x00, remainder.half_carry);
     try expectEqual(0x00, remainder.carry);
