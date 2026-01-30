@@ -261,3 +261,5 @@ emulators, and a bit of systems programming.
 Day 20 - Completed All 8-bit and 16-bit load instructions with tests (to the best of my knowledge)
 
 Day 31 - Completed All control flow instructions
+
+Day 35 - Completed All 8-bit Arithmetic instructions
