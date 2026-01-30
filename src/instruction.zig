@@ -276,6 +276,28 @@ pub const arithmetic = struct {
         const val = proc.memory.read(proc.getHL());
         xor_aux(proc, val);
     }
+
+    fn compare_aux(proc: *Processor, value: u8) void {
+        const remainder = utils.byteAdd(proc.A.value, value);
+        if (remainder.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.setFlag(.N);
+        if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
+        if (remainder.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+    }
+
+    pub fn compare_reg(proc: *Processor, reg: *Register) void {
+        compare_aux(proc, reg.value);
+    }
+
+    pub fn compare_hlMem(proc: *Processor) void {
+        const val = proc.memory.read(proc.getHL());
+        compare_aux(proc, val);
+    }
+
+    pub fn compare_imm8(proc: *Processor) void {
+        const imm = proc.fetch();
+        compare_aux(proc, imm);
+    }
 };
 
 pub const load = struct {

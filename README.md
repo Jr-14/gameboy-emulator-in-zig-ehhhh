@@ -237,14 +237,14 @@ emulators, and a bit of systems programming.
 - [x] 0xB5 - OR L
 - [x] 0xB6 - OR (HL)
 - [x] 0xB7 - OR A
-- [ ] 0xB8 - CP B
-- [ ] 0xB9 - CP C
-- [ ] 0xBA - CP D
-- [ ] 0xBB - CP E
-- [ ] 0xBC - CP H
-- [ ] 0xBD - CP L
-- [ ] 0xBE - CP (HL)
-- [ ] 0xBF - CP A
+- [x] 0xB8 - CP B
+- [x] 0xB9 - CP C
+- [x] 0xBA - CP D
+- [x] 0xBB - CP E
+- [x] 0xBC - CP H
+- [x] 0xBD - CP L
+- [x] 0xBE - CP (HL)
+- [x] 0xBF - CP A
 - [x] 0xC6 - ADD A, d8
 - [x] 0xCE - ADC A, d8
 - [x] 0xD6 - SUB d8
@@ -252,7 +252,7 @@ emulators, and a bit of systems programming.
 - [x] 0xE6 - AND d8
 - [x] 0xEE - XOR d8
 - [x] 0xF6 - OR d8
-- [ ] 0xFE - CP d8
+- [x] 0xFE - CP d8
 
 **16-bit Arithmetic Instructions**
 

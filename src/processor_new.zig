@@ -674,6 +674,29 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // OR A, A
         0xB7 => instructions.arithmetic.Or(proc, &proc.A),
 
+        // CP B
+        0xB8 => instructions.arithmetic.compare_reg(proc, &proc.B),
+
+        // CP C
+        0xB9 => instructions.arithmetic.compare_reg(proc, &proc.C),
+
+        // CP D
+        0xBA => instructions.arithmetic.compare_reg(proc, &proc.D),
+
+        // CP E
+        0xBB => instructions.arithmetic.compare_reg(proc, &proc.E),
+
+        // CP H
+        0xBC => instructions.arithmetic.compare_reg(proc, &proc.H),
+
+        // CP L
+        0xBD => instructions.arithmetic.compare_reg(proc, &proc.L),
+
+        // CP (HL)
+        0xBE => instructions.arithmetic.compare_hlMem(proc),
+
+        // CP A, A
+        0xBF => instructions.arithmetic.compare_reg(proc, &proc.A),
 
         // RET NZ
         0xC0 => instructions.controlFlow.ret_cc(proc, .NZ),
@@ -812,6 +835,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
 
         // LD A, (a16)
         0xFA => instructions.load.reg_imm16Mem(proc, &proc.A),
+
+        // CP d8
+        0xFE => instructions.arithmetic.compare_imm8(proc),
 
         // RST 7
         0xFF => instructions.controlFlow.rst(proc, 7),
