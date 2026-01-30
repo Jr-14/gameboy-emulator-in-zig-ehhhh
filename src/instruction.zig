@@ -817,6 +817,7 @@ pub const controlFlow = struct {
 
 const expectEqual = std.testing.expectEqual;
 
+// Arithmetic Instructions
 test "inc_reg" {
     var memory: Memory = .init();
     var processor = Processor.init(&memory, .{});
@@ -881,22 +882,51 @@ test "dec_reg" {
     try expectEqual(true, processor.isFlagSet(.H));
 }
 
-test "load.rr_imm16" {
-    const PC: u16 = 0x0100;
-    var memory: Memory = .init();
-    var processor = Processor.init(&memory, .{ .PC = PC });
-    const immLo: u8 = 0x03;
-    const immHi: u8 = 0xA5;
+test "inc_rr" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{});
 
-    processor.memory.write(PC, immLo);
-    processor.memory.write(PC + 1, immHi);
+    arithmetic.inc_rr(&processor, .AF);
+    try expectEqual(1, processor.getAF());
 
-    load.rr_imm16(&processor, .BC);
-    try expectEqual(immHi, processor.B.value);
-    try expectEqual(immLo, processor.C.value);
+    processor.setAF(0xFFFF);
+    arithmetic.inc_rr(&processor, .AF);
+    try expectEqual(0, processor.getAF());
+
+    processor.setBC(0x00FF);
+    arithmetic.inc_rr(&processor, .BC);
+    try expectEqual(0x0100, processor.getBC());
+
+    processor.setDE(0x0101);
+    arithmetic.inc_rr(&processor, .DE);
+    try expectEqual(0x0102, processor.getDE());
+
+    processor.setHL(0x0FFF);
+    arithmetic.inc_rr(&processor, .HL);
+    try expectEqual(0x1000, processor.getHL());
 }
 
-test "arithmetic.add_reg" {
+test "dec_rr" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{});
+
+    arithmetic.dec_rr(&processor, .AF);
+    try expectEqual(0xFFFF, processor.getAF());
+
+    processor.setBC(0x0100);
+    arithmetic.dec_rr(&processor, .BC);
+    try expectEqual(0x00FF, processor.getBC());
+
+    processor.setDE(0x0102);
+    arithmetic.dec_rr(&processor, .DE);
+    try expectEqual(0x0101, processor.getDE());
+
+    processor.setHL(0x1000);
+    arithmetic.dec_rr(&processor, .HL);
+    try expectEqual(0x0FFF, processor.getHL());
+}
+
+test "add_reg" {
     const PC: u16 = 0x0100;
     const A: u8 = 0x14;
     const B: u8 = 0x07;
@@ -934,4 +964,20 @@ test "arithmetic.add_reg" {
     try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.C));
     try expectEqual(false, processor.isFlagSet(.H));
+}
+
+// Load instructions
+test "load.rr_imm16" {
+    const PC: u16 = 0x0100;
+    var memory: Memory = .init();
+    var processor = Processor.init(&memory, .{ .PC = PC });
+    const immLo: u8 = 0x03;
+    const immHi: u8 = 0xA5;
+
+    processor.memory.write(PC, immLo);
+    processor.memory.write(PC + 1, immHi);
+
+    load.rr_imm16(&processor, .BC);
+    try expectEqual(immHi, processor.B.value);
+    try expectEqual(immLo, processor.C.value);
 }
