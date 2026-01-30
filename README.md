@@ -255,7 +255,19 @@ emulators, and a bit of systems programming.
 - [x] 0xFE - CP d8
 
 **16-bit Arithmetic Instructions**
-
+- [ ] 0x03 - INC BC
+- [ ] 0x09 - ADD HL, BC
+- [ ] 0x0B - DEC BC
+- [ ] 0x13 - INC DE
+- [ ] 0x19 - ADD HL, DE
+- [ ] 0x1B - DEC DE
+- [ ] 0x23 - INC HL
+- [ ] 0x29 - ADD HL, HL
+- [ ] 0x2B - DEC HL
+- [ ] 0x33 - INC SP
+- [ ] 0x39 - ADD HL, SP
+- [ ] 0x3B - DEC SP
+- [ ] 0xE8 - ADD SP, s8
 
 # Timeline
 Day 20 - Completed All 8-bit and 16-bit load instructions with tests (to the best of my knowledge)
