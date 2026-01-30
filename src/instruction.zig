@@ -70,19 +70,27 @@ pub const arithmetic = struct {
         }
     }
 
-    /// Add the contents of register reg to the contents of accumulator (A) register,
-    /// and store the results in the accumulator (A) register.
-    /// Example: 0x80 ADD A, B
-    pub fn add_reg(proc: *Processor, reg: *Register) void {
+    fn add_aux(proc: *Processor, values: struct {
+        b: u8,
+        carry: u1 = 0,
+    }) void {
         const sum = utils.byteAdd(.{
             .a = proc.A.value,
-            .b = reg.value
+            .b = values.b,
+            .carry = values.carry,
         });
         proc.A.value = sum.result;
         proc.unsetFlag(.N);
         if (sum.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         if (sum.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
         if (sum.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
+    }
+
+    /// Add the contents of register reg to the contents of accumulator (A) register,
+    /// and store the results in the accumulator (A) register.
+    /// Example: 0x80 ADD A, B
+    pub fn add_reg(proc: *Processor, reg: *Register) void {
+        add_aux(proc, .{ .b = reg.value });
     }
 
     /// Add the contents of memory specified by register pair HL to the contents of register A, and store the results
@@ -90,15 +98,12 @@ pub const arithmetic = struct {
     /// Example: 0x86 -> ADD A, (HL)
     pub fn add_hlMem(proc: *Processor) void {
         const val: u8 = proc.memory.read(proc.getHL());
-        const sum = utils.byteAdd(.{
-            .a = proc.A.value,
-            .b = val
-        });
-        proc.A.value = sum.result;
-        proc.unsetFlag(.N);
-        if (sum.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (sum.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (sum.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
+        add_aux(proc, .{ .b = val });
+    }
+
+    pub fn add_imm8(proc: *Processor) void {
+        const imm = proc.fetch();
+        add_aux(proc, .{ .b =  imm });
     }
 
     /// Add the contents of register reg and the CY flag to the contents of the accumulator (A) register, and
@@ -106,16 +111,10 @@ pub const arithmetic = struct {
     /// Example: 0x88 -> ADC A, B
     pub fn addc_reg(proc: *Processor, reg: *Register) void {
         const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
-        const sum = utils.byteAdd(.{
-            .a = proc.A.value,
-            .b = reg.value,
-            .carry = cy
+        add_aux(proc, .{
+            .b =  reg.value,
+            .carry = cy,
         });
-        proc.A.value = sum.result;
-        proc.unsetFlag(.N);
-        if (sum.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (sum.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (sum.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
     }
 
     /// Add the contents of memory specified by register pair HL and the CY flag to the contents of
@@ -124,45 +123,70 @@ pub const arithmetic = struct {
     pub fn addc_hlMem(proc: *Processor) void {
         const val = proc.memory.read(proc.getHL());
         const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
-        const sum = utils.byteAdd(.{
-            .a = proc.A.value,
+        add_aux(proc, .{
             .b = val,
-            .carry = cy
+            .carry = cy,
         });
-        proc.A.value = sum.result;
-        proc.unsetFlag(.N);
-        if (sum.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (sum.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (sum.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
+    }
+
+    pub fn addc_imm8(proc: *Processor) void {
+        const val = proc.memory.read(proc.fetch());
+        const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
+        add_aux(proc, .{
+            .b = val,
+            .carry = cy,
+        });
+    }
+
+    fn sub_aux(proc: *Processor, values: struct{
+        b: u8,
+        carry: u1 = 0,
+    }) void {
+        const remainder = utils.byteSub(.{
+            .a = proc.A.value,
+            .b = values.b,
+            .carry = values.carry,
+        });
+        proc.A.value = remainder.result;
+        proc.setFlag(.N);
+        if (remainder.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        if (remainder.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
     }
 
     /// Subtract the contents of register reg to the contents of accumulator (A) register,
     /// and store the results in the accumulator (A) register.
     /// Example: 0x93 -> SUB E
     pub fn sub_reg(proc: *Processor, reg: *Register) void {
-        const remainder = utils.byteSub(.{
-            .a = proc.A.value,
+        sub_aux(proc, .{
             .b = reg.value
         });
-        proc.A.value = remainder.result;
-        proc.setFlag(.N);
-        if (remainder.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (remainder.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
+    }
+
+    pub fn sub_imm8(proc: *Processor) void {
+        const val = proc.fetch();
+        sub_aux(proc, .{
+            .b = val,
+        });
     }
 
     /// Subtract the contents of register reg and the CY flag from the contents of accumulator (A) register,
     /// and store the results in accumulator (A) register.
     pub fn subc_reg(proc: *Processor, reg: *Register) void {
-        const remainder = utils.byteSub(.{
-            .a = proc.A.value,
-            .b = reg.value
+        const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
+        sub_aux(proc, .{
+            .b = reg.value,
+            .carry = cy,
         });
-        proc.A.value = remainder.result;
-        proc.setFlag(.N);
-        if (remainder.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (remainder.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
+    }
+
+    pub fn subc_imm8(proc: *Processor) void {
+        const val = proc.fetch();
+        const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
+        sub_aux(proc, .{
+            .b = val,
+            .carry = cy,
+        });
     }
 
     /// Subtract the contents of memory specified by register pair HL from the contents of accumulator (A) register
@@ -170,30 +194,18 @@ pub const arithmetic = struct {
     /// Example: 0x96 -> SUB A, (HL)
     pub fn sub_hlMem(proc: *Processor) void {
         const val = proc.memory.read(proc.getHL());
-        const remainder = utils.byteSub(.{
-            .a = proc.A.value,
-            .b = val,
+        sub_aux(proc, .{
+            .b = val
         });
-        proc.A.value = remainder.result;
-        proc.setFlag(.N);
-        if (remainder.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (remainder.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
     }
 
     pub fn subc_hlMem(proc: *Processor) void {
         const val = proc.memory.read(proc.getHL());
         const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
-        const remainder = utils.byteSub(.{
-            .a = proc.A.value,
+        sub_aux(proc, .{
             .b = val,
-            .carry = cy,
+            .carry = cy
         });
-        proc.A.value = remainder.result;
-        proc.setFlag(.N);
-        if (remainder.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (remainder.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
     }
 
     fn and_aux(proc: *Processor, value: u8) void {
@@ -203,6 +215,7 @@ pub const arithmetic = struct {
         proc.setFlag(.H);
         proc.unsetFlag(.C);
     }
+
     /// Take the logical AND for each bit of the contents of register reg and the contents of register A,
     /// and store the results in register A.
     /// Example: 0xA0 -> AND A, B
@@ -215,8 +228,35 @@ pub const arithmetic = struct {
         and_aux(proc, imm);
     }
 
+    pub fn and_hlMem(proc: *Processor) void {
+        const val = proc.memory.read(proc.getHL());
+        and_aux(proc, val);
+    }
+
+    fn or_aux(proc: *Processor, value: u8) void {
+        proc.A.value |= value;
+        if (proc.A.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        proc.unsetFlag(.C);
+    }
+
     pub fn Or(proc: *Processor, reg: *Register) void {
-        proc.A.value |= reg.value;
+        or_aux(proc, reg.value);
+    }
+
+    pub fn or_imm8(proc: *Processor) void {
+        const imm = proc.fetch();
+        or_aux(proc, imm);
+    }
+
+    pub fn or_hlMem(proc: *Processor) void {
+        const val = proc.memory.read(proc.getHL());
+        or_aux(proc, val);
+    }
+
+    fn xor_aux(proc: *Processor, value: u8) void {
+        proc.A.value ^= value;
         if (proc.A.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         proc.unsetFlag(.N);
         proc.unsetFlag(.H);
@@ -224,11 +264,17 @@ pub const arithmetic = struct {
     }
 
     pub fn Xor(proc: *Processor, reg: *Register) void {
-        proc.A.value ^= reg.value;
-        if (proc.A.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-        proc.unsetFlag(.C);
+        xor_aux(proc, reg.value);
+    }
+
+    pub fn xor_imm8(proc: *Processor) void {
+        const imm = proc.fetch();
+        xor_aux(proc, imm);
+    }
+
+    pub fn xor_hlMem(proc: *Processor) void {
+        const val = proc.memory.read(proc.getHL());
+        xor_aux(proc, val);
     }
 };
 

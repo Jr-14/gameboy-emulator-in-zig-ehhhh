@@ -605,6 +605,76 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // AND B
         0xA0 => instructions.arithmetic.And(proc, &proc.B),
 
+        // AND C
+        0xA1 => instructions.arithmetic.And(proc, &proc.C),
+
+        // AND D
+        0xA2 => instructions.arithmetic.And(proc, &proc.D),
+
+        // AND E
+        0xA3 => instructions.arithmetic.And(proc, &proc.E),
+
+        // AND H
+        0xA4 => instructions.arithmetic.And(proc, &proc.H),
+
+        // AND L
+        0xA5 => instructions.arithmetic.And(proc, &proc.L),
+
+        // AND A, (HL)
+        0xA6 => instructions.arithmetic.and_hlMem(proc),
+
+        // AND A, A
+        0xA7 => instructions.arithmetic.And(proc, &proc.A),
+
+        // XOR B
+        0xA8 => instructions.arithmetic.Xor(proc, &proc.B),
+
+        // XOR C
+        0xA9 => instructions.arithmetic.Xor(proc, &proc.C),
+
+        // XOR D
+        0xAA => instructions.arithmetic.Xor(proc, &proc.D),
+        
+        // XOR E
+        0xAB => instructions.arithmetic.Xor(proc, &proc.E),
+
+        // XOR H
+        0xAC => instructions.arithmetic.Xor(proc, &proc.H),
+
+        // XOR L
+        0xAD => instructions.arithmetic.Xor(proc, &proc.L),
+
+        // XOR (HL)
+        0xAE => instructions.arithmetic.xor_hlMem(proc),
+
+        // XOR A, A
+        0xAF => instructions.arithmetic.Xor(proc, &proc.A),
+
+        // OR B
+        0xB0 => instructions.arithmetic.Or(proc, &proc.B),
+
+        // OR C
+        0xB1 => instructions.arithmetic.Or(proc, &proc.C),
+
+        // OR D
+        0xB2 => instructions.arithmetic.Or(proc, &proc.D),
+
+        // OR E
+        0xB3 => instructions.arithmetic.Or(proc, &proc.E),
+
+        // OR H
+        0xB4 => instructions.arithmetic.Or(proc, &proc.H),
+
+        // OR L
+        0xB5 => instructions.arithmetic.Or(proc, &proc.L),
+
+        // OR (HL)
+        0xB6 => instructions.arithmetic.or_hlMem(proc),
+
+        // OR A, A
+        0xB7 => instructions.arithmetic.Or(proc, &proc.A),
+
+
         // RET NZ
         0xC0 => instructions.controlFlow.ret_cc(proc, .NZ),
 
@@ -622,6 +692,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
 
         // PUSH BC
         0xC5 => instructions.controlFlow.push_rr(proc, .BC),
+
+        // ADD A, d8
+        0xC6 => instructions.arithmetic.add_imm8(proc),
 
         // RST 0
         0xC7 => instructions.controlFlow.rst(proc, 0),
@@ -641,6 +714,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // CALL a16
         0xCD => instructions.controlFlow.call_imm16(proc),
 
+        // ADC A, d8
+        0xCE => instructions.arithmetic.addc_imm8(proc),
+
         // RST 1
         0xCF => instructions.controlFlow.rst(proc, 1),
 
@@ -658,6 +734,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
 
         // PUSH DE
         0xD5 => instructions.controlFlow.push_rr(proc, .DE),
+
+        // 0xD6
+        0xD6 => instructions.arithmetic.sub_imm8(proc),
 
         // RST 2
         0xD7 => instructions.controlFlow.rst(proc, 2),
@@ -677,6 +756,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // RST 3
         0xDF => instructions.controlFlow.rst(proc, 3),
 
+        // SBC A, d8
+        0xDE => instructions.arithmetic.subc_imm8(proc),
+
         // LD (a8), A
         0xE0 => instructions.load.imm8Mem_reg(proc, &proc.A),
 
@@ -688,6 +770,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
 
         // PUSH HL
         0xE5 => instructions.controlFlow.push_rr(proc, .HL),
+
+        // AND d8
+        0xE6 => instructions.arithmetic.and_imm8(proc),
         
         // RST 4
         0xE7 => instructions.controlFlow.rst(proc, 4),
@@ -697,6 +782,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
 
         // LD (a16), A
         0xEA => instructions.load.imm16Mem_reg(proc, &proc.A),
+
+        // XOR d8
+        0xEE => instructions.arithmetic.xor_imm8(proc),
 
         // RST 5
         0xEF => instructions.controlFlow.rst(proc, 5),
@@ -712,6 +800,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
 
         // PUSH AF
         0xF5 => instructions.controlFlow.push_rr(proc, .AF),
+
+        // OR d8
+        0xF6 => instructions.arithmetic.or_imm8(proc),
 
         // RST 6
         0xF7 => instructions.controlFlow.rst(proc, 6),
