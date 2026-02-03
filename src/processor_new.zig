@@ -205,6 +205,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // LD (a16), SP
         0x08 => instructions.load.imm16Mem_spr(proc, proc.SP),
 
+        // ADD HL, BC
+        // 0x09 =>  instructions.
+
         // LD A, (BC)
         0x0A => instructions.load.reg_rrMem(proc, &proc.A, .BC),
 

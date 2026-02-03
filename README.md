@@ -255,7 +255,7 @@ emulators, and a bit of systems programming.
 - [x] 0xFE - CP d8
 
 **16-bit Arithmetic Instructions**
-- [ ] 0x03 - INC BC
+- [x] 0x03 - INC BC
 - [ ] 0x09 - ADD HL, BC
 - [ ] 0x0B - DEC BC
 - [ ] 0x13 - INC DE

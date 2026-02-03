@@ -28,19 +28,44 @@ pub fn getLoByte(val: u16) u8 {
     return @truncate(val);
 }
 
+pub fn Arithmetic(comptime T: type) type {
+    if (T != u8 and T != u16) {
+        @compileError("Only supporting u8 and u16 at the moment.");
+    }
+
+    return struct {
+        value: T,
+        half_carry: u1,
+        carry: u1,
+
+        const Self = @This();
+
+        pub fn add(opts: struct {
+            a: T,
+            b: T,
+            carry: u1 = 0,
+        }) Self {
+            const FS = if (T == u8) u16 else u32;
+            const hc_mask: T = if (T == u8) 0x10 else 0x100;
+            const lower_byte: T = hc_mask - 1;
+
+            const sum: FS = @as(FS, opts.a) + @as(FS, opts.b) + opts.carry;
+
+            return .{
+                .value = @truncate(sum),
+                .carry = if (sum > std.math.maxInt(T)) 1 else 0,
+                .half_carry = if ((((opts.a & lower_byte) + (opts.b & lower_byte) + opts.carry) & hc_mask) == hc_mask) 1 else 0,
+            };
+        }
+    };
+}
+
 const ByteResult = struct {
     result: u8,
     half_carry: u1,
     carry: u1,
 };
 
-pub fn something(opts: struct {
-    a: u8 = 1,
-    b: u8 = 1,
-    c: u8 = 0,
-}) void {
-    return opts.a + opts.b + opts.c;
-}
 pub fn byteAdd(opts: struct {
     a: u8,
     b: u8,
@@ -167,4 +192,117 @@ test "getHiByte" {
 test "getLoByte" {
     const val: u16 = 0xFACE;
     try expectEqual(0xCE, getLoByte(val));
+}
+
+test "Arithmetic(u8).add" {
+    var result = Arithmetic(u8).add(.{
+        .a = 0xF,
+        .b = 0xF,
+    });
+    try expectEqual(0x1E, result.value);
+    try expectEqual(1, result.half_carry);
+    try expectEqual(0, result.carry);
+
+    result = Arithmetic(u8).add(.{
+        .a = 0x0F,
+        .b = 0x01
+    });
+    try expectEqual(0x10, result.value);
+    try expectEqual(1, result.half_carry);
+    try expectEqual(0, result.carry);
+
+    result = Arithmetic(u8).add(.{
+        .a = 0x0F,
+        .b = 0x0F
+    });
+    try expectEqual(0x1E, result.value);
+    try expectEqual(1, result.half_carry);
+    try expectEqual(0, result.carry);
+
+    result = Arithmetic(u8).add(.{
+        .a = 0x0E,
+        .b = 0x01
+    });
+    try expectEqual(0x0F, result.value);
+    try expectEqual(0, result.half_carry);
+    try expectEqual(0, result.carry);
+
+    result = Arithmetic(u8).add(.{
+        .a = 0xFF,
+        .b = 0xFF
+    });
+    try expectEqual(0xFE, result.value);
+    try expectEqual(1, result.half_carry);
+    try expectEqual(1, result.carry);
+
+    result = Arithmetic(u8).add(.{
+        .a = 0xFF,
+        .b = 0xFF,
+        .carry = 1,
+    });
+    try expectEqual(0xFF, result.value);
+    try expectEqual(1, result.half_carry);
+    try expectEqual(1, result.carry);
+
+    result = Arithmetic(u8).add(.{
+        .a = 0x0F,
+        .b = 0x00,
+        .carry = 1,
+    });
+    try expectEqual(0x10, result.value);
+    try expectEqual(1, result.half_carry);
+    try expectEqual(0, result.carry);
+}
+
+test "Arithmetic(u16).add" {
+    var result = Arithmetic(u16).add(.{
+        .a = 0xFFFF,
+        .b = 0xFFFF,
+    });
+    try expectEqual(0xFFFE, result.value);
+    try expectEqual(1, result.half_carry);
+    try expectEqual(1, result.carry);
+
+    result = Arithmetic(u16).add(.{
+        .a = 0xFFFF,
+        .b = 0xFFFF,
+        .carry = 1,
+    });
+    try expectEqual(0xFFFF, result.value);
+    try expectEqual(1, result.half_carry);
+    try expectEqual(1, result.carry);
+
+    result = Arithmetic(u16).add(.{
+        .a = 0x00FE,
+        .b = 0x0001,
+    });
+    try expectEqual(0x00FF, result.value);
+    try expectEqual(0, result.half_carry);
+    try expectEqual(0, result.carry);
+
+    result = Arithmetic(u16).add(.{
+        .a = 0x00FF,
+        .b = 0x0001,
+    });
+    try expectEqual(0x0100, result.value);
+    try expectEqual(1, result.half_carry);
+    try expectEqual(0, result.carry);
+
+    result = Arithmetic(u16).add(.{
+        .a = 0x00FF,
+        .b = 0x0000,
+        .carry = 1,
+    });
+    try expectEqual(0x0100, result.value);
+    try expectEqual(1, result.half_carry);
+    try expectEqual(0, result.carry);
+
+    result = Arithmetic(u16).add(.{
+        .a = 0x0000,
+        .b = 0x0005,
+        .carry = 1,
+    });
+    try expectEqual(0x0006, result.value);
+    try expectEqual(0, result.half_carry);
+    try expectEqual(0, result.carry);
 }
