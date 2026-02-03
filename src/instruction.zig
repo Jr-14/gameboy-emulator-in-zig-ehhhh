@@ -24,13 +24,13 @@ pub const arithmetic = struct {
         proc: *Processor,
         reg: *Register,
     ) void {
-        const sum = utils.byteAdd(.{
+        const sum = utils.Arithmetic(u8).add(.{
             .a = reg.value,
             .b = 1
         });
-        reg.value = sum.result;
+        reg.value = sum.value;
         proc.unsetFlag(.N);
-        if (sum.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        if (sum.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         if (sum.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
     }
 
@@ -40,13 +40,13 @@ pub const arithmetic = struct {
         proc: *Processor,
         reg: *Register,
     ) void {
-        const remainder = utils.byteSub(.{
+        const remainder = utils.Arithmetic(u8).subtract(.{
             .a = reg.value,
             .b = 1
         });
-        reg.value = remainder.result;
+        reg.value = remainder.value;
         proc.setFlag(.N);
-        if (remainder.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        if (remainder.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
     }
 
@@ -74,14 +74,14 @@ pub const arithmetic = struct {
         b: u8,
         carry: u1 = 0,
     }) void {
-        const sum = utils.byteAdd(.{
+        const sum = utils.Arithmetic(u8).add(.{
             .a = proc.A.value,
             .b = values.b,
             .carry = values.carry,
         });
-        proc.A.value = sum.result;
+        proc.A.value = sum.value;
         proc.unsetFlag(.N);
-        if (sum.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        if (sum.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         if (sum.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
         if (sum.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
     }
@@ -142,14 +142,14 @@ pub const arithmetic = struct {
         b: u8,
         carry: u1 = 0,
     }) void {
-        const remainder = utils.byteSub(.{
+        const remainder = utils.Arithmetic(u8).subtract(.{
             .a = proc.A.value,
             .b = values.b,
             .carry = values.carry,
         });
-        proc.A.value = remainder.result;
+        proc.A.value = remainder.value;
         proc.setFlag(.N);
-        if (remainder.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        if (remainder.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         if (remainder.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
         if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
     }
@@ -278,8 +278,8 @@ pub const arithmetic = struct {
     }
 
     fn compare_aux(proc: *Processor, value: u8) void {
-        const remainder = utils.byteAdd(proc.A.value, value);
-        if (remainder.result == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        const remainder = utils.Arithmetic(u8).add(proc.A.value, value);
+        if (remainder.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         proc.setFlag(.N);
         if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
         if (remainder.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
