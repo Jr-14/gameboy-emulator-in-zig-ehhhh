@@ -57,6 +57,25 @@ pub fn Arithmetic(comptime T: type) type {
                 .half_carry = if ((((opts.a & lower_byte) + (opts.b & lower_byte) + opts.carry) & hc_mask) == hc_mask) 1 else 0,
             };
         }
+
+        pub fn subtract(opts: struct {
+            a: T,
+            b: T,
+            carry: u1 = 0,
+        }) Self {
+            const FS = if (T == u8) u16 else u32;
+            const hc_mask: T = if (T == u8) 0x10 else 0x100;
+            const lower_byte: T = hc_mask - 1;
+
+            const remainder: FS = @as(FS, opts.a) -% @as(FS, opts.b) -% opts.carry;
+            const hc: u1 = if ((((opts.a & lower_byte) -% (opts.b & lower_byte) -% opts.carry) & hc_mask) == hc_mask) 1 else 0;
+
+            return .{
+                .value = @truncate(remainder),
+                .carry = if (remainder > std.math.maxInt(T)) 1 else 0,
+                .half_carry = hc,
+            };
+        }
     };
 }
 
@@ -305,4 +324,74 @@ test "Arithmetic(u16).add" {
     try expectEqual(0x0006, result.value);
     try expectEqual(0, result.half_carry);
     try expectEqual(0, result.carry);
+}
+
+test "Arithmetic(u8).subtract" {
+    var remainder = Arithmetic(u8).subtract(. {
+        .a = 0x01,
+        .b = 0x0F
+    });
+    try expectEqual(0xF2, remainder.value);
+    try expectEqual(0x01, remainder.half_carry);
+    try expectEqual(0x01, remainder.carry);
+
+    remainder = Arithmetic(u8).subtract(.{
+        .a = 0x0F,
+        .b = 0x0F
+    });
+    try expectEqual(0x00, remainder.value);
+    try expectEqual(0x00, remainder.half_carry);
+    try expectEqual(0x00, remainder.carry);
+
+    remainder = Arithmetic(u8).subtract(.{
+        .a = 0x00,
+        .b = 0x00,
+        .carry = 1,
+    });
+    try expectEqual(0xFF, remainder.value);
+    try expectEqual(1, remainder.half_carry);
+    try expectEqual(1, remainder.carry);
+
+    remainder = Arithmetic(u8).subtract(.{
+        .a = 0x10,
+        .b = 0x0F
+    });
+    try expectEqual(0x01, remainder.value);
+    try expectEqual(1, remainder.half_carry);
+    try expectEqual(0, remainder.carry);
+}
+
+test "Arithmetic(u16).subtract" {
+    var remainder = Arithmetic(u16).subtract(. {
+        .a = 0x0100,
+        .b = 0x0FFF,
+    });
+    try expectEqual(0xF101, remainder.value);
+    try expectEqual(1, remainder.half_carry);
+    try expectEqual(1, remainder.carry);
+
+    remainder = Arithmetic(u16).subtract(.{
+        .a = 0x00FF,
+        .b = 0x00FF
+    });
+    try expectEqual(0x0000, remainder.value);
+    try expectEqual(0, remainder.half_carry);
+    try expectEqual(0, remainder.carry);
+
+    remainder = Arithmetic(u16).subtract(.{
+        .a = 0x0000,
+        .b = 0x0000,
+        .carry = 1,
+    });
+    try expectEqual(0xFFFF, remainder.value);
+    try expectEqual(1, remainder.half_carry);
+    try expectEqual(1, remainder.carry);
+
+    remainder = Arithmetic(u16).subtract(.{
+        .a = 0x0100,
+        .b = 0x000F,
+    });
+    try expectEqual(0x00F1, remainder.value);
+    try expectEqual(1, remainder.half_carry);
+    try expectEqual(0, remainder.carry);
 }
