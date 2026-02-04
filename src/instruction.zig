@@ -129,6 +129,40 @@ pub const arithmetic = struct {
         });
     }
 
+    pub fn add16_rr_rr(proc: *Processor, dest: Processor.RegisterPair, src: Processor.RegisterPair) void {
+        const dest_setter: fn(*Processor, u16) void = switch (dest) {
+            .AF => Processor.setAF,
+            .BC => Processor.setBC,
+            .DE => Processor.setDE,
+            .HL => Processor.setHL,
+        };
+
+        // const dest_setter: fn(*Processor, u16) void, const dest_getter: fn(*Processor) u16 = switch (dest) {
+        //     .AF => .{ Processor.setAF, Processor.getAF },
+        //     .BC => .{ Processor.setBC, Processor.getBC },
+        //     .DE => .{ Processor.setDE, Processor.getDE },
+        //     .HL => .{ Processor.setHL, Processor.getHL },
+        // };
+        switch(src) {
+            .AF => Processor.getAF,
+            .BC => Processor.getBC,
+            .DE => Processor.getDE,
+            .HL => Processor.getHL,
+        }
+        const result = utils.Arithmetic(u16).add(.{
+            .a = 0,
+            // .a = dest_getter(proc),
+            .b = 0,
+            // .b = src_getter(proc),
+        });
+
+        dest_setter(result.value);
+        proc.unsetFlag(.N);
+        if (result.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        if (result.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        if (result.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
+    }
+
     pub fn addc_imm8(proc: *Processor) void {
         const val = proc.memory.read(proc.fetch());
         const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
@@ -964,6 +998,17 @@ test "add_reg" {
     try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.C));
     try expectEqual(false, processor.isFlagSet(.H));
+}
+
+test "arithmetic.add16_rr_rr" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{
+        .B = 0x10,
+        .C = 0x5E,
+    });
+    
+    arithmetic.add16_rr_rr(&processor, .HL, .BC);
+    try expectEqual(0x6E, processor.getHL());
 }
 
 // Load instructions
