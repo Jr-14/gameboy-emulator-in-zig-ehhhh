@@ -130,33 +130,26 @@ pub const arithmetic = struct {
     }
 
     pub fn add16_rr_rr(proc: *Processor, dest: Processor.RegisterPair, src: Processor.RegisterPair) void {
-        const dest_setter: fn(*Processor, u16) void = switch (dest) {
-            .AF => Processor.setAF,
-            .BC => Processor.setBC,
-            .DE => Processor.setDE,
-            .HL => Processor.setHL,
+        const dest_setter, const dest_getter = switch (dest) {
+            .AF => .{ &Processor.setAF, &Processor.getAF },
+            .BC => .{ &Processor.setBC, &Processor.getBC },
+            .DE => .{ &Processor.setDE, &Processor.getDE },
+            .HL => .{ &Processor.setHL, &Processor.getHL },
         };
 
-        // const dest_setter: fn(*Processor, u16) void, const dest_getter: fn(*Processor) u16 = switch (dest) {
-        //     .AF => .{ Processor.setAF, Processor.getAF },
-        //     .BC => .{ Processor.setBC, Processor.getBC },
-        //     .DE => .{ Processor.setDE, Processor.getDE },
-        //     .HL => .{ Processor.setHL, Processor.getHL },
-        // };
-        switch(src) {
-            .AF => Processor.getAF,
-            .BC => Processor.getBC,
-            .DE => Processor.getDE,
-            .HL => Processor.getHL,
-        }
+        const src_getter = switch(src) {
+            .AF => &Processor.getAF,
+            .BC => &Processor.getBC,
+            .DE => &Processor.getDE,
+            .HL => &Processor.getHL,
+        };
+
         const result = utils.Arithmetic(u16).add(.{
-            .a = 0,
-            // .a = dest_getter(proc),
-            .b = 0,
-            // .b = src_getter(proc),
+            .a = dest_getter(proc),
+            .b = src_getter(proc),
         });
 
-        dest_setter(result.value);
+        dest_setter(proc, result.value);
         proc.unsetFlag(.N);
         if (result.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         if (result.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
@@ -1003,12 +996,16 @@ test "add_reg" {
 test "arithmetic.add16_rr_rr" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{
-        .B = 0x10,
+        .B = 0x11,
         .C = 0x5E,
     });
     
     arithmetic.add16_rr_rr(&processor, .HL, .BC);
-    try expectEqual(0x6E, processor.getHL());
+    try expectEqual(0x115E, processor.getHL());
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.C));
+    try expectEqual(false, processor.isFlagSet(.H));
 }
 
 // Load instructions

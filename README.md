@@ -256,7 +256,7 @@ emulators, and a bit of systems programming.
 
 **16-bit Arithmetic Instructions**
 - [x] 0x03 - INC BC
-- [ ] 0x09 - ADD HL, BC
+- [x] 0x09 - ADD HL, BC
 - [ ] 0x0B - DEC BC
 - [ ] 0x13 - INC DE
 - [ ] 0x19 - ADD HL, DE
