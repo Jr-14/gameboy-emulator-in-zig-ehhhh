@@ -211,6 +211,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // LD A, (BC)
         0x0A => instructions.load.reg_rrMem(proc, &proc.A, .BC),
 
+        // DEC BC
+        0x0B => instructions.arithmetic.dec_rr(proc, .BC),
+
         // INC C
         0x0C => instructions.arithmetic.inc_reg(proc, &proc.C),
 
@@ -226,6 +229,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // LD (DE), A
         0x12 => instructions.load.rrMem_reg(proc, .DE, &proc.A),
 
+        // INC DE
+        0x13 => instructions.arithmetic.inc_rr(proc, .DE),
+
         // INC D
         0x14 => instructions.arithmetic.inc_reg(proc, &proc.D),
 
@@ -237,6 +243,12 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
 
         // JR s8
         0x18 => instructions.controlFlow.jump_rel_imm8(proc),
+
+        // ADD HL, DE
+        0x19 => instructions.arithmetic.add16_rr_rr(proc, .HL, .DE),
+
+        // DEC DE
+        0x1B => instructions.arithmetic.dec_rr(proc, .DE),
 
         // INC E
         0x1C => instructions.arithmetic.inc_reg(proc, &proc.E),
@@ -250,6 +262,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // LD HL, d16
         0x21 => instructions.load.rr_imm16(proc, .HL),
 
+        // INC HL
+        0x23 => instructions.arithmetic.inc_rr(proc, .HL),
+
         // INC H
         0x24 => instructions.arithmetic.inc_reg(proc, &proc.H),
 
@@ -259,6 +274,12 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // JR Z, s8
         0x28 => instructions.controlFlow.jump_rel_cc_imm8(proc, .Z),
 
+        // ADD HL, HL
+        0x29 => instructions.arithmetic.add16_rr_rr(proc, .HL, .HL),
+
+        // DEC HL
+        0x2B => instructions.arithmetic.dec_rr(proc, .HL),
+
         // INC L
         0x2C => instructions.arithmetic.inc_reg(proc, &proc.L),
         
@@ -267,6 +288,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
 
         // JR NC, s8
         0x30 => instructions.controlFlow.jump_rel_cc_imm8(proc, .NC),
+
+        // INC SP
+        0x33 => instructions.arithmetic.inc_rr(proc, .SP),
 
         // INC (HL)
         0x34 => instructions.arithmetic.inc_rr(proc, .HL),

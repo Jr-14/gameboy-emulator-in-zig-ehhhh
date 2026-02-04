@@ -257,13 +257,13 @@ emulators, and a bit of systems programming.
 **16-bit Arithmetic Instructions**
 - [x] 0x03 - INC BC
 - [x] 0x09 - ADD HL, BC
-- [ ] 0x0B - DEC BC
-- [ ] 0x13 - INC DE
-- [ ] 0x19 - ADD HL, DE
-- [ ] 0x1B - DEC DE
-- [ ] 0x23 - INC HL
-- [ ] 0x29 - ADD HL, HL
-- [ ] 0x2B - DEC HL
+- [x] 0x0B - DEC BC
+- [x] 0x13 - INC DE
+- [x] 0x19 - ADD HL, DE
+- [x] 0x1B - DEC DE
+- [x] 0x23 - INC HL
+- [x] 0x29 - ADD HL, HL
+- [x] 0x2B - DEC HL
 - [ ] 0x33 - INC SP
 - [ ] 0x39 - ADD HL, SP
 - [ ] 0x3B - DEC SP

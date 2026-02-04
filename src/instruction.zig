@@ -70,6 +70,10 @@ pub const arithmetic = struct {
         }
     }
 
+    pub fn inc_sp() void {}
+
+    pub fn dec_sp() void {}
+
     fn add_aux(proc: *Processor, values: struct {
         b: u8,
         carry: u1 = 0,
