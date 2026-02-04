@@ -290,7 +290,7 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         0x30 => instructions.controlFlow.jump_rel_cc_imm8(proc, .NC),
 
         // INC SP
-        0x33 => instructions.arithmetic.inc_rr(proc, .SP),
+        0x33 => instructions.arithmetic.inc_sp(proc),
 
         // INC (HL)
         0x34 => instructions.arithmetic.inc_rr(proc, .HL),
@@ -300,6 +300,12 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
 
         // JR C, s8
         0x38 => instructions.controlFlow.jump_rel_cc_imm8(proc, .C),
+
+        // ADD HL, SP
+        0x39 => instructions.arithmetic.add16_hl_sp(proc),
+
+        // DEC SP
+        0x3B => instructions.arithmetic.dec_sp(proc),
 
         // INC A
         0x3C => instructions.arithmetic.inc_reg(proc, &proc.A),

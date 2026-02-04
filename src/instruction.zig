@@ -70,9 +70,31 @@ pub const arithmetic = struct {
         }
     }
 
-    pub fn inc_sp() void {}
+    pub fn inc_sp(proc: *Processor) void {
+        proc.SP +%= 1;
+    }
 
-    pub fn dec_sp() void {}
+    pub fn dec_sp(proc: *Processor) void {
+        proc.SP -%= 1;
+    }
+
+    /// Add to HL the value of SP
+    pub fn add16_hl_sp(proc: *Processor) void {
+        const result = utils.Arithmetic(u16).add(.{
+            .a = proc.getHL(),
+            .b = proc.SP,
+        });
+
+        proc.setHL(result.value);
+        proc.setFlag(.N);
+        if (result.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        if (result.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
+    }
+
+    pub fn add16_sp_offset(proc: *Processor) void {
+        const imm = proc.fetch();
+        utils.addOffset(value: u16, offset: u16)
+    }
 
     fn add_aux(proc: *Processor, values: struct {
         b: u8,
@@ -155,7 +177,6 @@ pub const arithmetic = struct {
 
         dest_setter(proc, result.value);
         proc.unsetFlag(.N);
-        if (result.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         if (result.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
         if (result.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
     }

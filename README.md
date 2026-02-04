@@ -129,7 +129,7 @@ emulators, and a bit of systems programming.
 - [x] 0xE5 - PUSH HL
 - [x] 0xF1 - POP AF
 - [x] 0xF5 - PUSH AF
-- [x] 0xF8 - LD HL, SP+s8
+- [ ] 0xF8 - LD HL, SP+s8
 - [x] 0xF9 - LD SP, HL
 
 **Control Flow Instructions**
@@ -264,9 +264,9 @@ emulators, and a bit of systems programming.
 - [x] 0x23 - INC HL
 - [x] 0x29 - ADD HL, HL
 - [x] 0x2B - DEC HL
-- [ ] 0x33 - INC SP
-- [ ] 0x39 - ADD HL, SP
-- [ ] 0x3B - DEC SP
+- [x] 0x33 - INC SP
+- [x] 0x39 - ADD HL, SP
+- [x] 0x3B - DEC SP
 - [ ] 0xE8 - ADD SP, s8
 
 # Timeline
