@@ -58,6 +58,25 @@ pub fn Arithmetic(comptime T: type) type {
             };
         }
 
+        pub fn add_offset(value: T, offset: u8) Self {
+            if (T == u8) {
+                @compileError("Only allowing u16 for add_offset");
+            }
+            const Wide = u32;
+            const s_offset  = @as(i8, @bitCast(offset));
+
+            const result = @as(Wide, value) +% @as(u32, @bitCast(@as(i32, s_offset)));
+
+            const hc_mask: T = 0x100;
+            const lower_byte: T = hc_mask - 1;
+
+            return .{
+                .value = @truncate(result),
+                .carry = if (result > std.math.maxInt(T)) 1 else 0,
+                .half_carry = if (((value & lower_byte) + (offset & lower_byte)) == hc_mask) 1 else 0,
+            };
+        }
+
         pub fn subtract(opts: struct {
             a: T,
             b: T,
@@ -306,4 +325,12 @@ test "Arithmetic(u16).subtract" {
     try expectEqual(0x00F1, remainder.value);
     try expectEqual(1, remainder.half_carry);
     try expectEqual(0, remainder.carry);
+}
+
+test "Arithmetic(u16).add_offset" {
+    const offset: i8 = -10;
+    const value: u16 = 0xF;
+
+    const result = Arithmetic(u16).add_offset(value, @as(u8, @bitCast(offset)));
+    try expectEqual(0x08, result.value);
 }
