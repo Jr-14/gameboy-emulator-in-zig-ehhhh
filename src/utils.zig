@@ -62,18 +62,14 @@ pub fn Arithmetic(comptime T: type) type {
             if (T == u8) {
                 @compileError("Only allowing u16 for add_offset");
             }
-            const Wide = u32;
-            const s_offset  = @as(i8, @bitCast(offset));
 
-            const result = @as(Wide, value) +% @as(u32, @bitCast(@as(i32, s_offset)));
-
-            const hc_mask: T = 0x100;
-            const lower_byte: T = hc_mask - 1;
+            const s_offset = @as(i8, @bitCast(offset));
+            const result = value +% @as(u16, @bitCast(@as(i16, s_offset)));
 
             return .{
-                .value = @truncate(result),
-                .carry = if (result > std.math.maxInt(T)) 1 else 0,
-                .half_carry = if (((value & lower_byte) + (offset & lower_byte)) == hc_mask) 1 else 0,
+                .value = result,
+                .carry = if (value + @as(u16, offset) > 0xFF) 1 else 0,
+                .half_carry = if ((value & 0xF) + (offset & 0xF) > 0xF) 1 else 0,
             };
         }
 
@@ -328,9 +324,19 @@ test "Arithmetic(u16).subtract" {
 }
 
 test "Arithmetic(u16).add_offset" {
-    const offset: i8 = -10;
-    const value: u16 = 0xF;
+    var offset: i8 = -10;
+    var value: u16 = 0xF;
+    var result: Arithmetic(u16) = undefined;
+    //
+    // var result = Arithmetic(u16).add_offset(value, @as(u8, @bitCast(offset)));
+    // try expectEqual(0x05, result.value);
+    // try expectEqual(0, result.half_carry);
+    // try expectEqual(0, result.carry);
 
-    const result = Arithmetic(u16).add_offset(value, @as(u8, @bitCast(offset)));
-    try expectEqual(0x08, result.value);
+    offset = -10; // 0xF6
+    value = 0x000A; // 10
+    result = Arithmetic(u16).add_offset(value, @as(u8, @bitCast(offset)));
+    try expectEqual(0x0000, result.value);
+    try expectEqual(1, result.half_carry);
+    try expectEqual(1, result.carry);
 }
