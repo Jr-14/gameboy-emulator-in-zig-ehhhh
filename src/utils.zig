@@ -68,7 +68,7 @@ pub fn Arithmetic(comptime T: type) type {
 
             return .{
                 .value = result,
-                .carry = if (value + @as(u16, offset) > 0xFF) 1 else 0,
+                .carry = if ((value & 0xFF) + (@as(u16, offset) & 0xFF) > 0xFF) 1 else 0,
                 .half_carry = if ((value & 0xF) + (offset & 0xF) > 0xF) 1 else 0,
             };
         }
@@ -326,12 +326,11 @@ test "Arithmetic(u16).subtract" {
 test "Arithmetic(u16).add_offset" {
     var offset: i8 = -10;
     var value: u16 = 0xF;
-    var result: Arithmetic(u16) = undefined;
-    //
-    // var result = Arithmetic(u16).add_offset(value, @as(u8, @bitCast(offset)));
-    // try expectEqual(0x05, result.value);
-    // try expectEqual(0, result.half_carry);
-    // try expectEqual(0, result.carry);
+
+    var result = Arithmetic(u16).add_offset(value, @as(u8, @bitCast(offset)));
+    try expectEqual(0x05, result.value);
+    try expectEqual(1, result.half_carry);
+    try expectEqual(1, result.carry);
 
     offset = -10; // 0xF6
     value = 0x000A; // 10
@@ -339,4 +338,11 @@ test "Arithmetic(u16).add_offset" {
     try expectEqual(0x0000, result.value);
     try expectEqual(1, result.half_carry);
     try expectEqual(1, result.carry);
+
+    offset = 5;
+    value = 0x010F;
+    result = Arithmetic(u16).add_offset(value, @as(u8, @bitCast(offset)));
+    try expectEqual(0x0114, result.value);
+    try expectEqual(1, result.half_carry);
+    try expectEqual(0, result.carry);
 }
