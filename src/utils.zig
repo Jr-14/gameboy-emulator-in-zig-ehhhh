@@ -79,7 +79,7 @@ pub fn Arithmetic(comptime T: type) type {
             carry: u1 = 0,
         }) Self {
             const FS = if (T == u8) u16 else u32;
-            const hc_mask: T = if (T == u8) 0x10 else 0x100;
+            const hc_mask: T = if (T == u8) 0x10 else 0x1000;
             const lower_byte: T = hc_mask - 1;
 
             const remainder: FS = @as(FS, opts.a) -% @as(FS, opts.b) -% opts.carry;
@@ -315,10 +315,10 @@ test "Arithmetic(u16).subtract" {
     try expectEqual(1, remainder.carry);
 
     remainder = Arithmetic(u16).subtract(.{
-        .a = 0x0100,
+        .a = 0x1000,
         .b = 0x000F,
     });
-    try expectEqual(0x00F1, remainder.value);
+    try expectEqual(0x0FF1, remainder.value);
     try expectEqual(1, remainder.half_carry);
     try expectEqual(0, remainder.carry);
 }
