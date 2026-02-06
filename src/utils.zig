@@ -46,7 +46,7 @@ pub fn Arithmetic(comptime T: type) type {
             carry: u1 = 0,
         }) Self {
             const FS = if (T == u8) u16 else u32;
-            const hc_mask: T = if (T == u8) 0x10 else 0x100;
+            const hc_mask: T = if (T == u8) 0x10 else 0x1000;
             const lower_byte: T = hc_mask - 1;
 
             const sum: FS = @as(FS, opts.a) + @as(FS, opts.b) + opts.carry;
@@ -231,15 +231,15 @@ test "Arithmetic(u16).add" {
         .b = 0x0001,
     });
     try expectEqual(0x0100, result.value);
-    try expectEqual(1, result.half_carry);
+    try expectEqual(0, result.half_carry);
     try expectEqual(0, result.carry);
 
     result = Arithmetic(u16).add(.{
-        .a = 0x00FF,
+        .a = 0x0FFF,
         .b = 0x0000,
         .carry = 1,
     });
-    try expectEqual(0x0100, result.value);
+    try expectEqual(0x1000, result.value);
     try expectEqual(1, result.half_carry);
     try expectEqual(0, result.carry);
 
