@@ -866,6 +866,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // RST 6
         0xF7 => instructions.controlFlow.rst(proc, 6),
 
+        // LD HL, SP+s8
+        0xF8 => instructions.load.hl_sp_imm8(proc),
+
         // LD SP, HL
         0xF9 => instructions.load.spr_rr(proc, &proc.SP, .HL),
 

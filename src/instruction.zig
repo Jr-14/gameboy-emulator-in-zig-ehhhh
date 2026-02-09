@@ -589,6 +589,18 @@ pub const load = struct {
         reg.value = proc.memory.read(hl);
         proc.setHL(hl -% 1);
     }
+
+    // Add the 8-bit signed operand s8 (values -128 to +127) to the stack pointer SP, and store the result in
+    // register pair HL.
+    pub fn hl_sp_imm8(proc: *Processor) void {
+        const imm = proc.fetch();
+        const result = utils.Arithmetic(u16).add_offset(proc.SP, imm);
+        proc.SP = result.value;
+        proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        if (result.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
+        if (result.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+    }
 };
 
 pub const controlFlow = struct {
