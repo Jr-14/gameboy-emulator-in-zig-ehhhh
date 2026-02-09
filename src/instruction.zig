@@ -1,6 +1,6 @@
 const std = @import("std");
-const Register = @import("register_new.zig");
-const Processor = @import("processor_new.zig");
+const Register = @import("register.zig");
+const Processor = @import("processor.zig");
 const Memory = @import("memory.zig");
 const mask = @import("masks.zig");
 

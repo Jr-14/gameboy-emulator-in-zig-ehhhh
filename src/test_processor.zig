@@ -2,7 +2,7 @@ const std = @import("std");
 const utils = @import("utils.zig");
 const register = @import("register.zig");
 const Register = register.Register;
-const Processor = @import("processor_new.zig");
+const Processor = @import("processor.zig");
 const Memory = @import("memory.zig");
 
 const TestError = @import("testing.zig").TestError;
@@ -99,7 +99,7 @@ test "decode and execute 0x03 [INC BC]" {
     try expectEqual(0x0000, processor.DE.get());
     try expectEqual(0x0000, processor.HL.get());
 }
-//
+
 // test "decode and execute 0x04 [INC B]" {
 //     const op_code: u8 = 0x04;
 //     const initial_PC: u16 = 0x0100;

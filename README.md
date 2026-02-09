@@ -129,7 +129,7 @@ emulators, and a bit of systems programming.
 - [x] 0xE5 - PUSH HL
 - [x] 0xF1 - POP AF
 - [x] 0xF5 - PUSH AF
-- [ ] 0xF8 - LD HL, SP+s8
+- [x] 0xF8 - LD HL, SP+s8
 - [x] 0xF9 - LD SP, HL
 
 **Control Flow Instructions**
