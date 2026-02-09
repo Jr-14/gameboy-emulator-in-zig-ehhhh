@@ -93,7 +93,12 @@ pub const arithmetic = struct {
 
     pub fn add16_sp_offset(proc: *Processor) void {
         const imm = proc.fetch();
-        utils.addOffset(value: u16, offset: u16)
+        const result = utils.Arithmetic(u16).add_offset(proc.SP, imm);
+        proc.SP = result.value;
+        proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        if (result.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        if (result.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
     }
 
     fn add_aux(proc: *Processor, values: struct {
