@@ -20,7 +20,7 @@ const utils = @import("utils.zig");
 pub const arithmetic = struct {
     /// Increment the contents of register reg by 1.
     /// Example: 0x05 -> DEC B
-    pub fn inc_reg(
+    pub fn inc_r8(
         proc: *Processor,
         reg: *Register,
     ) void {
@@ -884,21 +884,53 @@ pub const controlFlow = struct {
 
 };
 
+pub const bitShift = struct {
+    /// Rotates the 8-bit A register value left through the carry flag.
+    /// Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). The carry flag is copied to bit
+    /// 0, and bit 7 is copied to the carry flag. Note that unlike the related RL r instruction, RLA always
+    /// sets the zero flag to 0 without looking at the resulting value of the calculation.
+    pub fn rotate_left_a(proc: *Processor) void {
+        const bit_7_mask: u8 = 0x80;
+        const bit_7: u1 = if ((proc.A.value & bit_7_mask) == bit_7_mask) 1 else 0;
+        const carry = proc.getFlag(.C);
+        if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        proc.A.value <<= 1;
+        proc.A.value |= carry;
+    }
+
+    /// Rotates the 8-bit A register value left in a circular manner (carry flag is updated but not used).
+    /// Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). Bit 7 is copied both to bit
+    /// 0 and the carry flag. Note that unlike the related RLC r instruction, RLCA always sets the zero
+    /// flag to 0 without looking at the resulting value of the calculation.
+    pub fn rotate_left_circular_a(proc: *Processor) void {
+        const bit_7_mask: u8 = 0x80;
+        const bit_7: u1 = if ((proc.A.value & bit_7_mask) == bit_7_mask) 1 else 0;
+        if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        proc.A.value <<= 1;
+        proc.A.value |= bit_7;
+    }
+};
 const expectEqual = std.testing.expectEqual;
 
 // Arithmetic Instructions
-test "inc_reg" {
+test "inc_r8" {
     var memory: Memory = .init();
     var processor = Processor.init(&memory, .{});
 
-    arithmetic.inc_reg(&processor, &processor.B);
+    arithmetic.inc_r8(&processor, &processor.B);
 
     try expectEqual(0x01, processor.B.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.H));
 
-    arithmetic.inc_reg(&processor, &processor.B);
+    arithmetic.inc_r8(&processor, &processor.B);
 
     try expectEqual(0x02, processor.B.value);
     try expectEqual(false, processor.isFlagSet(.Z));
@@ -906,7 +938,7 @@ test "inc_reg" {
     try expectEqual(false, processor.isFlagSet(.H));
 
     processor.B.value = 0xFF;
-    arithmetic.inc_reg(&processor, &processor.B);
+    arithmetic.inc_r8(&processor, &processor.B);
 
     try expectEqual(0x00, processor.B.value);
     try expectEqual(true, processor.isFlagSet(.Z));
@@ -914,14 +946,14 @@ test "inc_reg" {
     try expectEqual(true, processor.isFlagSet(.H));
 
     processor.B.value = 0x0F;
-    arithmetic.inc_reg(&processor, &processor.B);
+    arithmetic.inc_r8(&processor, &processor.B);
     try expectEqual(0x10, processor.B.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(true, processor.isFlagSet(.H));
 
     processor.E.value = 0x0F;
-    arithmetic.inc_reg(&processor, &processor.E);
+    arithmetic.inc_r8(&processor, &processor.E);
     try expectEqual(0x10, processor.E.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
@@ -1065,3 +1097,18 @@ test "load.rr_imm16" {
     try expectEqual(immHi, processor.B.value);
     try expectEqual(immLo, processor.C.value);
 }
+
+test "bitShift.rotate_left_a" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{ .A = 0xFF });
+
+    bitShift.rotate_left_a(&processor);
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1111_1110, processor.A.value);
+
+    bitShift.rotate_left_a(&processor);
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1111_1101, processor.A.value);
+}
+
+test "bitShift.rotate_left_circular_a" {}

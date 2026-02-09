@@ -24,7 +24,7 @@ pub const Flag = enum {
 
 pub const RegisterPair = enum { AF, BC, DE, HL };
 
-const ProcessorNew = @This();
+const Processor = @This();
 
 A: RegisterNew = .{},
 F: RegisterNew = .{},
@@ -57,7 +57,7 @@ const InitProcessor = struct {
     IME: bool = false,
 };
 
-pub fn init(memory: *Memory, initProc: InitProcessor) ProcessorNew {
+pub fn init(memory: *Memory, initProc: InitProcessor) Processor {
     return .{
         .memory = memory,
         .A = .{ .value = initProc.A },
@@ -75,26 +75,26 @@ pub fn init(memory: *Memory, initProc: InitProcessor) ProcessorNew {
 }
 
 /// Read from memory the value pointed to by PC
-pub inline fn readFromPC(proc: *ProcessorNew) u8 {
+pub inline fn readFromPC(proc: *Processor) u8 {
     return proc.memory.read(proc.PC);
 }
 
 /// Fetches the next instruction or byte of data from the current memory address pointed at by PC
-pub inline fn fetch(proc: *ProcessorNew) u8 {
+pub inline fn fetch(proc: *Processor) u8 {
     const instruction = proc.readFromPC();
     proc.PC += 1;
     return instruction;
 }
 
 /// Pop the current value from the stack pointed to by SP
-pub inline fn popStack(proc: *ProcessorNew) u8 {
+pub inline fn popStack(proc: *Processor) u8 {
     const val = proc.memory.read(proc.SP);
     proc.SP += 1;
     return val;
 }
 
 /// Push a value into the stack
-pub inline fn pushStack(proc: *ProcessorNew, val: u8) void {
+pub inline fn pushStack(proc: *Processor, val: u8) void {
     proc.SP -= 1;
     proc.memory.write(proc.SP, val);
 }
@@ -108,47 +108,47 @@ inline fn getRegisterPair(hiReg: *RegisterNew, loReg: *RegisterNew) u16 {
     return (@as(u16, hiReg.value) << 8) | loReg.value;
 }
 
-pub fn setAF(proc: *ProcessorNew, value: u16) void {
+pub fn setAF(proc: *Processor, value: u16) void {
     setRegisterPair(&proc.A, &proc.F, value);
 }
 
-pub fn getAF(proc: *ProcessorNew) u16 {
+pub fn getAF(proc: *Processor) u16 {
     return getRegisterPair(&proc.A, &proc.F);
 }
 
-pub fn setBC(proc: *ProcessorNew, value: u16) void {
+pub fn setBC(proc: *Processor, value: u16) void {
     setRegisterPair(&proc.B, &proc.C, value);
 }
 
-pub fn getBC(proc: *ProcessorNew) u16 {
+pub fn getBC(proc: *Processor) u16 {
     return getRegisterPair(&proc.B, &proc.C);
 }
 
-pub fn setDE(proc: *ProcessorNew, value: u16) void {
+pub fn setDE(proc: *Processor, value: u16) void {
     setRegisterPair(&proc.D, &proc.E, value);
 }
 
-pub fn getDE(proc: *ProcessorNew) u16 {
+pub fn getDE(proc: *Processor) u16 {
     return getRegisterPair(&proc.D, &proc.E);
 }
 
-pub fn setHL(proc: *ProcessorNew, value: u16) void {
+pub fn setHL(proc: *Processor, value: u16) void {
     setRegisterPair(&proc.H, &proc.L, value);
 }
 
-pub fn getHL(proc: *ProcessorNew) u16 {
+pub fn getHL(proc: *Processor) u16 {
     return getRegisterPair(&proc.H, &proc.L);
 }
 
-pub fn incrementHL(proc: *ProcessorNew) void {
+pub fn incrementHL(proc: *Processor) void {
     proc.setHL(proc.getHL() +% 1);
 }
 
-pub fn decrementHL(proc: *ProcessorNew) void {
+pub fn decrementHL(proc: *Processor) void {
     proc.setHL(proc.getHL() -% 1);
 }
 
-pub inline fn isFlagSet(proc: *ProcessorNew, flag: Flag) bool {
+pub inline fn isFlagSet(proc: *Processor, flag: Flag) bool {
     return switch (flag) {
         .Z => (proc.F.value & Z_MASK) == Z_MASK,
         .N => (proc.F.value & N_MASK) == N_MASK,
@@ -157,7 +157,7 @@ pub inline fn isFlagSet(proc: *ProcessorNew, flag: Flag) bool {
     };
 }
 
-pub inline fn setFlag(proc: *ProcessorNew, flag: Flag) void {
+pub inline fn setFlag(proc: *Processor, flag: Flag) void {
     switch (flag) {
         .Z => proc.F.value |= Z_MASK,
         .N => proc.F.value |= N_MASK,
@@ -166,7 +166,7 @@ pub inline fn setFlag(proc: *ProcessorNew, flag: Flag) void {
     }
 }
 
-pub inline fn unsetFlag(proc: *ProcessorNew, flag: Flag) void {
+pub inline fn unsetFlag(proc: *Processor, flag: Flag) void {
     switch (flag) {
         .Z => proc.F.value &= ~Z_MASK,
         .N => proc.F.value &= ~N_MASK,
@@ -175,11 +175,20 @@ pub inline fn unsetFlag(proc: *ProcessorNew, flag: Flag) void {
     }
 }
 
-pub inline fn resetFlags(proc: *ProcessorNew) void {
+pub inline fn getFlag(proc: *Processor, flag: Flag) u1 {
+    return switch (flag) {
+        .Z => @truncate(proc.F.value >> 7),
+        .N => @truncate(proc.F.value >> 6),
+        .H => @truncate(proc.F.value >> 5),
+        .C => @truncate(proc.F.value >> 4),
+    };
+}
+
+pub inline fn resetFlags(proc: *Processor) void {
     proc.F.value = 0;
 }
 
-pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
+pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
     switch (op_code) {
         // NOP (No operation) Only advances the program counter by 1.
         0x00 => {},
@@ -194,7 +203,7 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         0x03 => instructions.arithmetic.inc_rr(proc, .BC),
 
         // INC B
-        0x04 => instructions.arithmetic.inc_reg(proc, &proc.B),
+        0x04 => instructions.arithmetic.inc_r8(proc, &proc.B),
 
         // DEC B
         0x05 => instructions.arithmetic.dec_reg(proc, &proc.B),
@@ -215,7 +224,7 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         0x0B => instructions.arithmetic.dec_rr(proc, .BC),
 
         // INC C
-        0x0C => instructions.arithmetic.inc_reg(proc, &proc.C),
+        0x0C => instructions.arithmetic.inc_r8(proc, &proc.C),
 
         // DEC C
         0x0D => instructions.arithmetic.dec_reg(proc, &proc.C),
@@ -233,7 +242,7 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         0x13 => instructions.arithmetic.inc_rr(proc, .DE),
 
         // INC D
-        0x14 => instructions.arithmetic.inc_reg(proc, &proc.D),
+        0x14 => instructions.arithmetic.inc_r8(proc, &proc.D),
 
         // DEC D
         0x15 => instructions.arithmetic.dec_reg(proc, &proc.D),
@@ -251,7 +260,7 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         0x1B => instructions.arithmetic.dec_rr(proc, .DE),
 
         // INC E
-        0x1C => instructions.arithmetic.inc_reg(proc, &proc.E),
+        0x1C => instructions.arithmetic.inc_r8(proc, &proc.E),
 
         // DEC E
         0x1D => instructions.arithmetic.dec_reg(proc, &proc.E),
@@ -266,7 +275,7 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         0x23 => instructions.arithmetic.inc_rr(proc, .HL),
 
         // INC H
-        0x24 => instructions.arithmetic.inc_reg(proc, &proc.H),
+        0x24 => instructions.arithmetic.inc_r8(proc, &proc.H),
 
         // DEC H
         0x25 => instructions.arithmetic.dec_reg(proc, &proc.H),
@@ -281,7 +290,7 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         0x2B => instructions.arithmetic.dec_rr(proc, .HL),
 
         // INC L
-        0x2C => instructions.arithmetic.inc_reg(proc, &proc.L),
+        0x2C => instructions.arithmetic.inc_r8(proc, &proc.L),
         
         // DEC L
         0x2D => instructions.arithmetic.dec_reg(proc, &proc.L),
@@ -308,7 +317,7 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         0x3B => instructions.arithmetic.dec_sp(proc),
 
         // INC A
-        0x3C => instructions.arithmetic.inc_reg(proc, &proc.A),
+        0x3C => instructions.arithmetic.inc_r8(proc, &proc.A),
 
         // DEC A
         0x3D => instructions.arithmetic.dec_reg(proc, &proc.A),
@@ -893,18 +902,18 @@ test "getRegisterPair" {
     var memory: Memory = .init();
     const H: u8 = 0x45;
     const L: u8 = 0x7F;
-    var processor = ProcessorNew.init(&memory, .{ .H = H, .L = L });
+    var processor = Processor.init(&memory, .{ .H = H, .L = L });
 
-    try expectEqual(utils.fromTwoBytes(L, H), ProcessorNew.getRegisterPair(&processor.H, &processor.L));
+    try expectEqual(utils.fromTwoBytes(L, H), Processor.getRegisterPair(&processor.H, &processor.L));
 }
 
 test "setRegisterPair" {
     var memory: Memory = .init();
-    var processor = ProcessorNew.init(&memory, .{});
+    var processor = Processor.init(&memory, .{});
 
     const D: u8 = 0x91;
     const E: u8 = 0xC2;
-    ProcessorNew.setRegisterPair(&processor.D, &processor.E, utils.fromTwoBytes(E, D));
+    Processor.setRegisterPair(&processor.D, &processor.E, utils.fromTwoBytes(E, D));
 
     try expectEqual(D, processor.D.value);
     try expectEqual(E, processor.E.value);
@@ -912,7 +921,7 @@ test "setRegisterPair" {
 
 test "isFlagSet, Z" {
     var memory = Memory.init();
-    var processor = ProcessorNew.init(&memory, .{ .F = Z_MASK });
+    var processor = Processor.init(&memory, .{ .F = Z_MASK });
 
     try expectEqual(true, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
@@ -922,7 +931,7 @@ test "isFlagSet, Z" {
 
 test "isFlagSet, N" {
     var memory = Memory.init();
-    var processor = ProcessorNew.init(&memory, .{ .F = N_MASK });
+    var processor = Processor.init(&memory, .{ .F = N_MASK });
 
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(true, processor.isFlagSet(.N));
@@ -932,7 +941,7 @@ test "isFlagSet, N" {
 
 test "isFlagSet, H" {
     var memory = Memory.init();
-    var processor = ProcessorNew.init(&memory, .{ .F = H_MASK });
+    var processor = Processor.init(&memory, .{ .F = H_MASK });
 
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
@@ -942,7 +951,7 @@ test "isFlagSet, H" {
 
 test "isFlagSet, C" {
     var memory = Memory.init();
-    var processor = ProcessorNew.init(&memory, .{ .F = C_MASK });
+    var processor = Processor.init(&memory, .{ .F = C_MASK });
 
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
@@ -952,7 +961,7 @@ test "isFlagSet, C" {
 
 test "setFlag, Z" {
     var memory = Memory.init();
-    var processor = ProcessorNew.init(&memory, .{});
+    var processor = Processor.init(&memory, .{});
     processor.setFlag(.Z);
 
     try expectEqual(true,  processor.isFlagSet(.Z));
@@ -963,7 +972,7 @@ test "setFlag, Z" {
 //
 test "setFlag, N" {
     var memory = Memory.init();
-    var processor = ProcessorNew.init(&memory, .{});
+    var processor = Processor.init(&memory, .{});
     processor.setFlag(.N);
 
     try expectEqual(false, processor.isFlagSet(.Z));
@@ -974,7 +983,7 @@ test "setFlag, N" {
 
 test "setFlag, H" {
     var memory = Memory.init();
-    var processor = ProcessorNew.init(&memory, .{});
+    var processor = Processor.init(&memory, .{});
     processor.setFlag(.H);
 
     try expectEqual(false, processor.isFlagSet(.Z));
@@ -985,7 +994,7 @@ test "setFlag, H" {
 
 test "setFlag, C" {
     var memory = Memory.init();
-    var processor = ProcessorNew.init(&memory, .{});
+    var processor = Processor.init(&memory, .{});
     processor.setFlag(.C);
 
     try expectEqual(false, processor.isFlagSet(.Z));
@@ -996,7 +1005,7 @@ test "setFlag, C" {
 
 test "unsetFlag, Z" {
     var memory = Memory.init();
-    var processor = ProcessorNew.init(&memory, .{});
+    var processor = Processor.init(&memory, .{});
     processor.setFlag(.Z);
     processor.setFlag(.N);
     processor.setFlag(.H);
@@ -1012,7 +1021,7 @@ test "unsetFlag, Z" {
 
 test "unsetFlag, N" {
     var memory = Memory.init();
-    var processor = ProcessorNew.init(&memory, .{});
+    var processor = Processor.init(&memory, .{});
     processor.setFlag(.Z);
     processor.setFlag(.N);
     processor.setFlag(.H);
@@ -1028,7 +1037,7 @@ test "unsetFlag, N" {
 
 test "unsetFlag, H" {
     var memory = Memory.init();
-    var processor = ProcessorNew.init(&memory, .{});
+    var processor = Processor.init(&memory, .{});
     processor.setFlag(.Z);
     processor.setFlag(.N);
     processor.setFlag(.H);
@@ -1044,7 +1053,7 @@ test "unsetFlag, H" {
 
 test "unsetFlag, C" {
     var memory = Memory.init();
-    var processor = ProcessorNew.init(&memory, .{});
+    var processor = Processor.init(&memory, .{});
     processor.setFlag(.Z);
     processor.setFlag(.N);
     processor.setFlag(.H);
@@ -1061,7 +1070,7 @@ test "unsetFlag, C" {
 test "popStack" {
     const SP: u16 = 0x0AFF;
     var memory = Memory.init();
-    var processor = ProcessorNew.init(&memory, . { .SP = SP});
+    var processor = Processor.init(&memory, . { .SP = SP});
 
     const content: u8 = 0x13;
     processor.memory.write(SP, content);
@@ -1073,11 +1082,67 @@ test "popStack" {
 test "pushStack" {
     const SP: u16 = 0x0AFF;
     var memory = Memory.init();
-    var processor = ProcessorNew.init(&memory, . { .SP = SP});
+    var processor = Processor.init(&memory, . { .SP = SP});
 
     const content: u8 = 0x13;
     processor.pushStack(content);
 
     try expectEqual(content, processor.memory.read(SP - 1));
     try expectEqual(SP - 1, processor.SP);
+}
+
+test "getFlag" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, . {});
+    processor.setFlag(.Z);
+
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+
+    processor.setFlag(.N);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(1, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+
+    processor.setFlag(.H);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(1, processor.getFlag(.N));
+    try expectEqual(1, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+
+    processor.setFlag(.C);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(1, processor.getFlag(.N));
+    try expectEqual(1, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+
+    processor.resetFlags();
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+
+    processor.setFlag(.N);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(1, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    processor.resetFlags();
+
+    processor.setFlag(.H);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(1, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    processor.resetFlags();
+
+    processor.setFlag(.C);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    processor.resetFlags();
 }
