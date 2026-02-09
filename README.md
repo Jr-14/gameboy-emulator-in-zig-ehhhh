@@ -267,7 +267,7 @@ emulators, and a bit of systems programming.
 - [x] 0x33 - INC SP
 - [x] 0x39 - ADD HL, SP
 - [x] 0x3B - DEC SP
-- [ ] 0xE8 - ADD SP, s8
+- [x] 0xE8 - ADD SP, s8
 
 # Timeline
 Day 20 - Completed All 8-bit and 16-bit load instructions with tests (to the best of my knowledge)

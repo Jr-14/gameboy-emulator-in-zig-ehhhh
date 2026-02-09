@@ -833,6 +833,9 @@ pub fn decodeAndExecute(proc: *ProcessorNew, op_code: u8) !void {
         // RST 4
         0xE7 => instructions.controlFlow.rst(proc, 4),
 
+        // ADD SP s8
+        0xE8 => instructions.arithmetic.add16_sp_offset(proc),
+
         // JP HL
         0xE9 => instructions.controlFlow.jump_rr(proc, .HL),
 
