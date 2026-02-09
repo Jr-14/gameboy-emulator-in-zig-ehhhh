@@ -275,3 +275,5 @@ Day 20 - Completed All 8-bit and 16-bit load instructions with tests (to the bes
 Day 31 - Completed All control flow instructions
 
 Day 35 - Completed All 8-bit Arithmetic instructions
+
+Day 39 - Completed All 16-bit Arithmetic instructions
