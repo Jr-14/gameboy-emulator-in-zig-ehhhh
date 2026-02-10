@@ -188,6 +188,53 @@ pub inline fn resetFlags(proc: *Processor) void {
     proc.F.value = 0;
 }
 
+fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
+    const op_code = proc.fetch();
+    switch (op_code) {
+        // RLC B
+        0x00 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.B),
+
+        // RLC C
+        0x01 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.C),
+
+        // RLC D
+        0x02 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.D),
+
+        // RLC E
+        0x03 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.E),
+
+        // RLC H
+        0x04 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.H),
+
+        // RLC L
+        0x05 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.L),
+
+        // RLC A
+        0x07 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.A),
+
+        // RRC B
+        0x08 => instructions.bitShift.rotate_right_circular_r8(proc, &proc.B),
+
+        // RRC C
+        0x09 => instructions.bitShift.rotate_right_circular_r8(proc, &proc.C),
+
+        // RRC D
+        0x0A => instructions.bitShift.rotate_right_circular_r8(proc, &proc.D),
+
+        // RRC E
+        0x0B => instructions.bitShift.rotate_right_circular_r8(proc, &proc.E),
+
+        // RRC H
+        0x0C => instructions.bitShift.rotate_right_circular_r8(proc, &proc.H),
+
+        // RRC L
+        0x0D => instructions.bitShift.rotate_right_circular_r8(proc, &proc.L),
+
+        // RRC 
+        0x0F => instructions.bitShift.rotate_right_circular_r8(proc, &proc.A),
+    }
+}
+
 pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
     switch (op_code) {
         // NOP (No operation) Only advances the program counter by 1.
@@ -784,6 +831,9 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
 
         // JP Z, a16
         0xCA => instructions.controlFlow.jump_cc_imm16(proc, .Z),
+
+        // CB Prefix
+        0xCB => proc.decodeAndExecuteCBPrefix(),
 
         // CALL Z, a16
         0xCC => instructions.controlFlow.call_cc_imm16(proc, .Z),

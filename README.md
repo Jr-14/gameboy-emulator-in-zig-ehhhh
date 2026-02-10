@@ -271,9 +271,25 @@ emulators, and a bit of systems programming.
 
 **Rotate, shift, and bit operations**
 - [x] 0x07 - RLCA
-- [ ] 0x0F - RRCA
+- [x] 0x0F - RRCA
 - [x] 0x17 - RLA
-- [ ] 0x1F - RRA
+- [x] 0x1F - RRA
+- [x] 0xCB00 - RLC B
+- [x] 0xCB01 - RLC C
+- [x] 0xCB02 - RLC D
+- [x] 0xCB03 - RLC E
+- [x] 0xCB04 - RLC H
+- [x] 0xCB05 - RLC L
+- [ ] 0xCB06 - RLC (HL)
+- [x] 0xCB07 - RLC A
+- [x] 0xCB08 - RRC B
+- [x] 0xCB09 - RRC C
+- [x] 0xCB0A - RRC D
+- [x] 0xCB0B - RRC E
+- [x] 0xCB0C - RRC H
+- [x] 0xCB0D - RRC L
+- [ ] 0xCB0E - RRC (HL)
+- [x] 0xCB0F - RRC A
 
 
 # Timeline
