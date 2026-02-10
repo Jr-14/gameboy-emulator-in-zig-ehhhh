@@ -235,6 +235,9 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         // LD C, d8
         0x0E => instructions.load.reg_imm8(proc, &proc.C),
 
+        // RRCA
+        0x0F => instructions.bitShift.rotate_right_circular_a(proc),
+
         // LD DE, d16
         0x11 => instructions.load.rr_imm16(proc, .DE),
 
@@ -270,6 +273,9 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
 
         // DEC E
         0x1D => instructions.arithmetic.dec_reg(proc, &proc.E),
+
+        // RRA
+        0x1F => instructions.bitShift.rotate_right_a(proc),
 
         // JR NZ, s8
         0x20 => instructions.controlFlow.jump_rel_cc_imm8(proc, .NZ),
