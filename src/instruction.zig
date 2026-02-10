@@ -972,7 +972,40 @@ pub const bitShift = struct {
         proc.unsetFlag(.N);
         proc.unsetFlag(.H);
     }
+
+    /// Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, left in a
+    /// circular manner (carry flag is updated but not used).
+    /// Every bit is shifted t
+    pub fn rotate_left_circular_hlMem(proc: *Processor) void {
+        var contents = proc.memory.read(proc.getHL());
+        const bit_7: u1 = @truncate(contents >> 7);
+        if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        contents <<= 1;
+        contents |= bit_7;
+        if (contents == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        proc.memory.write(proc.getHL(), contents);
+    }
+
+    /// Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, right in a
+    /// circular manner (carry flag is updated but not used).
+    /// Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). Bit 0 is copied both to bit 7
+    /// and the carry flag.
+    pub fn rotate_right_circular_hlMem(proc: *Processor) void {
+        var contents = proc.memory.read(proc.getHL());
+        const bit_0: u1 = @truncate(contents);
+        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        const carry_mask: u8 = if (bit_0 == 1) 0x80 else 0x00;
+        contents >>= 1;
+        contents |= carry_mask;
+        if (contents == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        proc.memory.write(proc.getHL(), contents);
+    }
 };
+
 const expectEqual = std.testing.expectEqual;
 
 // Arithmetic Instructions
@@ -1418,4 +1451,96 @@ test "bitShift.rotate_right_circular_r8" {
     try expectEqual(0, processor.getFlag(.H));
     try expectEqual(0, processor.getFlag(.C));
     try expectEqual(0x00, processor.C.value);
+}
+
+test "bitShift.rotate_left_circular_hlMem" {
+    const HL: u16 = 0xAC13;
+    const contents = 0x7F; // 0b0111_1111
+    var memory = Memory.init();
+    memory.write(HL, contents);
+
+    var processor = Processor.init(&memory, .{});
+    processor.setHL(HL);
+
+    bitShift.rotate_left_circular_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0b1111_1110, processor.memory.read(HL));
+
+    bitShift.rotate_left_circular_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1111_1101, processor.memory.read(HL));
+
+    bitShift.rotate_left_circular_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1111_1011, processor.memory.read(HL));
+
+    bitShift.rotate_left_circular_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1111_0111, processor.memory.read(HL));
+
+    memory.write(HL, 0x00);
+    bitShift.rotate_left_circular_hlMem(&processor);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0x00, processor.memory.read(HL));
+}
+
+test "bitShift.rotate_right_circular_hlMem" {
+    const HL: u16 = 0xAC13;
+    const contents = 0xFE; // 0b1111_1110
+    var memory = Memory.init();
+    memory.write(HL, contents);
+
+    var processor = Processor.init(&memory, .{});
+    processor.setHL(HL);
+
+    bitShift.rotate_right_circular_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0b0111_1111, processor.memory.read(HL));
+
+    bitShift.rotate_right_circular_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1011_1111, processor.memory.read(HL));
+
+    bitShift.rotate_right_circular_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1101_1111, processor.memory.read(HL));
+
+    bitShift.rotate_right_circular_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1110_1111, processor.memory.read(HL));
+
+    memory.write(HL, 0x00);
+    bitShift.rotate_right_circular_hlMem(&processor);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0x00, processor.memory.read(HL));
 }
