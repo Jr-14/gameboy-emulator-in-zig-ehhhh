@@ -269,6 +269,13 @@ emulators, and a bit of systems programming.
 - [x] 0x3B - DEC SP
 - [x] 0xE8 - ADD SP, s8
 
+**Rotate, shift, and bit operations**
+- [x] 0x07 - RLCA
+- [ ] 0x0F - RRCA
+- [x] 0x17 - RLA
+- [ ] 0x1F - RRA
+
+
 # Timeline
 Day 20 - Completed All 8-bit and 16-bit load instructions with tests (to the best of my knowledge)
 

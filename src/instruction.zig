@@ -915,6 +915,36 @@ pub const bitShift = struct {
         proc.A.value <<= 1;
         proc.A.value |= bit_7;
     }
+
+    /// Rotate the contents of register A to the right, through the carry (CY) flag.
+    /// That is, the contents of bit 7 are copied to bit 6, and the previous contents of bit 6 (before the copy) are
+    /// copied to bit 5. The same operation is repeated in sequence for the rest of the register.
+    /// The previous contents of the carry flag are copied to bit 7.
+    pub fn rotate_right_a(proc: *Processor) void {
+        const bit_0: u1 = @truncate(proc.A.value);
+        const carry_mask = if (proc.isFlagSet(.C)) 0xFF else 0x7F;
+        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        proc.A.value >>= 1;
+        proc.A.value |= carry_mask;
+    }
+
+    /// Rotate the contents of register A to the right.
+    /// That is, the contents of bit 7 are copied to bit 6, and the previous contents of bit 6 (before the copy) are
+    /// copied to bit 5. The same operation is repeated in sequence for the rest of the register.
+    /// The contents of bit 0 are placed in both the CY flag and bit 7 of register A.
+    pub fn rotate_right_circular_a(proc: *Processor) void {
+        const bit_0: u1 = @truncate(proc.A.value);
+        const m = if (bit_0 == 1) 0xFF else 0x7F;
+        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        proc.A.value >>= 1;
+        proc.A.value |= m;
+    }
 };
 const expectEqual = std.testing.expectEqual;
 
