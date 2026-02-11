@@ -1004,6 +1004,68 @@ pub const bitShift = struct {
         proc.unsetFlag(.H);
         proc.memory.write(proc.getHL(), contents);
     }
+
+    /// Rotates the 8-bit register r value left through the carry flag.
+    /// Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). The carry flag is copied to bit
+    /// 0, and bit 7 is copied to the carry flag.{
+    pub fn rotate_left_r8(proc: *Processor, register: *Register) void {
+        const bit_7: u1 = @truncate(register.value >> 7);
+        const carry = proc.getFlag(.C);
+        register.value <<= 1;
+        register.value |= carry;
+        if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        if (register.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+    }
+
+    /// Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, left through
+    /// the carry flag.
+    /// Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). The carry flag is copied to bit
+    /// 0, and bit 7 is copied to the carry flag.
+    pub fn rotate_left_hlMem(proc: *Processor) void {
+        var contents = proc.memory.read(proc.getHL());
+        const bit_7: u1 = @truncate(contents >> 7);
+        const carry = proc.getFlag(.C);
+        contents <<= 1;
+        contents |= carry;
+        if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        if (contents == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        proc.memory.write(proc.getHL(), contents);
+    }
+
+    /// Rotates the 8-bit register r value right through the carry flag.
+    /// Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). The carry flag is copied to bit
+    /// 7, and bit 0 is copied to the carry flag
+    pub fn rotate_right_r8(proc: *Processor, register: *Register) void {
+        const bit_0: u1 = @truncate(register.value);
+        const carry_mask: u8 = if (proc.getFlag(.C) == 1) 0x80 else 0x00;
+        register.value >>= 1;
+        register.value |= carry_mask;
+        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        if (register.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+    }
+
+    /// Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, right through
+    /// the carry flag.
+    /// Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). The carry flag is copied to bit
+    /// 7, and bit 0 is copied to the carry flag.
+    pub fn rotate_right_hlMem(proc: *Processor) void {
+        var contents = proc.memory.read(proc.getHL());
+        const bit_0: u1 = @truncate(contents);
+        const carry_mask: u8 = if (proc.getFlag(.C) == 1) 0x80 else 0x00;
+        contents >>= 1;
+        contents |= carry_mask;
+        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        if (contents == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        proc.memory.write(proc.getHL(), contents);
+    }
 };
 
 const expectEqual = std.testing.expectEqual;
