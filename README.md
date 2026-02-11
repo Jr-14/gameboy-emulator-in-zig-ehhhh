@@ -280,7 +280,7 @@ emulators, and a bit of systems programming.
 - [x] 0xCB03 - RLC E
 - [x] 0xCB04 - RLC H
 - [x] 0xCB05 - RLC L
-- [ ] 0xCB06 - RLC (HL)
+- [x] 0xCB06 - RLC (HL)
 - [x] 0xCB07 - RLC A
 - [x] 0xCB08 - RRC B
 - [x] 0xCB09 - RRC C

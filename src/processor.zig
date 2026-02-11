@@ -209,6 +209,9 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         // RLC L
         0x05 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.L),
 
+        // RLC (HL)
+        0x06 => instructions.bitShift.rotate_left_circular_hlMem(proc),
+
         // RLC A
         0x07 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.A),
 
@@ -229,6 +232,9 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
 
         // RRC L
         0x0D => instructions.bitShift.rotate_right_circular_r8(proc, &proc.L),
+
+        // RRC (HL)
+        0x0E => instructions.bitShift.rotate_right_circular_hlMem(proc),
 
         // RRC 
         0x0F => instructions.bitShift.rotate_right_circular_r8(proc, &proc.A),
