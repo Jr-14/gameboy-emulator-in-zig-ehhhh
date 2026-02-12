@@ -1114,6 +1114,30 @@ pub const bitShift = struct {
         proc.unsetFlag(.N);
         proc.unsetFlag(.H);
     }
+
+    /// Swaps the high and low 4-bit nibbles of the 8-bit register r.
+    pub fn swap_r8(proc: *Processor, register: *Register) void {
+        const lo_nibble_mask: u8 = (register.value & 0xF) << 4;
+        register.value >>= 4;
+        register.value |= lo_nibble_mask;
+        if (register.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        proc.unsetFlag(.C);
+    }
+
+    /// Swaps the high and low 4-bit nibbles of the 8-bit data at the absolute address specified by the
+    /// 16-bit register HL
+    pub fn swap_hlMem(proc: *Processor) void {
+        const contents: *u8 = proc.memory.address[proc.getHL()];
+        const lo_nibble_mask: u8 = (contents.* & 0xF) << 4;
+        contents.* >>= 4;
+        contents.* |= lo_nibble_mask;
+        if (contents.* == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        proc.unsetFlag(.C);
+    }
 };
 
 const expectEqual = std.testing.expectEqual;
