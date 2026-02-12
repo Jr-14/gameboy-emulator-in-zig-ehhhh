@@ -288,28 +288,28 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0x1F => instructions.bitShift.rotate_right_r8(&proc, &proc.A),
         
         // SLA B
-        0x20 => instructions.bitShift.shift_left_r8(&proc, &proc.B),
+        0x20 => instructions.bitShift.shift_left_arithmetic_r8(&proc, &proc.B),
 
         // SLA C
-        0x21 => instructions.bitShift.shift_left_r8(&proc, &proc.C),
+        0x21 => instructions.bitShift.shift_left_arithmetic_r8(&proc, &proc.C),
 
         // SLA D
-        0x22 => instructions.bitShift.shift_left_r8(&proc, &proc.D),
+        0x22 => instructions.bitShift.shift_left_arithmetic_r8(&proc, &proc.D),
 
         // SLA E
-        0x23 => instructions.bitShift.shift_left_r8(&proc, &proc.E),
+        0x23 => instructions.bitShift.shift_left_arithmetic_r8(&proc, &proc.E),
 
         // SLA H
-        0x24 => instructions.bitShift.shift_left_r8(&proc, &proc.H),
+        0x24 => instructions.bitShift.shift_left_arithmetic_r8(&proc, &proc.H),
 
         // SLA L
-        0x25 => instructions.bitShift.shift_left_r8(&proc, &proc.L),
+        0x25 => instructions.bitShift.shift_left_arithmetic_r8(&proc, &proc.L),
 
         // SLA (HL)
-        0x26 => instructions.bitShift.shift_left_hlMem(&proc),
+        0x26 => instructions.bitShift.shift_left_arithmetic_hlMem(&proc),
 
         // SLA A
-        0x27 => instructions.bitShift.shift_left_r8(&proc, &proc.A),
+        0x27 => instructions.bitShift.shift_left_arithmetic_r8(&proc, &proc.A),
 
         // SRA B
         0x28 => instructions.bitShift.shift_right_arithmetic_r8(&proc, &proc.B),
@@ -330,7 +330,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0x2D => instructions.bitShift.shift_right_arithmetic_r8(&proc, &proc.L),
 
         // SRA (HL)
-        0x2E => instructions.bitShift.shift_right_hlMem(&proc),
+        0x2E => instructions.bitShift.shift_right_arithmetic_hlMem(&proc),
 
         // SRA A
         0x2F => instructions.bitShift.shift_right_arithmetic_r8(&proc, &proc.A),
