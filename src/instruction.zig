@@ -1653,6 +1653,62 @@ test "bitShift.rotate_left_r8" {
     try expectEqual(0b0000_0001, processor.H.value);
 }
 
+test "bitShift.rotate_left_hlMem" {
+    var HL: u16 = 0x17C2;
+    var memory = Memory.init();
+    memory.address[HL] = 0x7F;
+    var processor = Processor.init(&memory, .{
+        .H = 0x17,
+        .L = 0xC2,
+    });
+
+    bitShift.rotate_left_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0b1111_1110, processor.memory.address[HL]);
+
+    bitShift.rotate_left_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1111_1100, processor.memory.address[HL]);
+    bitShift.rotate_left_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1111_1001, processor.memory.address[HL]);
+
+    bitShift.rotate_left_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1111_0011, processor.memory.address[HL]);
+
+    HL = 0x0100;
+    processor.memory.address[HL] = 0;
+    processor.setHL(HL);
+    processor.unsetFlag(.C);
+    bitShift.rotate_left_hlMem(&processor);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0x00, processor.memory.address[HL]);
+
+    processor.setFlag(.C);
+    bitShift.rotate_left_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0b0000_0001, processor.memory.address[HL]);
+}
+
 test "bitShift.rotate_right_r8" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .B = 0xFE });
@@ -1701,4 +1757,61 @@ test "bitShift.rotate_right_r8" {
     try expectEqual(0, processor.getFlag(.H));
     try expectEqual(0, processor.getFlag(.C));
     try expectEqual(0b1000_0000, processor.H.value);
+}
+
+test "bitShift.rotate_right_hlMem" {
+    var HL: u16 = 0x80C3;
+    var memory = Memory.init();
+    memory.address[HL] = 0xFE;
+    var processor = Processor.init(&memory, .{
+        .H = 0x80,
+        .L = 0xC3,
+    });
+
+    bitShift.rotate_right_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0b0111_1111, processor.memory.address[HL]);
+
+    bitShift.rotate_right_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b0011_1111, processor.memory.address[HL]);
+
+    bitShift.rotate_right_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1001_1111, processor.memory.address[HL]);
+
+    bitShift.rotate_right_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1100_1111, processor.memory.address[HL]);
+
+    HL = 0x0100;
+    processor.setHL(HL);
+    processor.memory.address[HL] = 0;
+    processor.unsetFlag(.C);
+    bitShift.rotate_right_hlMem(&processor);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0x00, processor.memory.address[HL]);
+
+    processor.setFlag(.C);
+    bitShift.rotate_right_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0b1000_0000, processor.memory.address[HL]);
 }
