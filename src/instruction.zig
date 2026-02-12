@@ -1129,7 +1129,7 @@ pub const bitShift = struct {
     /// Swaps the high and low 4-bit nibbles of the 8-bit data at the absolute address specified by the
     /// 16-bit register HL
     pub fn swap_hlMem(proc: *Processor) void {
-        const contents: *u8 = proc.memory.address[proc.getHL()];
+        const contents: *u8 = &proc.memory.address[proc.getHL()];
         const lo_nibble_mask: u8 = (contents.* & 0xF) << 4;
         contents.* >>= 4;
         contents.* |= lo_nibble_mask;
@@ -2104,4 +2104,49 @@ test "bitShift.shift_right_arithmetic_hlMem" {
     try expectEqual(0, processor.getFlag(.H));
     try expectEqual(0, processor.getFlag(.C));
     try expectEqual(0x0, processor.memory.address[HL]);
+}
+
+test "bitShift.swap_r8" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{
+        .B = 0x93,
+        .C = 0x00,
+    });
+
+    bitShift.swap_r8(&processor, &processor.B);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0x39, processor.B.value);
+
+    bitShift.swap_r8(&processor, &processor.C);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0x00, processor.C.value);
+}
+
+test "bitShift.swap_hlMem" {
+    const HL: u16 = 0x95A2;
+    var memory = Memory.init();
+    memory.address[HL] = 0xA2;
+    var processor = Processor.init(&memory, .{});
+    processor.setHL(HL);
+
+    bitShift.swap_hlMem(&processor);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0x2A, processor.memory.address[HL]);
+
+    memory.address[HL] = 0x00;
+    bitShift.swap_hlMem(&processor);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0x00, processor.memory.address[HL]);
 }
