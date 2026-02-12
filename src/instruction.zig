@@ -1652,3 +1652,53 @@ test "bitShift.rotate_left_r8" {
     try expectEqual(0, processor.getFlag(.C));
     try expectEqual(0b0000_0001, processor.H.value);
 }
+
+test "bitShift.rotate_right_r8" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{ .B = 0xFE });
+
+    bitShift.rotate_right_r8(&processor, &processor.B);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0b0111_1111, processor.B.value);
+
+    bitShift.rotate_right_r8(&processor, &processor.B);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b0011_1111, processor.B.value);
+
+    bitShift.rotate_right_r8(&processor, &processor.B);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1001_1111, processor.B.value);
+
+    bitShift.rotate_right_r8(&processor, &processor.B);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1100_1111, processor.B.value);
+
+    processor.unsetFlag(.C);
+    processor.H.value = 0x00;
+    bitShift.rotate_right_r8(&processor, &processor.H);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0x00, processor.H.value);
+
+    processor.setFlag(.C);
+    bitShift.rotate_right_r8(&processor, &processor.H);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0b1000_0000, processor.H.value);
+}
