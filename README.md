@@ -288,7 +288,7 @@ emulators, and a bit of systems programming.
 - [x] 0xCB0B - RRC E
 - [x] 0xCB0C - RRC H
 - [x] 0xCB0D - RRC L
-- [ ] 0xCB0E - RRC (HL)
+- [x] 0xCB0E - RRC (HL)
 - [x] 0xCB0F - RRC A
 
 

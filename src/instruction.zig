@@ -977,15 +977,14 @@ pub const bitShift = struct {
     /// circular manner (carry flag is updated but not used).
     /// Every bit is shifted t
     pub fn rotate_left_circular_hlMem(proc: *Processor) void {
-        var contents = proc.memory.read(proc.getHL());
-        const bit_7: u1 = @truncate(contents >> 7);
+        const contents: *u8 = &proc.memory.address[proc.getHL()];
+        const bit_7: u1 = @truncate(contents.* >> 7);
         if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        contents <<= 1;
-        contents |= bit_7;
-        if (contents == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        contents.* <<= 1;
+        contents.* |= bit_7;
+        if (contents.* == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         proc.unsetFlag(.N);
         proc.unsetFlag(.H);
-        proc.memory.write(proc.getHL(), contents);
     }
 
     /// Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, right in a
@@ -993,16 +992,15 @@ pub const bitShift = struct {
     /// Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). Bit 0 is copied both to bit 7
     /// and the carry flag.
     pub fn rotate_right_circular_hlMem(proc: *Processor) void {
-        var contents = proc.memory.read(proc.getHL());
-        const bit_0: u1 = @truncate(contents);
+        const contents: *u8 = proc.memory.address[proc.getHL()];
+        const bit_0: u1 = @truncate(contents.*);
         if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
         const carry_mask: u8 = if (bit_0 == 1) 0x80 else 0x00;
-        contents >>= 1;
-        contents |= carry_mask;
-        if (contents == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        contents.* >>= 1;
+        contents.* |= carry_mask;
+        if (contents.* == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         proc.unsetFlag(.N);
         proc.unsetFlag(.H);
-        proc.memory.write(proc.getHL(), contents);
     }
 
     /// Rotates the 8-bit register r value left through the carry flag.
@@ -1024,16 +1022,15 @@ pub const bitShift = struct {
     /// Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). The carry flag is copied to bit
     /// 0, and bit 7 is copied to the carry flag.
     pub fn rotate_left_hlMem(proc: *Processor) void {
-        var contents = proc.memory.read(proc.getHL());
-        const bit_7: u1 = @truncate(contents >> 7);
+        const contents: *u8 = &proc.memory.address[proc.getHL()];
+        const bit_7: u1 = @truncate(contents.* >> 7);
         const carry = proc.getFlag(.C);
-        contents <<= 1;
-        contents |= carry;
+        contents.* <<= 1;
+        contents.* |= carry;
         if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (contents == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        if (contents.* == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         proc.unsetFlag(.N);
         proc.unsetFlag(.H);
-        proc.memory.write(proc.getHL(), contents);
     }
 
     /// Rotates the 8-bit register r value right through the carry flag.
@@ -1055,16 +1052,15 @@ pub const bitShift = struct {
     /// Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). The carry flag is copied to bit
     /// 7, and bit 0 is copied to the carry flag.
     pub fn rotate_right_hlMem(proc: *Processor) void {
-        var contents = proc.memory.read(proc.getHL());
-        const bit_0: u1 = @truncate(contents);
+        const contents: *u8 = &proc.memory.address[proc.getHL()];
+        const bit_0: u1 = @truncate(contents.*);
         const carry_mask: u8 = if (proc.getFlag(.C) == 1) 0x80 else 0x00;
-        contents >>= 1;
-        contents |= carry_mask;
+        contents.* >>= 1;
+        contents.* |= carry_mask;
         if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (contents == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        if (contents.* == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         proc.unsetFlag(.N);
         proc.unsetFlag(.H);
-        proc.memory.write(proc.getHL(), contents);
     }
 };
 
@@ -1605,4 +1601,54 @@ test "bitShift.rotate_right_circular_hlMem" {
     try expectEqual(0, processor.getFlag(.H));
     try expectEqual(0, processor.getFlag(.C));
     try expectEqual(0x00, processor.memory.read(HL));
+}
+
+test "bitShift.rotate_left_r8" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{ .B = 0x7F });
+
+    bitShift.rotate_left_r8(&processor, &processor.B);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0b1111_1110, processor.B.value);
+
+    bitShift.rotate_left_r8(&processor, &processor.B);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1111_1100, processor.B.value);
+
+    bitShift.rotate_left_r8(&processor, &processor.B);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1111_1001, processor.B.value);
+
+    bitShift.rotate_left_r8(&processor, &processor.B);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0b1111_0011, processor.B.value);
+
+    processor.unsetFlag(.C);
+    processor.H.value = 0x00;
+    bitShift.rotate_left_r8(&processor, &processor.H);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0x00, processor.H.value);
+
+    processor.setFlag(.C);
+    bitShift.rotate_left_r8(&processor, &processor.H);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0b0000_0001, processor.H.value);
 }
