@@ -238,6 +238,54 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
 
         // RRC 
         0x0F => instructions.bitShift.rotate_right_circular_r8(proc, &proc.A),
+
+        // RL B
+        0x10 => instructions.bitShift.rotate_left_r8(&proc, &proc.B),
+
+        // RL C
+        0x11 => instructions.bitShift.rotate_left_r8(&proc, &proc.C),
+
+        // RL D
+        0x12 => instructions.bitShift.rotate_left_r8(&proc, &proc.D),
+
+        // RL E
+        0x13 => instructions.bitShift.rotate_left_r8(&proc, &proc.E),
+
+        // RL H
+        0x14 => instructions.bitShift.rotate_left_r8(&proc, &proc.H),
+
+        // RL L
+        0x15 => instructions.bitShift.rotate_left_r8(&proc, &proc.L),
+
+        // RL (HL)
+        0x16 => instructions.bitShift.rotate_left_hlMem(&proc),
+
+        // RL A
+        0x17 => instructions.bitShift.rotate_left_r8(&proc, &proc.A),
+
+        // RR B
+        0x18 => instructions.bitShift.rotate_right_r8(&proc, &proc.B),
+
+        // RR C
+        0x19 => instructions.bitShift.rotate_right_r8(&proc, &proc.C),
+
+        // RR D
+        0x1A => instructions.bitShift.rotate_right_r8(&proc, &proc.D),
+
+        // RR E
+        0x1B => instructions.bitShift.rotate_right_r8(&proc, &proc.E),
+
+        // RR H
+        0x1C => instructions.bitShift.rotate_right_r8(&proc, &proc.H),
+
+        // RR L
+        0x1D => instructions.bitShift.rotate_right_r8(&proc, &proc.L),
+
+        // RR (HL)
+        0x1E => instructions.bitShift.rotate_right_hlMem(&proc),
+
+        // RR A
+        0x1F => instructions.bitShift.rotate_right_r8(&proc, &proc.A),
     }
 }
 
