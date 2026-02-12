@@ -334,6 +334,30 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
 
         // SRA A
         0x2F => instructions.bitShift.shift_right_arithmetic_r8(&proc, &proc.A),
+
+        // SWAP B
+        0x30 => instructions.bitShift.swap_r8(&proc, &proc.B),
+
+        // SWAP C
+        0x31 => instructions.bitShift.swap_r8(&proc, &proc.C),
+
+        // SWAP D
+        0x32 => instructions.bitShift.swap_r8(&proc, &proc.D),
+
+        // SWAP E
+        0x33 => instructions.bitShift.swap_r8(&proc, &proc.E),
+
+        // SWAP H
+        0x34 => instructions.bitShift.swap_r8(&proc, &proc.H),
+
+        // SWAP L
+        0x35 => instructions.bitShift.swap_r8(&proc, &proc.L),
+
+        // SWAP (HL)
+        0x36 => instructions.bitShift.swap_hlMem(&proc),
+
+        // SWAP A
+        0x37 => instructions.bitShift.swap_r8(&proc, &proc.A),
     }
 }
 

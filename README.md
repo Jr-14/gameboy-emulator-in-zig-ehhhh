@@ -290,6 +290,54 @@ emulators, and a bit of systems programming.
 - [x] 0xCB0D - RRC L
 - [x] 0xCB0E - RRC (HL)
 - [x] 0xCB0F - RRC A
+- [x] 0xCB10 - RL B
+- [x] 0xCB11 - RL C
+- [x] 0xCB12 - RL D
+- [x] 0xCB13 - RL E
+- [x] 0xCB14 - RL H
+- [x] 0xCB15 - RL L
+- [x] 0xCB16 - RL (HL)
+- [x] 0xCB17 - RL A
+- [x] 0xCB18 - RR B
+- [x] 0xCB19 - RR C
+- [x] 0xCB1A - RR D
+- [x] 0xCB1B - RR E
+- [x] 0xCB1C - RR H
+- [x] 0xCB1D - RR L
+- [x] 0xCB1E - RR (HL)
+- [x] 0xCB1F - RR A
+- [x] 0xCB20 - SLA B
+- [x] 0xCB21 - SLA C
+- [x] 0xCB22 - SLA D
+- [x] 0xCB23 - SLA E
+- [x] 0xCB24 - SLA H
+- [x] 0xCB25 - SLA L
+- [x] 0xCB26 - SLA (HL)
+- [x] 0xCB27 - SLA A
+- [x] 0xCB28 - SRA B
+- [x] 0xCB29 - SRA C
+- [x] 0xCB2A - SRA D
+- [x] 0xCB2B - SRA E
+- [x] 0xCB2C - SRA H
+- [x] 0xCB2D - SRA L
+- [x] 0xCB2E - SRA (HL)
+- [x] 0xCB2F - SRA A
+- [x] 0xCB30 - SWAP B
+- [x] 0xCB31 - SWAP C
+- [x] 0xCB32 - SWAP D
+- [x] 0xCB33 - SWAP E
+- [x] 0xCB34 - SWAP H
+- [x] 0xCB35 - SWAP L
+- [x] 0xCB36 - SWAP (HL)
+- [x] 0xCB37 - SWAP A
+- [ ] 0xCB38 - SRL B
+- [ ] 0xCB39 - SRL C
+- [ ] 0xCB3A - SRL D
+- [ ] 0xCB3B - SRL E
+- [ ] 0xCB3C - SRL H
+- [ ] 0xCB3D - SRL L
+- [ ] 0xCB3E - SRL (HL)
+- [ ] 0xCB3F - SRL A
 
 
 # Timeline
