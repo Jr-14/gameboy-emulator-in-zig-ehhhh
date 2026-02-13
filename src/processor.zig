@@ -238,7 +238,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         // RRC (HL)
         0x0E => instructions.bitShift.rotate_right_circular_hlMem(proc),
 
-        // RRC 
+        // RRC
         0x0F => instructions.bitShift.rotate_right_circular_r8(proc, &proc.A),
 
         // RL B
@@ -288,7 +288,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
 
         // RR A
         0x1F => instructions.bitShift.rotate_right_r8(proc, &proc.A),
-        
+
         // SLA B
         0x20 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.B),
 
@@ -609,7 +609,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x08 => instructions.load.imm16Mem_spr(proc, proc.SP),
 
         // ADD HL, BC
-        0x09 =>  instructions.arithmetic.add16_rr_rr(proc, .HL, .BC),
+        0x09 => instructions.arithmetic.add16_rr_rr(proc, .HL, .BC),
 
         // LD A, (BC)
         0x0A => instructions.load.reg_rrMem(proc, &proc.A, .BC),
@@ -694,7 +694,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
 
         // INC L
         0x2C => instructions.arithmetic.inc_r8(proc, &proc.L),
-        
+
         // DEC L
         0x2D => instructions.arithmetic.dec_reg(proc, &proc.L),
 
@@ -1010,7 +1010,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
 
         // SUB E
         0x93 => instructions.arithmetic.sub_reg(proc, &proc.E),
-        
+
         // SUB H
         0x94 => instructions.arithmetic.sub_reg(proc, &proc.H),
 
@@ -1079,7 +1079,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
 
         // XOR D
         0xAA => instructions.arithmetic.Xor(proc, &proc.D),
-        
+
         // XOR E
         0xAB => instructions.arithmetic.Xor(proc, &proc.E),
 
@@ -1244,7 +1244,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
 
         // AND d8
         0xE6 => instructions.arithmetic.and_imm8(proc),
-        
+
         // RST 4
         0xE7 => instructions.controlFlow.rst(proc, 4),
 
@@ -1297,7 +1297,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xFF => instructions.controlFlow.rst(proc, 7),
 
         else => {
-            std.debug.print("op_code: {any} not implemented!", .{ op_code });
+            std.debug.print("op_code: {any} not implemented!", .{op_code});
         },
     }
 }
@@ -1370,7 +1370,7 @@ test "setFlag, Z" {
     var processor = Processor.init(&memory, .{});
     processor.setFlag(.Z);
 
-    try expectEqual(true,  processor.isFlagSet(.Z));
+    try expectEqual(true, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.H));
     try expectEqual(false, processor.isFlagSet(.C));
@@ -1406,7 +1406,7 @@ test "setFlag, C" {
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.H));
-    try expectEqual(true,  processor.isFlagSet(.C));
+    try expectEqual(true, processor.isFlagSet(.C));
 }
 
 test "unsetFlag, Z" {
@@ -1476,7 +1476,7 @@ test "unsetFlag, C" {
 test "popStack" {
     const SP: u16 = 0x0AFF;
     var memory = Memory.init();
-    var processor = Processor.init(&memory, . { .SP = SP});
+    var processor = Processor.init(&memory, .{ .SP = SP });
 
     const content: u8 = 0x13;
     processor.memory.write(SP, content);
@@ -1488,7 +1488,7 @@ test "popStack" {
 test "pushStack" {
     const SP: u16 = 0x0AFF;
     var memory = Memory.init();
-    var processor = Processor.init(&memory, . { .SP = SP});
+    var processor = Processor.init(&memory, .{ .SP = SP });
 
     const content: u8 = 0x13;
     processor.pushStack(content);
@@ -1499,7 +1499,7 @@ test "pushStack" {
 
 test "getFlag" {
     var memory = Memory.init();
-    var processor = Processor.init(&memory, . {});
+    var processor = Processor.init(&memory, .{});
     processor.setFlag(.Z);
 
     try expectEqual(1, processor.getFlag(.Z));
