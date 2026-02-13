@@ -330,14 +330,14 @@ emulators, and a bit of systems programming.
 - [x] 0xCB35 - SWAP L
 - [x] 0xCB36 - SWAP (HL)
 - [x] 0xCB37 - SWAP A
-- [ ] 0xCB38 - SRL B
-- [ ] 0xCB39 - SRL C
-- [ ] 0xCB3A - SRL D
-- [ ] 0xCB3B - SRL E
-- [ ] 0xCB3C - SRL H
-- [ ] 0xCB3D - SRL L
-- [ ] 0xCB3E - SRL (HL)
-- [ ] 0xCB3F - SRL A
+- [x] 0xCB38 - SRL B
+- [x] 0xCB39 - SRL C
+- [x] 0xCB3A - SRL D
+- [x] 0xCB3B - SRL E
+- [x] 0xCB3C - SRL H
+- [x] 0xCB3D - SRL L
+- [x] 0xCB3E - SRL (HL)
+- [x] 0xCB3F - SRL A
 
 
 # Timeline

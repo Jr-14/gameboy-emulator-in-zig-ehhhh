@@ -1138,6 +1138,30 @@ pub const bitShift = struct {
         proc.unsetFlag(.H);
         proc.unsetFlag(.C);
     }
+
+    /// Shifts the 8-bit register r value right by one bit using a logical shift.
+    /// Bit 7 is set to a fixed value of 0, and bit 0 is shifted to the carry flag.
+    pub fn shift_right_logical_r8(proc: *Processor, register: *Register) void {
+        const bit_0: u1 = @truncate(register.value);
+        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        register.value >>= 1;
+        if (register.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+    }
+
+    /// Shifts, the 8-bit value at the address specified by the HL register, right by one bit using a logical
+    /// shift.
+    /// Bit 7 is set to a fixed value of 0, and bit 0 is shifted to the carry flag.
+    pub fn shift_right_logical_hlMem(proc: *Processor) void {
+        const contents: *u8 = &proc.memory.address[proc.getHL()];
+        const bit_0: u1 = @truncate(contents.*);
+        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
+        contents.* >>= 1;
+        if (contents.* == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+    }
 };
 
 const expectEqual = std.testing.expectEqual;
