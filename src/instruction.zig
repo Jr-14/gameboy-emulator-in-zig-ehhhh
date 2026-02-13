@@ -1173,6 +1173,16 @@ pub const bitFlag = struct {
         proc.unsetFlag(.N);
         proc.setFlag(.H);
     }
+
+    /// Tests the bit b of the 8-bit data at the absolute address specified by the 16-bit register HL.
+    /// The zero flag is set to 1 if the chosen bit is 0, and 0 otherwise.
+    pub fn bit_b_hlMem(proc: *Processor, bit: u3) void {
+        const contents: *u8 = &proc.memory.address[proc.getHL()];
+        const b: u1 = @truncate(contents.* >> bit);
+        if (b == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.N);
+        proc.setFlag(.H);
+    }
 };
 
 const expectEqual = std.testing.expectEqual;
@@ -2226,6 +2236,54 @@ test "bitFlag.bit_b_r8" {
     try expectEqual(1, processor.getFlag(.H));
 
     bitFlag.bit_b_r8(&processor, 0, &processor.D);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(1, processor.getFlag(.H));
+}
+
+test "bitFlag.bit_b_hlMem" {
+    const HL: u16 = 0x31E7;
+    var memory = Memory.init();
+    memory.address[HL] = 0xF0;
+    var processor = Processor.init(&memory, .{});
+    processor.setHL(HL);
+
+    bitFlag.bit_b_hlMem(&processor, 7);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(1, processor.getFlag(.H));
+
+    bitFlag.bit_b_hlMem(&processor, 6);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(1, processor.getFlag(.H));
+
+    bitFlag.bit_b_hlMem(&processor, 5);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(1, processor.getFlag(.H));
+
+    bitFlag.bit_b_hlMem(&processor, 4);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(1, processor.getFlag(.H));
+
+    bitFlag.bit_b_hlMem(&processor, 3);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(1, processor.getFlag(.H));
+
+    bitFlag.bit_b_hlMem(&processor, 2);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(1, processor.getFlag(.H));
+
+    bitFlag.bit_b_hlMem(&processor, 1);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(1, processor.getFlag(.H));
+
+    bitFlag.bit_b_hlMem(&processor, 0);
     try expectEqual(1, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));

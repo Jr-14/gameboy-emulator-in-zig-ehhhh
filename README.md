@@ -338,6 +338,22 @@ emulators, and a bit of systems programming.
 - [x] 0xCB3D - SRL L
 - [x] 0xCB3E - SRL (HL)
 - [x] 0xCB3F - SRL A
+- [x] 0xCB40 - BIT 0, B
+- [x] 0xCB41 - BIT 0, C
+- [x] 0xCB42 - BIT 0, D
+- [x] 0xCB43 - BIT 0, E
+- [x] 0xCB44 - BIT 0, H
+- [x] 0xCB45 - BIT 0, L
+- [x] 0xCB46 - BIT 0, (HL)
+- [x] 0xCB47 - BIT 0, A
+- [x] 0xCB48 - BIT 1, B
+- [x] 0xCB49 - BIT 1, C
+- [x] 0xCB4A - BIT 1, D
+- [x] 0xCB4B - BIT 1, E
+- [x] 0xCB4C - BIT 1, H
+- [x] 0xCB4D - BIT 1, L
+- [x] 0xCB4E - BIT 1, (HL)
+- [x] 0xCB4F - BIT 1, A
 
 
 # Timeline
