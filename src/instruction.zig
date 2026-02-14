@@ -1186,6 +1186,12 @@ pub const bitFlag = struct {
     }
 };
 
+pub const bits = struct {
+    pub fn res_b_r8(proc: *Processor, bit: Bit, register: *Register) void {
+        const bit_mask: u8 = ~(@as(u8, 1) << @intFromEnum(bit));
+    }
+};
+
 const expectEqual = std.testing.expectEqual;
 
 // Arithmetic Instructions
