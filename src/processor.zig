@@ -386,196 +386,196 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0x3F => instructions.bitShift.shift_right_logical_r8(proc, &proc.A),
 
         // BIT 0, B
-        0x40 => instructions.bitFlag.bit_b_r8(proc, Bit.zero, &proc.B),
+        0x40 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.B),
 
         // BIT 0, C
-        0x41 => instructions.bitFlag.bit_b_r8(proc, Bit.zero, &proc.C),
+        0x41 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.C),
 
         // BIT 0, D
-        0x42 => instructions.bitFlag.bit_b_r8(proc, Bit.zero, &proc.D),
+        0x42 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.D),
 
         // BIT 0, E
-        0x43 => instructions.bitFlag.bit_b_r8(proc, Bit.zero, &proc.D),
+        0x43 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.D),
 
         // BIT 0, H
-        0x44 => instructions.bitFlag.bit_b_r8(proc, Bit.zero, &proc.H),
+        0x44 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.H),
 
         // BIT 0, L
-        0x45 => instructions.bitFlag.bit_b_r8(proc, Bit.zero, &proc.L),
+        0x45 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.L),
 
         // BIT 0, (HL)
-        0x46 => instructions.bitFlag.bit_b_hlMem(proc, Bit.zero),
+        0x46 => instructions.bitFlag.test_bit_hlMem(proc, Bit.zero),
 
         // BIT 0, A
-        0x47 => instructions.bitFlag.bit_b_r8(proc, Bit.zero, &proc.A),
+        0x47 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.A),
 
         // BIT 1, B
-        0x48 => instructions.bitFlag.bit_b_r8(proc, Bit.one, &proc.B),
+        0x48 => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.B),
 
         // BIT 1, C
-        0x49 => instructions.bitFlag.bit_b_r8(proc, Bit.one, &proc.C),
+        0x49 => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.C),
 
         // BIT 1, D
-        0x4A => instructions.bitFlag.bit_b_r8(proc, Bit.one, &proc.D),
+        0x4A => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.D),
 
         // BIT 1, E
-        0x4B => instructions.bitFlag.bit_b_r8(proc, Bit.one, &proc.E),
+        0x4B => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.E),
 
         // BIT 1, H
-        0x4C => instructions.bitFlag.bit_b_r8(proc, Bit.one, &proc.H),
+        0x4C => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.H),
 
         // BIT 1, L
-        0x4D => instructions.bitFlag.bit_b_r8(proc, Bit.one, &proc.L),
+        0x4D => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.L),
 
         // BIT 1, (HL)
-        0x4E => instructions.bitFlag.bit_b_hlMem(proc, Bit.one),
+        0x4E => instructions.bitFlag.test_bit_hlMem(proc, Bit.one),
 
         // BIT 1, A
-        0x4F => instructions.bitFlag.bit_b_r8(proc, Bit.one, &proc.A),
+        0x4F => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.A),
 
         // BIT 2, B
-        0x50 => instructions.bitFlag.bit_b_r8(proc, Bit.two, &proc.B),
+        0x50 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.B),
 
         // BIT 2, C
-        0x51 => instructions.bitFlag.bit_b_r8(proc, Bit.two, &proc.C),
+        0x51 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.C),
 
         // BIT 2, D
-        0x52 => instructions.bitFlag.bit_b_r8(proc, Bit.two, &proc.D),
+        0x52 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.D),
 
         // BIT 2, E
-        0x53 => instructions.bitFlag.bit_b_r8(proc, Bit.two, &proc.E),
+        0x53 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.E),
 
         // BIT 2, H
-        0x54 => instructions.bitFlag.bit_b_r8(proc, Bit.two, &proc.H),
+        0x54 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.H),
 
         // BIT 2, L
-        0x55 => instructions.bitFlag.bit_b_r8(proc, Bit.two, &proc.L),
+        0x55 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.L),
 
         // BIT 2, (HL)
-        0x56 => instructions.bitFlag.bit_b_hlMem(proc, Bit.two),
+        0x56 => instructions.bitFlag.test_bit_hlMem(proc, Bit.two),
 
         // BIT 2, A
-        0x57 => instructions.bitFlag.bit_b_r8(proc, Bit.two, &proc.A),
+        0x57 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.A),
 
         // BIT 3, B
-        0x58 => instructions.bitFlag.bit_b_r8(proc, Bit.three, &proc.B),
+        0x58 => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.B),
 
         // BIT 3, C
-        0x59 => instructions.bitFlag.bit_b_r8(proc, Bit.three, &proc.C),
+        0x59 => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.C),
 
         // BIT 3, D
-        0x5A => instructions.bitFlag.bit_b_r8(proc, Bit.three, &proc.D),
+        0x5A => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.D),
 
         // BIT 3, E
-        0x5B => instructions.bitFlag.bit_b_r8(proc, Bit.three, &proc.E),
+        0x5B => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.E),
 
         // BIT 3, H
-        0x5C => instructions.bitFlag.bit_b_r8(proc, Bit.three, &proc.H),
+        0x5C => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.H),
 
         // BIT 3, L
-        0x5D => instructions.bitFlag.bit_b_r8(proc, Bit.three, &proc.L),
+        0x5D => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.L),
 
         // BIT 3, (HL)
-        0x5E => instructions.bitFlag.bit_b_hlMem(proc, Bit.three),
+        0x5E => instructions.bitFlag.test_bit_hlMem(proc, Bit.three),
 
         // BIT 3, A
-        0x5F => instructions.bitFlag.bit_b_r8(proc, Bit.three, &proc.A),
+        0x5F => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.A),
 
         // BIT 4, B
-        0x60 => instructions.bitFlag.bit_b_r8(proc, Bit.four, &proc.B),
+        0x60 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.B),
 
         // BIT 4, C
-        0x61 => instructions.bitFlag.bit_b_r8(proc, Bit.four, &proc.C),
+        0x61 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.C),
 
         // BIT 4, D
-        0x62 => instructions.bitFlag.bit_b_r8(proc, Bit.four, &proc.D),
+        0x62 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.D),
 
         // BIT 4, E
-        0x63 => instructions.bitFlag.bit_b_r8(proc, Bit.four, &proc.E),
+        0x63 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.E),
 
         // BIT 4, H
-        0x64 => instructions.bitFlag.bit_b_r8(proc, Bit.four, &proc.H),
+        0x64 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.H),
 
         // BIT 4, L
-        0x65 => instructions.bitFlag.bit_b_r8(proc, Bit.four, &proc.L),
+        0x65 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.L),
 
         // BIT 4, (HL)
-        0x66 => instructions.bitFlag.bit_b_hlMem(proc, Bit.four),
+        0x66 => instructions.bitFlag.test_bit_hlMem(proc, Bit.four),
 
         // BIT 4, A
-        0x67 => instructions.bitFlag.bit_b_r8(proc, Bit.four, &proc.A),
+        0x67 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.A),
 
         // BIT 5, B
-        0x68 => instructions.bitFlag.bit_b_r8(proc, Bit.five, &proc.B),
+        0x68 => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.B),
 
         // BIT 5, C
-        0x69 => instructions.bitFlag.bit_b_r8(proc, Bit.five, &proc.C),
+        0x69 => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.C),
 
         // BIT 5, D
-        0x6A => instructions.bitFlag.bit_b_r8(proc, Bit.five, &proc.D),
+        0x6A => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.D),
 
         // BIT 5, E
-        0x6B => instructions.bitFlag.bit_b_r8(proc, Bit.five, &proc.E),
+        0x6B => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.E),
 
         // BIT 5, H
-        0x6C => instructions.bitFlag.bit_b_r8(proc, Bit.five, &proc.H),
+        0x6C => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.H),
 
         // BIT 5, L
-        0x6D => instructions.bitFlag.bit_b_r8(proc, Bit.five, &proc.L),
+        0x6D => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.L),
 
         // BIT 5, (HL)
-        0x6E => instructions.bitFlag.bit_b_hlMem(proc, Bit.five),
+        0x6E => instructions.bitFlag.test_bit_hlMem(proc, Bit.five),
 
         // BIT 5, A
-        0x6F => instructions.bitFlag.bit_b_r8(proc, Bit.five, &proc.A),
+        0x6F => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.A),
 
         // BIT 6, B
-        0x70 => instructions.bitFlag.bit_b_r8(proc, Bit.six, &proc.B),
+        0x70 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.B),
 
         // BIT 6, C
-        0x71 => instructions.bitFlag.bit_b_r8(proc, Bit.six, &proc.C),
+        0x71 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.C),
 
         // BIT 6, D
-        0x72 => instructions.bitFlag.bit_b_r8(proc, Bit.six, &proc.D),
+        0x72 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.D),
 
         // BIT 6, E
-        0x73 => instructions.bitFlag.bit_b_r8(proc, Bit.six, &proc.E),
+        0x73 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.E),
 
         // BIT 6, H
-        0x74 => instructions.bitFlag.bit_b_r8(proc, Bit.six, &proc.H),
+        0x74 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.H),
 
         // BIT 6, L
-        0x75 => instructions.bitFlag.bit_b_r8(proc, Bit.six, &proc.L),
+        0x75 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.L),
 
         // BIT 6, (HL)
-        0x76 => instructions.bitFlag.bit_b_hlMem(proc, Bit.six),
+        0x76 => instructions.bitFlag.test_bit_hlMem(proc, Bit.six),
 
         // BIT 6, A
-        0x77 => instructions.bitFlag.bit_b_r8(proc, Bit.six, &proc.A),
+        0x77 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.A),
 
         // BIT 7, B
-        0x78 => instructions.bitFlag.bit_b_r8(proc, Bit.seven, &proc.B),
+        0x78 => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.B),
 
         // BIT 7, C
-        0x79 => instructions.bitFlag.bit_b_r8(proc, Bit.seven, &proc.C),
+        0x79 => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.C),
 
         // BIT 7, D
-        0x7A => instructions.bitFlag.bit_b_r8(proc, Bit.seven, &proc.D),
+        0x7A => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.D),
 
         // BIT 7, E
-        0x7B => instructions.bitFlag.bit_b_r8(proc, Bit.seven, &proc.E),
+        0x7B => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.E),
 
         // BIT 7, H
-        0x7C => instructions.bitFlag.bit_b_r8(proc, Bit.seven, &proc.H),
+        0x7C => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.H),
 
         // BIT 7, L
-        0x7D => instructions.bitFlag.bit_b_r8(proc, Bit.seven, &proc.L),
+        0x7D => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.L),
 
         // BIT 7, (HL)
-        0x7E => instructions.bitFlag.bit_b_hlMem(proc, Bit.seven),
+        0x7E => instructions.bitFlag.test_bit_hlMem(proc, Bit.seven),
 
         // BIT 7, A
-        0x7F => instructions.bitFlag.bit_b_r8(proc, Bit.seven, &proc.A),
+        0x7F => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.A),
     }
 }
 
