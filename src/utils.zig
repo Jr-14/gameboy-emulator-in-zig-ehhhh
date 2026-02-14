@@ -6,6 +6,17 @@ const POST_SIGN_EXT_MASK: u16 = 0x0000;
 
 const masks = @import("masks.zig");
 
+pub const Bit = enum(u3) {
+    zero,
+    one,
+    two,
+    three,
+    four,
+    five,
+    six,
+    seven,
+};
+
 pub fn signExtend(value: u16) u16 {
     const sign: u16 = if ((value & NEG_SIGN_MASK) == NEG_SIGN_MASK) NEG_SIGN_EXT_MASK else POST_SIGN_EXT_MASK;
     return (value | sign);

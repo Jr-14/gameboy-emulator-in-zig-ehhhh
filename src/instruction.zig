@@ -3,6 +3,9 @@ const Register = @import("register.zig");
 const Processor = @import("processor.zig");
 const Memory = @import("memory.zig");
 const mask = @import("masks.zig");
+const utils = @import("utils.zig");
+
+const Bit = utils.Bit;
 
 const FlagCondition = enum {
     Z,
@@ -14,8 +17,6 @@ const FlagCondition = enum {
     C,
     NC
 };
-
-const utils = @import("utils.zig");
 
 pub const arithmetic = struct {
     /// Increment the contents of register reg by 1.
@@ -1167,8 +1168,8 @@ pub const bitShift = struct {
 pub const bitFlag = struct {
     /// Tests the bit b of the 8-bit register r.
     /// The zero flag is set to 1 if the chosen bit is 0, and 0 otherwise.
-    pub fn bit_b_r8(proc: *Processor, bit: u3, register: *Register) void {
-        const b: u1 = @truncate(register.value >> bit);
+    pub fn bit_b_r8(proc: *Processor, bit: Bit, register: *Register) void {
+        const b: u1 = @truncate(register.value >> @intFromEnum(bit));
         if (b == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         proc.unsetFlag(.N);
         proc.setFlag(.H);
@@ -1176,9 +1177,9 @@ pub const bitFlag = struct {
 
     /// Tests the bit b of the 8-bit data at the absolute address specified by the 16-bit register HL.
     /// The zero flag is set to 1 if the chosen bit is 0, and 0 otherwise.
-    pub fn bit_b_hlMem(proc: *Processor, bit: u3) void {
+    pub fn bit_b_hlMem(proc: *Processor, bit: Bit) void {
         const contents: *u8 = &proc.memory.address[proc.getHL()];
-        const b: u1 = @truncate(contents.* >> bit);
+        const b: u1 = @truncate(contents.* >> @intFromEnum(bit));
         if (b == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
         proc.unsetFlag(.N);
         proc.setFlag(.H);
@@ -2200,42 +2201,42 @@ test "bitFlag.bit_b_r8" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .D = 0xF0 });
 
-    bitFlag.bit_b_r8(&processor, 7, &processor.D);
+    bitFlag.bit_b_r8(&processor, .seven, &processor.D);
     try expectEqual(0, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
 
-    bitFlag.bit_b_r8(&processor, 6, &processor.D);
+    bitFlag.bit_b_r8(&processor, .six, &processor.D);
     try expectEqual(0, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
 
-    bitFlag.bit_b_r8(&processor, 5, &processor.D);
+    bitFlag.bit_b_r8(&processor, .five, &processor.D);
     try expectEqual(0, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
 
-    bitFlag.bit_b_r8(&processor, 4, &processor.D);
+    bitFlag.bit_b_r8(&processor, .four, &processor.D);
     try expectEqual(0, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
 
-    bitFlag.bit_b_r8(&processor, 3, &processor.D);
+    bitFlag.bit_b_r8(&processor, .three, &processor.D);
     try expectEqual(1, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
 
-    bitFlag.bit_b_r8(&processor, 2, &processor.D);
+    bitFlag.bit_b_r8(&processor, .two, &processor.D);
     try expectEqual(1, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
 
-    bitFlag.bit_b_r8(&processor, 1, &processor.D);
+    bitFlag.bit_b_r8(&processor, .one, &processor.D);
     try expectEqual(1, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
 
-    bitFlag.bit_b_r8(&processor, 0, &processor.D);
+    bitFlag.bit_b_r8(&processor, .zero, &processor.D);
     try expectEqual(1, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
@@ -2248,42 +2249,42 @@ test "bitFlag.bit_b_hlMem" {
     var processor = Processor.init(&memory, .{});
     processor.setHL(HL);
 
-    bitFlag.bit_b_hlMem(&processor, 7);
+    bitFlag.bit_b_hlMem(&processor, .seven);
     try expectEqual(0, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
 
-    bitFlag.bit_b_hlMem(&processor, 6);
+    bitFlag.bit_b_hlMem(&processor, .six);
     try expectEqual(0, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
 
-    bitFlag.bit_b_hlMem(&processor, 5);
+    bitFlag.bit_b_hlMem(&processor, .five);
     try expectEqual(0, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
 
-    bitFlag.bit_b_hlMem(&processor, 4);
+    bitFlag.bit_b_hlMem(&processor, .four);
     try expectEqual(0, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
 
-    bitFlag.bit_b_hlMem(&processor, 3);
+    bitFlag.bit_b_hlMem(&processor, .three);
     try expectEqual(1, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
 
-    bitFlag.bit_b_hlMem(&processor, 2);
+    bitFlag.bit_b_hlMem(&processor, .two);
     try expectEqual(1, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
 
-    bitFlag.bit_b_hlMem(&processor, 1);
+    bitFlag.bit_b_hlMem(&processor, .one);
     try expectEqual(1, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
 
-    bitFlag.bit_b_hlMem(&processor, 0);
+    bitFlag.bit_b_hlMem(&processor, .zero);
     try expectEqual(1, processor.getFlag(.Z));
     try expectEqual(0, processor.getFlag(.N));
     try expectEqual(1, processor.getFlag(.H));
