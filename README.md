@@ -402,134 +402,134 @@ emulators, and a bit of systems programming.
 - [x] 0xCB7D - BIT 7, L
 - [x] 0xCB7E - BIT 7, (HL)
 - [x] 0xCB7F - BIT 7, A
-- [ ] 0xCB80 - RES 0, B
-- [ ] 0xCB81 - RES 0, C
-- [ ] 0xCB82 - RES 0, D
-- [ ] 0xCB83 - RES 0, E
-- [ ] 0xCB84 - RES 0, H
-- [ ] 0xCB85 - RES 0, L
-- [ ] 0xCB86 - RES 0, (HL)
-- [ ] 0xCB87 - RES 0, A
-- [ ] 0xCB88 - RES 1, B
-- [ ] 0xCB89 - RES 1, C
-- [ ] 0xCB8A - RES 1, D
-- [ ] 0xCB8B - RES 1, E
-- [ ] 0xCB8C - RES 1, H
-- [ ] 0xCB8D - RES 1, L
-- [ ] 0xCB8E - RES 1, (HL)
-- [ ] 0xCB8F - RES 1, A
-- [ ] 0xCB90 - RES 2, B
-- [ ] 0xCB91 - RES 2, C
-- [ ] 0xCB92 - RES 2, D
-- [ ] 0xCB93 - RES 2, E
-- [ ] 0xCB94 - RES 2, H
-- [ ] 0xCB95 - RES 2, L
-- [ ] 0xCB96 - RES 2, (HL)
-- [ ] 0xCB97 - RES 2, A
-- [ ] 0xCB98 - RES 3, B
-- [ ] 0xCB99 - RES 3, C
-- [ ] 0xCB9A - RES 3, D
-- [ ] 0xCB9B - RES 3, E
-- [ ] 0xCB9C - RES 3, H
-- [ ] 0xCB9D - RES 3, L
-- [ ] 0xCB9E - RES 3, (HL)
-- [ ] 0xCB9F - RES 3, A
-- [ ] 0xCBA0 - RES 4, B
-- [ ] 0xCBA1 - RES 4, C
-- [ ] 0xCBA2 - RES 4, D
-- [ ] 0xCBA3 - RES 4, E
-- [ ] 0xCBA4 - RES 4, H
-- [ ] 0xCBA5 - RES 4, L
-- [ ] 0xCBA6 - RES 4, (HL)
-- [ ] 0xCBA7 - RES 4, A
-- [ ] 0xCBA8 - RES 5, B
-- [ ] 0xCBA9 - RES 5, C
-- [ ] 0xCBAA - RES 5, D
-- [ ] 0xCBAB - RES 5, E
-- [ ] 0xCBAC - RES 5, H
-- [ ] 0xCBAD - RES 5, L
-- [ ] 0xCBAE - RES 5, (HL)
-- [ ] 0xCBAF - RES 5, A
-- [ ] 0xCBB0 - RES 6, B
-- [ ] 0xCBB1 - RES 6, C
-- [ ] 0xCBB2 - RES 6, D
-- [ ] 0xCBB3 - RES 6, E
-- [ ] 0xCBB4 - RES 6, H
-- [ ] 0xCBB5 - RES 6, L
-- [ ] 0xCBB6 - RES 6, (HL)
-- [ ] 0xCBB7 - RES 6, A
-- [ ] 0xCBB8 - RES 7, B
-- [ ] 0xCBB9 - RES 7, C
-- [ ] 0xCBBA - RES 7, D
-- [ ] 0xCBBB - RES 7, E
-- [ ] 0xCBBC - RES 7, H
-- [ ] 0xCBBD - RES 7, L
-- [ ] 0xCBBE - RES 7, (HL)
-- [ ] 0xCBBF - RES 7, A
-- [ ] 0xCBC0 - SET 0, B
-- [ ] 0xCBC1 - SET 0, C
-- [ ] 0xCBC2 - SET 0, D
-- [ ] 0xCBC3 - SET 0, E
-- [ ] 0xCBC4 - SET 0, H
-- [ ] 0xCBC5 - SET 0, L
-- [ ] 0xCBC6 - SET 0, (HL)
-- [ ] 0xCBC7 - SET 0, A
-- [ ] 0xCBC8 - SET 1, B
-- [ ] 0xCBC9 - SET 1, C
-- [ ] 0xCBCA - SET 1, D
-- [ ] 0xCBCB - SET 1, E
-- [ ] 0xCBCC - SET 1, H
-- [ ] 0xCBCD - SET 1, L
-- [ ] 0xCBCE - SET 1, (HL)
-- [ ] 0xCBCF - SET 1, A
-- [ ] 0xCBD0 - SET 2, B
-- [ ] 0xCBD1 - SET 2, C
-- [ ] 0xCBD2 - SET 2, D
-- [ ] 0xCBD3 - SET 2, E
-- [ ] 0xCBD4 - SET 2, H
-- [ ] 0xCBD5 - SET 2, L
-- [ ] 0xCBD6 - SET 2, (HL)
-- [ ] 0xCBD7 - SET 2, A
-- [ ] 0xCBD8 - SET 3, B
-- [ ] 0xCBD9 - SET 3, C
-- [ ] 0xCBDA - SET 3, D
-- [ ] 0xCBDB - SET 3, E
-- [ ] 0xCBDC - SET 3, H
-- [ ] 0xCBDD - SET 3, L
-- [ ] 0xCBDE - SET 3, (HL)
-- [ ] 0xCBDF - SET 3, A
-- [ ] 0xCBE0 - SET 4, B
-- [ ] 0xCBE1 - SET 4, C
-- [ ] 0xCBE2 - SET 4, D
-- [ ] 0xCBE3 - SET 4, E
-- [ ] 0xCBE4 - SET 4, H
-- [ ] 0xCBE5 - SET 4, L
-- [ ] 0xCBE6 - SET 4, (HL)
-- [ ] 0xCBE7 - SET 4, A
-- [ ] 0xCBE8 - SET 5, B
-- [ ] 0xCBE9 - SET 5, C
-- [ ] 0xCBEA - SET 5, D
-- [ ] 0xCBEB - SET 5, E
-- [ ] 0xCBEC - SET 5, H
-- [ ] 0xCBED - SET 5, L
-- [ ] 0xCBEE - SET 5, (HL)
-- [ ] 0xCBEF - SET 5, A
-- [ ] 0xCBF0 - SET 6, B
-- [ ] 0xCBF1 - SET 6, C
-- [ ] 0xCBF2 - SET 6, D
-- [ ] 0xCBF3 - SET 6, E
-- [ ] 0xCBF4 - SET 6, H
-- [ ] 0xCBF5 - SET 6, L
-- [ ] 0xCBF6 - SET 6, (HL)
-- [ ] 0xCBF7 - SET 6, A
-- [ ] 0xCBF8 - SET 7, B
-- [ ] 0xCBF9 - SET 7, C
-- [ ] 0xCBFA - SET 7, D
-- [ ] 0xCBFB - SET 7, E
-- [ ] 0xCBFC - SET 7, H
-- [ ] 0xCBFD - SET 7, L
-- [ ] 0xCBFE - SET 7, (HL)
-- [ ] 0xCBFF - SET 7, A
+- [x] 0xCB80 - RES 0, B
+- [x] 0xCB81 - RES 0, C
+- [x] 0xCB82 - RES 0, D
+- [x] 0xCB83 - RES 0, E
+- [x] 0xCB84 - RES 0, H
+- [x] 0xCB85 - RES 0, L
+- [x] 0xCB86 - RES 0, (HL)
+- [x] 0xCB87 - RES 0, A
+- [x] 0xCB88 - RES 1, B
+- [x] 0xCB89 - RES 1, C
+- [x] 0xCB8A - RES 1, D
+- [x] 0xCB8B - RES 1, E
+- [x] 0xCB8C - RES 1, H
+- [x] 0xCB8D - RES 1, L
+- [x] 0xCB8E - RES 1, (HL)
+- [x] 0xCB8F - RES 1, A
+- [x] 0xCB90 - RES 2, B
+- [x] 0xCB91 - RES 2, C
+- [x] 0xCB92 - RES 2, D
+- [x] 0xCB93 - RES 2, E
+- [x] 0xCB94 - RES 2, H
+- [x] 0xCB95 - RES 2, L
+- [x] 0xCB96 - RES 2, (HL)
+- [x] 0xCB97 - RES 2, A
+- [x] 0xCB98 - RES 3, B
+- [x] 0xCB99 - RES 3, C
+- [x] 0xCB9A - RES 3, D
+- [x] 0xCB9B - RES 3, E
+- [x] 0xCB9C - RES 3, H
+- [x] 0xCB9D - RES 3, L
+- [x] 0xCB9E - RES 3, (HL)
+- [x] 0xCB9F - RES 3, A
+- [x] 0xCBA0 - RES 4, B
+- [x] 0xCBA1 - RES 4, C
+- [x] 0xCBA2 - RES 4, D
+- [x] 0xCBA3 - RES 4, E
+- [x] 0xCBA4 - RES 4, H
+- [x] 0xCBA5 - RES 4, L
+- [x] 0xCBA6 - RES 4, (HL)
+- [x] 0xCBA7 - RES 4, A
+- [x] 0xCBA8 - RES 5, B
+- [x] 0xCBA9 - RES 5, C
+- [x] 0xCBAA - RES 5, D
+- [x] 0xCBAB - RES 5, E
+- [x] 0xCBAC - RES 5, H
+- [x] 0xCBAD - RES 5, L
+- [x] 0xCBAE - RES 5, (HL)
+- [x] 0xCBAF - RES 5, A
+- [x] 0xCBB0 - RES 6, B
+- [x] 0xCBB1 - RES 6, C
+- [x] 0xCBB2 - RES 6, D
+- [x] 0xCBB3 - RES 6, E
+- [x] 0xCBB4 - RES 6, H
+- [x] 0xCBB5 - RES 6, L
+- [x] 0xCBB6 - RES 6, (HL)
+- [x] 0xCBB7 - RES 6, A
+- [x] 0xCBB8 - RES 7, B
+- [x] 0xCBB9 - RES 7, C
+- [x] 0xCBBA - RES 7, D
+- [x] 0xCBBB - RES 7, E
+- [x] 0xCBBC - RES 7, H
+- [x] 0xCBBD - RES 7, L
+- [x] 0xCBBE - RES 7, (HL)
+- [x] 0xCBBF - RES 7, A
+- [x] 0xCBC0 - SET 0, B
+- [x] 0xCBC1 - SET 0, C
+- [x] 0xCBC2 - SET 0, D
+- [x] 0xCBC3 - SET 0, E
+- [x] 0xCBC4 - SET 0, H
+- [x] 0xCBC5 - SET 0, L
+- [x] 0xCBC6 - SET 0, (HL)
+- [x] 0xCBC7 - SET 0, A
+- [x] 0xCBC8 - SET 1, B
+- [x] 0xCBC9 - SET 1, C
+- [x] 0xCBCA - SET 1, D
+- [x] 0xCBCB - SET 1, E
+- [x] 0xCBCC - SET 1, H
+- [x] 0xCBCD - SET 1, L
+- [x] 0xCBCE - SET 1, (HL)
+- [x] 0xCBCF - SET 1, A
+- [x] 0xCBD0 - SET 2, B
+- [x] 0xCBD1 - SET 2, C
+- [x] 0xCBD2 - SET 2, D
+- [x] 0xCBD3 - SET 2, E
+- [x] 0xCBD4 - SET 2, H
+- [x] 0xCBD5 - SET 2, L
+- [x] 0xCBD6 - SET 2, (HL)
+- [x] 0xCBD7 - SET 2, A
+- [x] 0xCBD8 - SET 3, B
+- [x] 0xCBD9 - SET 3, C
+- [x] 0xCBDA - SET 3, D
+- [x] 0xCBDB - SET 3, E
+- [x] 0xCBDC - SET 3, H
+- [x] 0xCBDD - SET 3, L
+- [x] 0xCBDE - SET 3, (HL)
+- [x] 0xCBDF - SET 3, A
+- [x] 0xCBE0 - SET 4, B
+- [x] 0xCBE1 - SET 4, C
+- [x] 0xCBE2 - SET 4, D
+- [x] 0xCBE3 - SET 4, E
+- [x] 0xCBE4 - SET 4, H
+- [x] 0xCBE5 - SET 4, L
+- [x] 0xCBE6 - SET 4, (HL)
+- [x] 0xCBE7 - SET 4, A
+- [x] 0xCBE8 - SET 5, B
+- [x] 0xCBE9 - SET 5, C
+- [x] 0xCBEA - SET 5, D
+- [x] 0xCBEB - SET 5, E
+- [x] 0xCBEC - SET 5, H
+- [x] 0xCBED - SET 5, L
+- [x] 0xCBEE - SET 5, (HL)
+- [x] 0xCBEF - SET 5, A
+- [x] 0xCBF0 - SET 6, B
+- [x] 0xCBF1 - SET 6, C
+- [x] 0xCBF2 - SET 6, D
+- [x] 0xCBF3 - SET 6, E
+- [x] 0xCBF4 - SET 6, H
+- [x] 0xCBF5 - SET 6, L
+- [x] 0xCBF6 - SET 6, (HL)
+- [x] 0xCBF7 - SET 6, A
+- [x] 0xCBF8 - SET 7, B
+- [x] 0xCBF9 - SET 7, C
+- [x] 0xCBFA - SET 7, D
+- [x] 0xCBFB - SET 7, E
+- [x] 0xCBFC - SET 7, H
+- [x] 0xCBFD - SET 7, L
+- [x] 0xCBFE - SET 7, (HL)
+- [x] 0xCBFF - SET 7, A
 
 
 # Timeline
@@ -540,3 +540,5 @@ Day 31 - Completed All control flow instructions
 Day 35 - Completed All 8-bit Arithmetic instructions
 
 Day 39 - Completed All 16-bit Arithmetic instructions
+
+Day 44 - Completed All rotate, shift, and bit operations
