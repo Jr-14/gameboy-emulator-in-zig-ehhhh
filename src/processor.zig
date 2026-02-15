@@ -43,6 +43,9 @@ PC: u16 = 0,
 // Interrupt Master Enabled
 IME: bool = false,
 
+// Can we use this as a halting mechanism?
+isHalted: bool = false,
+
 memory: *Memory = undefined,
 
 const InitProcessor = struct {
@@ -964,6 +967,11 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
 }
 
 pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
+    if (proc.isHalted) {
+        std.debug.print("Processor is currently halted. Not executing any operations\n", .{});
+        return;
+    }
+
     switch (op_code) {
         // NOP (No operation) Only advances the program counter by 1.
         0x00 => {},
@@ -1314,8 +1322,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x75 => instructions.load.hlMem_reg(proc, &proc.L),
 
         // HALT
-        // TODO
-        // 0x76 => {},
+        0x76 => { proc.isHalted = true; },
 
         // LD (HL), A
         0x77 => instructions.load.hlMem_reg(proc, &proc.A),

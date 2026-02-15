@@ -11,3 +11,6 @@ tangible states in the CPU such as Loading into registers.
 CPU](https://rylev.github.io/DMG-01/public/book/cpu/conclusion.html) I saw that an implementation here merely halts the
 CPU, but an actual production grade one from [Gearboy](https://github.com/drhelius/Gearboy/blob/7150a032e0bb4dcd2652d7baacfdfea51c38910d/src/opcodes.cpp#L851-L873)
 has other "stuff" which I don't understand :(.
+
+Looks like I've yet to properly learn interrupt flags, and interrupt in general to see how they're used in Gameboy.
+[FFF - IE: Interrupt enable](https://gbdev.io/pandocs/Interrupts.html#ffff--ie-interrupt-enable)

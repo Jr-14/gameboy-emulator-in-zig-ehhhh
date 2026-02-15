@@ -25,7 +25,7 @@ emulators, and a bit of systems programming.
 - [x] 0x2F - CPL
 - [x] 0x37 - SCF
 - [x] 0x3F - CCF
-- [ ] 0x76 - HALT
+- [x] 0x76 - HALT
 - [x] 0xF3 = DI
 - [x] 0xFB - EI
 
