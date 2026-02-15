@@ -22,11 +22,12 @@ emulators, and a bit of systems programming.
 - [x] 0x00 - NOP
 - [ ] 0x10 - STOP
 - [ ] 0x27 - DAA
-- [ ] 0x2F - CPL
-- [ ] 0x37 - SCF
-- [ ] 0x3F - CCF
+- [x] 0x2F - CPL
+- [x] 0x37 - SCF
+- [x] 0x3F - CCF
 - [ ] 0x76 - HALT
-- [ ] 0xFb - EI
+- [x] 0xF3 = DI
+- [x] 0xFB - EI
 
 **8-bit load instructions**
 - [x] 0x02 - LD (BC), A

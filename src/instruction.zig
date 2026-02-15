@@ -1214,6 +1214,27 @@ pub const bits = struct {
     }
 };
 
+pub const misc = struct {
+    /// Set Carry Flag.
+    pub fn set_carry_flag(proc: *Processor) void {
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        proc.setFlag(.C);
+    }
+
+    /// Complement Carry Flag.
+    pub fn complement_carry_flag(proc: *Processor) void {
+        proc.unsetFlag(.N);
+        proc.unsetFlag(.H);
+        if (proc.isFlagSet(.C)) proc.unsetFlag(.C) else proc.setFlag(.C);
+    }
+
+    /// ComPLement accumulator (A = ~A); also called bitwise NOT.
+    pub fn complement_a8(proc: *Processor) void {
+        proc.A.value = ~proc.A.value;
+    }
+};
+
 const expectEqual = std.testing.expectEqual;
 
 // Arithmetic Instructions
@@ -2466,4 +2487,51 @@ test "bits.set_bit_hlMem" {
 
     bits.set_bit_hlMem(&processor, .seven);
     try expectEqual(0b1000_0000, processor.memory.address[HL]);
+}
+
+test "misc.set_carry_flag" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{});
+
+    misc.set_carry_flag(&processor);
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+}
+
+test "misc.complement_carry_flag" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{});
+
+    misc.complement_carry_flag(&processor);
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+
+    misc.complement_carry_flag(&processor);
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+
+    misc.complement_carry_flag(&processor);
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+}
+
+test "misc.complement_a8" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{
+        .A = 0xF0,
+    });
+
+    misc.complement_a8(&processor);
+    try expectEqual(0x0F, processor.A.value);
+
+    misc.complement_a8(&processor);
+    try expectEqual(0xF0, processor.A.value);
 }

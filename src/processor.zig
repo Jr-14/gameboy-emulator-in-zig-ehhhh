@@ -1082,6 +1082,9 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         // DEC L
         0x2D => instructions.arithmetic.dec_reg(proc, &proc.L),
 
+        // CPL
+        0x2F => instructions.misc.complement_a8(proc),
+
         // JR NC, s8
         0x30 => instructions.controlFlow.jump_rel_cc_imm8(proc, .NC),
 
@@ -1093,6 +1096,9 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
 
         // DEC (HL)
         0x35 => instructions.arithmetic.dec_rr(proc, .HL),
+
+        // SCF
+        0x37 => instructions.misc.set_carry_flag(proc),
 
         // JR C, s8
         0x38 => instructions.controlFlow.jump_rel_cc_imm8(proc, .C),
@@ -1108,6 +1114,9 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
 
         // DEC A
         0x3D => instructions.arithmetic.dec_reg(proc, &proc.A),
+
+        // CCF
+        0x3F => instructions.misc.complement_carry_flag(proc),
 
         // LD A, (DE)
         0x1A => instructions.load.reg_rrMem(proc, &proc.A, .DE),
@@ -1656,6 +1665,9 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         // LD A, (C)
         0xF2 => instructions.load.reg_regMem(proc, &proc.A, &proc.C),
 
+        // DI
+        0xF3 => { proc.IME = false; },
+
         // PUSH AF
         0xF5 => instructions.controlFlow.push_rr(proc, .AF),
 
@@ -1673,6 +1685,9 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
 
         // LD A, (a16)
         0xFA => instructions.load.reg_imm16Mem(proc, &proc.A),
+
+        // EI
+        0xFB => { proc.IME = true; },
 
         // CP d8
         0xFE => instructions.arithmetic.compare_imm8(proc),
