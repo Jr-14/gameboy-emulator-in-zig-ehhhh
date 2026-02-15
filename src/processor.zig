@@ -720,6 +720,246 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
 
         // RES 5, A
         0xAF => instructions.bits.reset_bit_r8(.five, &proc.A),
+
+        // RES 6, B
+        0xB0 => instructions.bits.reset_bit_r8(.six, &proc.B),
+
+        // RES 6, C
+        0xB1 => instructions.bits.reset_bit_r8(.six, &proc.C),
+
+        // RES 6, D
+        0xB2 => instructions.bits.reset_bit_r8(.six, &proc.D),
+
+        // RES 6, E
+        0xB3 => instructions.bits.reset_bit_r8(.six, &proc.E),
+
+        // RES 6, H
+        0xB4 => instructions.bits.reset_bit_r8(.six, &proc.H),
+
+        // RES 6, L
+        0xB5 => instructions.bits.reset_bit_r8(.six, &proc.L),
+
+        // RES 6, (HL)
+        0xB6 => instructions.bits.reset_bit_hlMem(proc, .six),
+
+        // RES 6, A
+        0xB7 => instructions.bits.reset_bit_r8(.six, &proc.A),
+
+        // RES 7, B
+        0xB8 => instructions.bits.reset_bit_r8(.seven, &proc.B),
+
+        // RES 7, C
+        0xB9 => instructions.bits.reset_bit_r8(.seven, &proc.C),
+
+        // RES 7, D
+        0xBA => instructions.bits.reset_bit_r8(.seven, &proc.D),
+
+        // RES 7, E
+        0xBB => instructions.bits.reset_bit_r8(.seven, &proc.E),
+
+        // RES 7, H
+        0xBC => instructions.bits.reset_bit_r8(.seven, &proc.H),
+
+        // RES 7, L
+        0xBD => instructions.bits.reset_bit_r8(.seven, &proc.L),
+
+        // RES 7, (HL)
+        0xBE => instructions.bits.reset_bit_hlMem(proc, .seven),
+
+        // RES 7, A
+        0xBF => instructions.bits.reset_bit_r8(.seven, &proc.A),
+
+        // SET 0, B
+        0xC0 => instructions.bits.set_bit_r8(.zero, &proc.B),
+
+        // SET 0, C
+        0xC1 => instructions.bits.set_bit_r8(.zero, &proc.C),
+
+        // SET 0, D
+        0xC2 => instructions.bits.set_bit_r8(.zero, &proc.D),
+
+        // SET 0, E
+        0xC3 => instructions.bits.set_bit_r8(.zero, &proc.E),
+
+        // SET 0, H
+        0xC4 => instructions.bits.set_bit_r8(.zero, &proc.H),
+
+        // SET 0, L
+        0xC5 => instructions.bits.set_bit_r8(.zero, &proc.L),
+
+        // SET 0, (HL)
+        0xC6 => instructions.bits.set_bit_hlMem(proc, .zero),
+
+        // SET 0, A
+        0xC7 => instructions.bits.set_bit_r8(.zero, &proc.A),
+
+        // SET 1, B
+        0xC8 => instructions.bits.set_bit_r8(.one, &proc.B),
+
+        // SET 1, C
+        0xC9 => instructions.bits.set_bit_r8(.one, &proc.C),
+
+        // SET 1, D
+        0xCA => instructions.bits.set_bit_r8(.one, &proc.D),
+
+        // SET 1, E
+        0xCB => instructions.bits.set_bit_r8(.one, &proc.E),
+
+        // SET 1, H
+        0xCC => instructions.bits.set_bit_r8(.one, &proc.H),
+
+        // SET 1, L
+        0xCD => instructions.bits.set_bit_r8(.one, &proc.L),
+
+        // SET 1, (HL)
+        0xCE => instructions.bits.set_bit_hlMem(&proc, .one),
+
+        // SET 1, A
+        0xCF => instructions.bits.set_bit_r8(.one, &proc.A),
+
+        // SET 2, B
+        0xD0 => instructions.bits.set_bit_r8(.two, &proc.B),
+
+        // SET 2, C
+        0xD1 => instructions.bits.set_bit_r8(.two, &proc.C),
+
+        // SET 2, D
+        0xD2 => instructions.bits.set_bit_r8(.two, &proc.D),
+
+        // SET 2, E
+        0xD3 => instructions.bits.set_bit_r8(.two, &proc.E),
+
+        // SET 2, H
+        0xD4 => instructions.bits.set_bit_r8(.two, &proc.H),
+
+        // SET 2, L
+        0xD5 => instructions.bits.set_bit_r8(.two, &proc.L),
+
+        // SET 2, (HL)
+        0xD6 => instructions.bits.set_bit_hlMem(proc, .two),
+
+        // SET 2, A
+        0xD7 => instructions.bits.set_bit_r8(.two, &proc.A),
+
+        // SET 3, B
+        0xD8 => instructions.bits.set_bit_r8(.three, &proc.B),
+
+        // SET 3, C
+        0xD9 => instructions.bits.set_bit_r8(.three, &proc.C),
+
+        // SET 3, D
+        0xDA => instructions.bits.set_bit_r8(.three, &proc.D),
+
+        // SET 3, E
+        0xDB => instructions.bits.set_bit_r8(.three, &proc.E),
+
+        // SET 3, H
+        0xDC => instructions.bits.set_bit_r8(.three, &proc.H),
+
+        // SET 3, L
+        0xDD => instructions.bits.set_bit_r8(.three, &proc.L),
+
+        // SET 3, (HL)
+        0xDE => instructions.bits.set_bit_hlMem(&proc, .three),
+
+        // SET 3, A
+        0xDF => instructions.bits.set_bit_r8(.three, &proc.A),
+
+        // SET 4, B
+        0xE0 => instructions.bits.set_bit_r8(.four, &proc.B),
+
+        // SET 4, C
+        0xE1 => instructions.bits.set_bit_r8(.four, &proc.C),
+
+        // SET 4, D
+        0xE2 => instructions.bits.set_bit_r8(.four, &proc.D),
+
+        // SET 4, E
+        0xE3 => instructions.bits.set_bit_r8(.four, &proc.E),
+
+        // SET 4, H
+        0xE4 => instructions.bits.set_bit_r8(.four, &proc.H),
+
+        // SET 4, L
+        0xE5 => instructions.bits.set_bit_r8(.four, &proc.L),
+
+        // SET 4, (HL)
+        0xE6 => instructions.bits.set_bit_hlMem(proc, .four),
+
+        // SET 4 A
+        0xE7 => instructions.bits.set_bit_r8(.four, &proc.A),
+
+        // SET 5, B
+        0xE8 => instructions.bits.set_bit_r8(.five, &proc.B),
+
+        // SET 5, C
+        0xE9 => instructions.bits.set_bit_r8(.five, &proc.C),
+
+        // SET 5, D
+        0xEA => instructions.bits.set_bit_r8(.five, &proc.D),
+
+        // SET 5, E
+        0xEB => instructions.bits.set_bit_r8(.five, &proc.E),
+
+        // SET 5, H
+        0xEC => instructions.bits.set_bit_r8(.five, &proc.H),
+
+        // SET 5, L
+        0xED => instructions.bits.set_bit_r8(.five, &proc.L),
+
+        // SET 5, (HL)
+        0xEE => instructions.bits.set_bit_hlMem(&proc, .five),
+
+        // SET 5, A
+        0xEF => instructions.bits.set_bit_r8(.five, &proc.A),
+
+        // SET 6, B
+        0xF0 => instructions.bits.set_bit_r8(.six, &proc.B),
+
+        // SET 6, C
+        0xF1 => instructions.bits.set_bit_r8(.six, &proc.C),
+
+        // SET 6, D
+        0xF2 => instructions.bits.set_bit_r8(.six, &proc.D),
+
+        // SET 6, E
+        0xF3 => instructions.bits.set_bit_r8(.six, &proc.E),
+
+        // SET 6, H
+        0xF4 => instructions.bits.set_bit_r8(.six, &proc.H),
+
+        // SET 6, L
+        0xF5 => instructions.bits.set_bit_r8(.six, &proc.L),
+
+        // SET 6, (HL)
+        0xF6 => instructions.bits.set_bit_hlMem(proc, .six),
+
+        // SET 6 A
+        0xF7 => instructions.bits.set_bit_r8(.six, &proc.A),
+
+        // SET 7, B
+        0xF8 => instructions.bits.set_bit_r8(.seven, &proc.B),
+
+        // SET 7, C
+        0xF9 => instructions.bits.set_bit_r8(.seven, &proc.C),
+
+        // SET 7, D
+        0xFA => instructions.bits.set_bit_r8(.seven, &proc.D),
+
+        // SET 7, E
+        0xFB => instructions.bits.set_bit_r8(.seven, &proc.E),
+
+        // SET 7, H
+        0xFC => instructions.bits.set_bit_r8(.seven, &proc.H),
+
+        // SET 7, L
+        0xFD => instructions.bits.set_bit_r8(.seven, &proc.L),
+
+        // SET 7, (HL)
+        0xFE => instructions.bits.set_bit_hlMem(&proc, .seven),
+
+        // SET 7, A
+        0xFF => instructions.bits.set_bit_r8(.seven, &proc.A),
     }
 }
 
