@@ -576,6 +576,150 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
 
         // BIT 7, A
         0x7F => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.A),
+
+        // RES 0, B
+        0x80 => instructions.bits.reset_bit_r8(.zero, &proc.B),
+
+        // RES 0, C
+        0x81 => instructions.bits.reset_bit_r8(.zero, &proc.C),
+
+        // RES 0, D
+        0x82 => instructions.bits.reset_bit_r8(.zero, &proc.D),
+
+        // RES 0, E
+        0x83 => instructions.bits.reset_bit_r8(.zero, &proc.E),
+
+        // RES 0, H
+        0x84 => instructions.bits.reset_bit_r8(.zero, &proc.H),
+
+        // RES 0, L
+        0x85 => instructions.bits.reset_bit_r8(.zero, &proc.L),
+
+        // RES 0, (HL)
+        0x86 => instructions.bits.reset_bit_hlMem(proc, .zero),
+
+        // RES 0, A
+        0x87 => instructions.bits.reset_bit_r8(.zero, &proc.A),
+
+        // RES 1, B
+        0x88 => instructions.bits.reset_bit_r8(.one, &proc.B),
+
+        // RES 1, C
+        0x89 => instructions.bits.reset_bit_r8(.one, &proc.C),
+
+        // RES 1, D
+        0x8A => instructions.bits.reset_bit_r8(.one, &proc.D),
+
+        // RES 1, E
+        0x8B => instructions.bits.reset_bit_r8(.one, &proc.E),
+
+        // RES 1, H
+        0x8C => instructions.bits.reset_bit_r8(.one, &proc.H),
+
+        // RES 1, L
+        0x8D => instructions.bits.reset_bit_r8(.one, &proc.L),
+
+        // RES 1, (HL)
+        0x8E => instructions.bits.reset_bit_hlMem(proc, .one),
+
+        // RES 1, A
+        0x8F => instructions.bits.reset_bit_r8(.two, &proc.A),
+
+        // RES 2, B
+        0x90 => instructions.bits.reset_bit_r8(.two, &proc.B),
+
+        // RES 2, C
+        0x91 => instructions.bits.reset_bit_r8(.two, &proc.C),
+
+        // RES 2, D
+        0x92 => instructions.bits.reset_bit_r8(.two, &proc.D),
+
+        // RES 2, E
+        0x93 => instructions.bits.reset_bit_r8(.two, &proc.E),
+
+        // RES 2, H
+        0x94 => instructions.bits.reset_bit_r8(.two, &proc.H),
+
+        // RES 2, L
+        0x95 => instructions.bits.reset_bit_r8(.two, &proc.L),
+
+        // RES 2, (HL)
+        0x96 => instructions.bits.reset_bit_hlMem(proc, .two),
+
+        // RES 2, A
+        0x97 => instructions.bits.reset_bit_r8(.two, &proc.A),
+
+        // RES 3, B
+        0x98 => instructions.bits.reset_bit_r8(.three, &proc.B),
+
+        // RES 3, C
+        0x99 => instructions.bits.reset_bit_r8(.three, &proc.C),
+
+        // RES 3, D
+        0x9A => instructions.bits.reset_bit_r8(.three, &proc.D),
+
+        // RES 3, E
+        0x9B => instructions.bits.reset_bit_r8(.three, &proc.E),
+
+        // RES 3, H
+        0x9C => instructions.bits.reset_bit_r8(.three, &proc.H),
+
+        // RES 3, L
+        0x9D => instructions.bits.reset_bit_r8(.three, &proc.L),
+
+        // RES 3, (HL)
+        0x9E => instructions.bits.reset_bit_hlMem(proc, .three),
+
+        // RES 3, A
+        0x9F => instructions.bits.reset_bit_r8(.three, &proc.A),
+
+        // RES 4, B
+        0xA0 => instructions.bits.reset_bit_r8(.four, &proc.B),
+
+        // RES 4, C
+        0xA1 => instructions.bits.reset_bit_r8(.four, &proc.C),
+
+        // RES 4, D
+        0xA2 => instructions.bits.reset_bit_r8(.four, &proc.D),
+
+        // RES 4, E
+        0xA3 => instructions.bits.reset_bit_r8(.four, &proc.E),
+
+        // RES 4, H
+        0xA4 => instructions.bits.reset_bit_r8(.four, &proc.H),
+
+        // RES 4, L
+        0xA5 => instructions.bits.reset_bit_r8(.four, &proc.L),
+
+        // RES 4, (HL)
+        0xA6 => instructions.bits.reset_bit_hlMem(proc, .four),
+
+        // RES 4, A
+        0xA7 => instructions.bits.reset_bit_r8(.four, &proc.A),
+
+        // RES 5, B
+        0xA8 => instructions.bits.reset_bit_r8(.five, &proc.B),
+
+        // RES 5, C
+        0xA9 => instructions.bits.reset_bit_r8(.five, &proc.C),
+
+        // RES 5, D
+        0xAA => instructions.bits.reset_bit_r8(.five, &proc.D),
+
+        // RES 5, E
+        0xAB => instructions.bits.reset_bit_r8(.five, &proc.E),
+
+        // RES 5, H
+        0xAC => instructions.bits.reset_bit_r8(.five, &proc.H),
+
+        // RES 5, L
+        0xAD => instructions.bits.reset_bit_r8(.five, &proc.L),
+
+        // RES 5, (HL)
+        0xAE => instructions.bits.reset_bit_hlMem(proc, .five),
+
+        // RES 5, A
+        0xAF => instructions.bits.reset_bit_r8(.five, &proc.A),
     }
 }
 

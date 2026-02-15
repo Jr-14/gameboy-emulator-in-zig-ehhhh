@@ -1194,10 +1194,23 @@ pub const bits = struct {
     }
 
     /// Resets the bit b of the 8-bit data at the absolute address specified by the 16-bit register HL, to 0.
-    pub fn reset_bit_hlMem(bit: Bit, proc: *Processor) void {
+    pub fn reset_bit_hlMem(proc:* Processor, bit: Bit) void {
         const content: *u8 = &proc.memory.address[proc.getHL()];
         const bit_mask: u8 = ~(@as(u8, 1) << @intFromEnum(bit));
         content.* &= bit_mask;
+    }
+
+    /// Sets the bit b of the 8-bit register r to 1
+    pub fn set_bit_r8(bit: Bit, register: *Register) void {
+        const bit_mask: u8 = @as(u8, 1) << @intFromEnum(bit);
+        register.value |= bit_mask;
+    }
+
+    /// Sets the bit b of the 8-bit data at the absolute address specified by the 16-bit register HL, to 1.
+    pub fn set_bit_hlMem(proc: *Processor, bit: Bit) void {
+        const bit_mask: u8 = @as(u8, 1) << @intFromEnum(bit);
+        const content: *u8 = &proc.memory.address[proc.getHL()];
+        content.* |= bit_mask;
     }
 };
 
@@ -2348,34 +2361,109 @@ test "bits.reset_bit_hlMem" {
     var processor = Processor.init(&memory, .{});
     processor.setHL(HL);
 
-    bits.reset_bit_hlMem(.zero, &processor);
+    bits.reset_bit_hlMem(&processor, .zero);
     try expectEqual(0b1111_1110, memory.address[HL]);
     memory.address[HL] = 0xFF;
 
-    bits.reset_bit_hlMem(.one, &processor);
+    bits.reset_bit_hlMem(&processor, .one);
     try expectEqual(0b1111_1101, memory.address[HL]);
     memory.address[HL] = 0xFF;
 
-    bits.reset_bit_hlMem(.two, &processor);
+    bits.reset_bit_hlMem(&processor, .two);
     try expectEqual(0b1111_1011, memory.address[HL]);
     memory.address[HL] = 0xFF;
 
-    bits.reset_bit_hlMem(.three, &processor);
+    bits.reset_bit_hlMem(&processor, .three);
     try expectEqual(0b1111_0111, memory.address[HL]);
     memory.address[HL] = 0xFF;
 
-    bits.reset_bit_hlMem(.four, &processor);
+    bits.reset_bit_hlMem(&processor, .four);
     try expectEqual(0b1110_1111, memory.address[HL]);
     memory.address[HL] = 0xFF;
 
-    bits.reset_bit_hlMem(.five, &processor);
+    bits.reset_bit_hlMem(&processor, .five);
     try expectEqual(0b1101_1111, memory.address[HL]);
     memory.address[HL] = 0xFF;
 
-    bits.reset_bit_hlMem(.six, &processor);
+    bits.reset_bit_hlMem(&processor, .six);
     try expectEqual(0b1011_1111, memory.address[HL]);
     memory.address[HL] = 0xFF;
 
-    bits.reset_bit_hlMem(.seven, &processor);
+    bits.reset_bit_hlMem(&processor, .seven);
     try expectEqual(0b0111_1111, memory.address[HL]);
+}
+
+test "bits.set_bit_r8" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{ .D = 0x00 });
+
+    bits.set_bit_r8(.zero, &processor.D);
+    try expectEqual(0b0000_0001, processor.D.value);
+    processor.D.value = 0x00;
+
+    bits.set_bit_r8(.one, &processor.D);
+    try expectEqual(0b0000_0010, processor.D.value);
+    processor.D.value = 0x00;
+
+    bits.set_bit_r8(.two, &processor.D);
+    try expectEqual(0b0000_0100, processor.D.value);
+    processor.D.value = 0x00;
+
+    bits.set_bit_r8(.three, &processor.D);
+    try expectEqual(0b0000_1000, processor.D.value);
+    processor.D.value = 0x00;
+
+    bits.set_bit_r8(.four, &processor.D);
+    try expectEqual(0b0001_0000, processor.D.value);
+    processor.D.value = 0x00;
+
+    bits.set_bit_r8(.five, &processor.D);
+    try expectEqual(0b0010_0000, processor.D.value);
+    processor.D.value = 0x00;
+
+    bits.set_bit_r8(.six, &processor.D);
+    try expectEqual(0b0100_0000, processor.D.value);
+    processor.D.value = 0x00;
+
+    bits.set_bit_r8(.seven, &processor.D);
+    try expectEqual(0b1000_0000, processor.D.value);
+}
+
+test "bits.set_bit_hlMem" {
+    const HL: u16 = 0x93A0;
+    var memory = Memory.init();
+    memory.address[HL] = 0x00;
+    var processor = Processor.init(&memory, .{});
+    processor.setHL(HL);
+
+    bits.set_bit_hlMem(&processor, .zero);
+    try expectEqual(0b0000_0001, processor.memory.address[HL]);
+    processor.memory.address[HL] = 0x00;
+
+    bits.set_bit_hlMem(&processor, .one);
+    try expectEqual(0b0000_0010, processor.memory.address[HL]);
+    processor.memory.address[HL] = 0x00;
+
+    bits.set_bit_hlMem(&processor, .two);
+    try expectEqual(0b0000_0100, processor.memory.address[HL]);
+    processor.memory.address[HL] = 0x00;
+
+    bits.set_bit_hlMem(&processor, .three);
+    try expectEqual(0b0000_1000, processor.memory.address[HL]);
+    processor.memory.address[HL] = 0x00;
+
+    bits.set_bit_hlMem(&processor, .four);
+    try expectEqual(0b0001_0000, processor.memory.address[HL]);
+    processor.memory.address[HL] = 0x00;
+
+    bits.set_bit_hlMem(&processor, .five);
+    try expectEqual(0b0010_0000, processor.memory.address[HL]);
+    processor.memory.address[HL] = 0x00;
+
+    bits.set_bit_hlMem(&processor, .six);
+    try expectEqual(0b0100_0000, processor.memory.address[HL]);
+    processor.memory.address[HL] = 0x00;
+
+    bits.set_bit_hlMem(&processor, .seven);
+    try expectEqual(0b1000_0000, processor.memory.address[HL]);
 }
