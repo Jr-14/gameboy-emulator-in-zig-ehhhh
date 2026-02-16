@@ -16,6 +16,7 @@ idea to catalogue them.
 - [Gameboy Half Carry](https://www.robm.dev/articles/gameboy-half-carry/)
 - [game-boy-what-constitutes-a-half-carry](https://stackoverflow.com/questions/8868396/game-boy-what-constitutes-a-half-carry/8874607#8874607)
 - [Game Boy carry & half-carry flags](https://gist.github.com/meganesu/9e228b6b587decc783aa9be34ae27841)
+- [GameBoy - Help With DAA instruction](https://forums.nesdev.org/viewtopic.php?t=15944)
 
 
 # Zig
