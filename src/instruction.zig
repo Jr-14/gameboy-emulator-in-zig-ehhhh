@@ -1233,6 +1233,35 @@ pub const misc = struct {
     pub fn complement_a8(proc: *Processor) void {
         proc.A.value = ~proc.A.value;
     }
+
+    /// Decimal Adjust Accumulator.
+    /// Designed to be used after performing an arithmetic instruction (ADD, ADC, SUB, SBC) whose inputs were in
+    /// Binary-Coded Decimal (BCD), adjusting the result to likewise be in BCD.
+    /// The exact behavior of this instruction depends on the state of the subtract flag N:
+    pub fn decimal_adjust_accumulator(proc: *Processor) void {
+        const N: u1 = @intFromBool(proc.isFlagSet(.N));
+        var adjustment: u8 = 0;
+        switch (N) {
+            0 => {
+                if (proc.isFlagSet(.H) or proc.A.value & 0x0F > 0x09) {
+                    adjustment += 0x06;
+                }
+                if (proc.isFlagSet(.C) or proc.A.value > 0x99) {
+                    adjustment += 0x60;
+                }
+                proc.A.value += adjustment;
+            },
+            1 => {
+                if (proc.isFlagSet(.H)) {
+                    adjustment += 0x06;
+                }
+                if (proc.isFlagSet(.C)) {
+                    adjustment += 0x60;
+                }
+                proc.A.value -= adjustment;
+            },
+        }
+    }
 };
 
 const expectEqual = std.testing.expectEqual;
