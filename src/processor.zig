@@ -1075,6 +1075,9 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         // DEC H
         0x25 => instructions.arithmetic.dec_reg(proc, &proc.H),
 
+        // DAA
+        0x27 => instructions.misc.decimal_adjust_accumulator(proc),
+
         // JR Z, s8
         0x28 => instructions.controlFlow.jump_rel_cc_imm8(proc, .Z),
 
