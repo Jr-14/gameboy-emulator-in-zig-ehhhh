@@ -1248,8 +1248,11 @@ pub const misc = struct {
                 }
                 if (proc.isFlagSet(.C) or proc.A.value > 0x99) {
                     adjustment += 0x60;
+                    proc.setFlag(.C);
+                } else {
+                    proc.unsetFlag(.C);
                 }
-                proc.A.value += adjustment;
+                proc.A.value +%= adjustment;
             },
             1 => {
                 if (proc.isFlagSet(.H)) {
@@ -1258,9 +1261,11 @@ pub const misc = struct {
                 if (proc.isFlagSet(.C)) {
                     adjustment += 0x60;
                 }
-                proc.A.value -= adjustment;
+                proc.A.value -%= adjustment;
             },
         }
+        if (proc.A.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
+        proc.unsetFlag(.H);
     }
 };
 
@@ -2563,4 +2568,47 @@ test "misc.complement_a8" {
 
     misc.complement_a8(&processor);
     try expectEqual(0xF0, processor.A.value);
+}
+
+test "misc.decimal_adjust_accumulator" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{ .A = 0x1F });
+
+    processor.unsetFlag(.N);
+    misc.decimal_adjust_accumulator(&processor);
+    try expectEqual(0x25, processor.A.value);
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0, processor.getFlag(.H));
+
+    processor.unsetFlag(.C);
+    processor.unsetFlag(.N);
+    processor.A.value = 0x60;
+    misc.decimal_adjust_accumulator(&processor);
+    try expectEqual(0x60, processor.A.value);
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0, processor.getFlag(.H));
+
+    processor.unsetFlag(.C);
+    processor.unsetFlag(.N);
+    processor.A.value = 0xC3;
+    misc.decimal_adjust_accumulator(&processor);
+    try expectEqual(0x23, processor.A.value);
+    try expectEqual(1, processor.getFlag(.C));
+    try expectEqual(0, processor.getFlag(.H));
+
+    processor.unsetFlag(.C);
+    processor.setFlag(.N);
+    processor.A.value = 0x60;
+    misc.decimal_adjust_accumulator(&processor);
+    try expectEqual(0x60, processor.A.value);
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0, processor.getFlag(.H));
+
+    processor.setFlag(.H);
+    processor.setFlag(.N);
+    processor.A.value = 0x60;
+    misc.decimal_adjust_accumulator(&processor);
+    try expectEqual(0x54, processor.A.value);
+    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0, processor.getFlag(.H));
 }
