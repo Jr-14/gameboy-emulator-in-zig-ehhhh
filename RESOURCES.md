@@ -53,6 +53,7 @@ idea to catalogue them.
 # Programming
 - [Inline Functions](https://www.geeksforgeeks.org/cpp/inline-functions-cpp/)
 - [Dynamic Dispatch](https://en.wikipedia.org/wiki/Dynamic_dispatch);
+- [The Lost Art of Structure Packing](http://www.catb.org/esr/structure-packing/)
 
 # Misc?
 - [DAA and Binary Coded Decimals (BCD)](https://blog.ollien.com/posts/gb-daa/)
