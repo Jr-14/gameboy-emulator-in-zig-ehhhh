@@ -21,7 +21,7 @@ const FlagCondition = enum {
 pub const arithmetic = struct {
     /// Increment the contents of register reg by 1.
     /// Example: 0x05 -> DEC B
-    pub fn inc_r8(
+    pub fn inc_reg8(
         proc: *Processor,
         reg: *Register,
     ) void {
@@ -37,7 +37,7 @@ pub const arithmetic = struct {
 
     /// Decrement the contents of register reg by 1
     /// Example: 0x0D -> DEC C
-    pub fn dec_reg(
+    pub fn dec_reg8(
         proc: *Processor,
         reg: *Register,
     ) void {
@@ -52,7 +52,7 @@ pub const arithmetic = struct {
     }
 
     /// Increment the contents of register pair rr by 1
-    pub fn inc_rr(proc: *Processor, regPair: Processor.RegisterPair) void {
+    pub fn inc_reg16(proc: *Processor, regPair: Processor.RegisterPair) void {
         switch (regPair) {
             .AF => proc.setAF(proc.getAF() +% 1),
             .BC => proc.setBC(proc.getBC() +% 1),
@@ -62,7 +62,7 @@ pub const arithmetic = struct {
     }
 
     /// Decrement the contents of register pair rr by 1
-    pub fn dec_rr(proc: *Processor, regPair: Processor.RegisterPair) void {
+    pub fn dec_reg16(proc: *Processor, regPair: Processor.RegisterPair) void {
         switch (regPair) {
             .AF => proc.setAF(proc.getAF() -% 1),
             .BC => proc.setBC(proc.getBC() -% 1),
@@ -80,7 +80,7 @@ pub const arithmetic = struct {
     }
 
     /// Add to HL the value of SP
-    pub fn add16_hl_sp(proc: *Processor) void {
+    pub fn add_hl_sp(proc: *Processor) void {
         const result = utils.Arithmetic(u16).add(.{
             .a = proc.getHL(),
             .b = proc.SP,
@@ -92,7 +92,7 @@ pub const arithmetic = struct {
         if (result.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
     }
 
-    pub fn add16_sp_offset(proc: *Processor) void {
+    pub fn add_sp_offset(proc: *Processor) void {
         const imm = proc.fetch();
         const result = utils.Arithmetic(u16).add_offset(proc.SP, imm);
         proc.SP = result.value;
@@ -121,14 +121,14 @@ pub const arithmetic = struct {
     /// Add the contents of register reg to the contents of accumulator (A) register,
     /// and store the results in the accumulator (A) register.
     /// Example: 0x80 ADD A, B
-    pub fn add_reg(proc: *Processor, reg: *Register) void {
+    pub fn add_reg8(proc: *Processor, reg: *Register) void {
         add_aux(proc, .{ .b = reg.value });
     }
 
     /// Add the contents of memory specified by register pair HL to the contents of register A, and store the results
     /// in register A.
     /// Example: 0x86 -> ADD A, (HL)
-    pub fn add_hlMem(proc: *Processor) void {
+    pub fn add_hl_indirect(proc: *Processor) void {
         const val: u8 = proc.memory.read(proc.getHL());
         add_aux(proc, .{ .b = val });
     }
@@ -141,7 +141,7 @@ pub const arithmetic = struct {
     /// Add the contents of register reg and the CY flag to the contents of the accumulator (A) register, and
     /// store the results in accumulator (A) register.
     /// Example: 0x88 -> ADC A, B
-    pub fn addc_reg(proc: *Processor, reg: *Register) void {
+    pub fn addc_reg8(proc: *Processor, reg: *Register) void {
         const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
         add_aux(proc, .{
             .b =  reg.value,
@@ -152,7 +152,7 @@ pub const arithmetic = struct {
     /// Add the contents of memory specified by register pair HL and the CY flag to the contents of
     /// accumulator (A) register and store the results in the accumulator (A) register.
     /// Example: 0x8E -> ADC A, (HL)
-    pub fn addc_hlMem(proc: *Processor) void {
+    pub fn addc_hl_indirect(proc: *Processor) void {
         const val = proc.memory.read(proc.getHL());
         const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
         add_aux(proc, .{
@@ -161,7 +161,7 @@ pub const arithmetic = struct {
         });
     }
 
-    pub fn add16_rr_rr(proc: *Processor, dest: Processor.RegisterPair, src: Processor.RegisterPair) void {
+    pub fn add_reg16_reg16(proc: *Processor, dest: Processor.RegisterPair, src: Processor.RegisterPair) void {
         const dest_setter, const dest_getter = switch (dest) {
             .AF => .{ &Processor.setAF, &Processor.getAF },
             .BC => .{ &Processor.setBC, &Processor.getBC },
@@ -215,7 +215,7 @@ pub const arithmetic = struct {
     /// Subtract the contents of register reg to the contents of accumulator (A) register,
     /// and store the results in the accumulator (A) register.
     /// Example: 0x93 -> SUB E
-    pub fn sub_reg(proc: *Processor, reg: *Register) void {
+    pub fn sub_reg8(proc: *Processor, reg: *Register) void {
         sub_aux(proc, .{
             .b = reg.value
         });
@@ -230,7 +230,7 @@ pub const arithmetic = struct {
 
     /// Subtract the contents of register reg and the CY flag from the contents of accumulator (A) register,
     /// and store the results in accumulator (A) register.
-    pub fn subc_reg(proc: *Processor, reg: *Register) void {
+    pub fn subc_reg8(proc: *Processor, reg: *Register) void {
         const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
         sub_aux(proc, .{
             .b = reg.value,
@@ -250,14 +250,14 @@ pub const arithmetic = struct {
     /// Subtract the contents of memory specified by register pair HL from the contents of accumulator (A) register
     /// and store the results in accumulator (A) register.
     /// Example: 0x96 -> SUB A, (HL)
-    pub fn sub_hlMem(proc: *Processor) void {
+    pub fn sub_hl_indirect(proc: *Processor) void {
         const val = proc.memory.read(proc.getHL());
         sub_aux(proc, .{
             .b = val
         });
     }
 
-    pub fn subc_hlMem(proc: *Processor) void {
+    pub fn subc_hl_indirect(proc: *Processor) void {
         const val = proc.memory.read(proc.getHL());
         const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
         sub_aux(proc, .{
@@ -277,7 +277,7 @@ pub const arithmetic = struct {
     /// Take the logical AND for each bit of the contents of register reg and the contents of register A,
     /// and store the results in register A.
     /// Example: 0xA0 -> AND A, B
-    pub fn And(proc: *Processor, reg: *Register) void {
+    pub fn and_reg8(proc: *Processor, reg: *Register) void {
         and_aux(proc, reg.value);
     }
 
@@ -286,7 +286,7 @@ pub const arithmetic = struct {
         and_aux(proc, imm);
     }
 
-    pub fn and_hlMem(proc: *Processor) void {
+    pub fn and_hl_indirect(proc: *Processor) void {
         const val = proc.memory.read(proc.getHL());
         and_aux(proc, val);
     }
@@ -299,7 +299,7 @@ pub const arithmetic = struct {
         proc.unsetFlag(.C);
     }
 
-    pub fn Or(proc: *Processor, reg: *Register) void {
+    pub fn or_reg8(proc: *Processor, reg: *Register) void {
         or_aux(proc, reg.value);
     }
 
@@ -308,7 +308,7 @@ pub const arithmetic = struct {
         or_aux(proc, imm);
     }
 
-    pub fn or_hlMem(proc: *Processor) void {
+    pub fn or_hl_indirect(proc: *Processor) void {
         const val = proc.memory.read(proc.getHL());
         or_aux(proc, val);
     }
@@ -321,7 +321,7 @@ pub const arithmetic = struct {
         proc.unsetFlag(.C);
     }
 
-    pub fn Xor(proc: *Processor, reg: *Register) void {
+    pub fn xor_reg8(proc: *Processor, reg: *Register) void {
         xor_aux(proc, reg.value);
     }
 
@@ -330,7 +330,7 @@ pub const arithmetic = struct {
         xor_aux(proc, imm);
     }
 
-    pub fn xor_hlMem(proc: *Processor) void {
+    pub fn xor_hl_indirect(proc: *Processor) void {
         const val = proc.memory.read(proc.getHL());
         xor_aux(proc, val);
     }
@@ -343,11 +343,11 @@ pub const arithmetic = struct {
         if (remainder.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
     }
 
-    pub fn compare_reg(proc: *Processor, reg: *Register) void {
+    pub fn compare_reg8(proc: *Processor, reg: *Register) void {
         compare_aux(proc, reg.value);
     }
 
-    pub fn compare_hlMem(proc: *Processor) void {
+    pub fn compare_hl_indirect(proc: *Processor) void {
         const val = proc.memory.read(proc.getHL());
         compare_aux(proc, val);
     }
@@ -369,18 +369,18 @@ pub const load = struct {
     /// 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least
     /// significant byte to the value of a8, so the possible range is 0xff0-0xffff.
     /// Example: 0xF0 -> LD A, (a8)
-    pub fn reg_imm8Mem(proc: *Processor, reg: *Register) void {
+    pub fn reg_imm8_indirect(proc: *Processor, reg: *Register) void {
         const imm = proc.fetch();
         const addr = utils.fromTwoBytes(imm, 0xFF);
         reg.value = proc.memory.read(addr);
     }
 
     /// Load the contents of the source register into the destination register.
-    pub fn reg_reg(dest: *Register, src: *Register) void {
+    pub fn reg8_reg8(dest: *Register, src: *Register) void {
         dest.value = src.value;
     }
 
-    pub fn regMem_reg(proc: *Processor, dest: *Register, src: *Register) void {
+    pub fn reg8_indirect_reg8(proc: *Processor, dest: *Register, src: *Register) void {
         const addr = utils.fromTwoBytes(dest.value, 0xFF);
         proc.memory.write(addr, src.value);
     }
@@ -389,13 +389,13 @@ pub const load = struct {
     /// address is obtianed by setting the most significant byte to 0xff and the least significant byte to the
     /// value of C, so the possible range is 0xff00-0xffff.
     /// Example: 0xF2 -> LD A, (C)
-    pub fn reg_regMem(proc: *Processor, dest: *Register, src: *Register) void {
+    pub fn reg8_reg8_indirect(proc: *Processor, dest: *Register, src: *Register) void {
         dest.value = proc.memory.read(utils.fromTwoBytes(src.value, 0xFF));
     }
 
     /// Load to the 8-bit register reg, data from the absolute address specified by the 16-bit operand (a16).
     /// Example: 0xFA -> LD A, (a16)
-    pub fn reg_imm16Mem(proc: *Processor, dest: *Register) void {
+    pub fn reg8_imm16_indirect(proc: *Processor, dest: *Register) void {
         const lo = proc.fetch();
         const hi = proc.fetch();
         const addr = utils.fromTwoBytes(lo, hi);
@@ -407,7 +407,7 @@ pub const load = struct {
     /// The first byte of immediate data is the lower byte (i.e. bits 0-7), and
     /// the second byte of immediate data is the higher byte (i.e., bits 8-15)
     /// Example: 0x01 -> LD BC, d16
-    pub fn rr_imm16(proc: *Processor, regPair: Processor.RegisterPair) void {
+    pub fn reg16_imm16(proc: *Processor, regPair: Processor.RegisterPair) void {
         switch (regPair) {
             .AF => {
                 proc.F.value = proc.fetch();
@@ -431,21 +431,21 @@ pub const load = struct {
     /// Load to the address specified by the 8-bit immediate data, data from the 8-bit register. The full
     /// 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least significant
     /// byte to the value of a8, so the possible range is 0xff00-0xffff.
-    pub fn imm8Mem_reg(proc: *Processor, reg: *Register) void {
+    pub fn imm8_indirect_reg8(proc: *Processor, reg: *Register) void {
         const imm = proc.fetch();
         proc.memory.write(mask.HI_MASK | imm, reg.value);
     }
 
     /// Store the contents of a register reg into the memory location specified by the register pair rr.
     /// Example: 0x12 -> LD (DE), A
-    pub fn hlMem_reg(proc: *Processor, reg: *Register) void {
+    pub fn hl_indirect_reg8(proc: *Processor, reg: *Register) void {
         proc.memory.write(proc.getHL(), reg.value);
     }
 
     /// Store the contents of 8-bit immediate operand d8 in the memory location
     /// specified by register pair rr.
     /// Example: 0x36 -> LD (HL), d8
-    pub fn rrMem_imm8(proc: *Processor, regPair: Processor.RegisterPair) void {
+    pub fn reg16_indirect_imm8(proc: *Processor, regPair: Processor.RegisterPair) void {
         const value = proc.fetch();
         switch (regPair) {
             .AF => proc.memory.write(proc.getAF(), value),
@@ -455,40 +455,17 @@ pub const load = struct {
         }
     }
 
-    /// Store the contents of register reg in the memory location specified by
+    /// Store the contents of the accumulator register in the memory location specified by
     /// register pair rr
     /// Example: 0x02 -> LD (BC), A
-    pub fn rrMem_reg(proc: *Processor, regPair: Processor.RegisterPair, reg: *Register) void {
+    pub fn reg16_indirect_acc8(proc: *Processor, regPair: Processor.RegisterPair) void {
         const addr = switch (regPair) {
             .AF => proc.getAF(),
             .BC => proc.getBC(),
             .DE => proc.getDE(),
             .HL => proc.getHL(),
         };
-        proc.memory.write(addr, reg.value);
-    }
-
-    /// Store into the immediate address the contents of register pair RR.
-    pub fn imm16Mem_rr(proc: *Processor, regPair: Processor.RegisterPair) void {
-        const addr: u16 = utils.fromTwoBytes(proc.fetch(), proc.fetch());
-        switch (regPair) {
-            .AF => {
-                proc.memory.write(addr, proc.F.value);
-                proc.memory.write(addr + 1, proc.A.value);
-            },
-            .BC => {
-                proc.memory.write(addr, proc.C.value);
-                proc.memory.write(addr + 1, proc.B.value);
-            },
-            .DE => {
-                proc.memory.write(addr, proc.E.value);
-                proc.memory.write(addr + 1, proc.D.value);
-            },
-            .HL => {
-                proc.memory.write(addr, proc.L.value);
-                proc.memory.write(addr + 1, proc.H.value);
-            },
-        }
+        proc.memory.write(addr, proc.A.value);
     }
 
     /// Store the contents of register A in the internal RAM or register specified by the 16-bit immediate
@@ -547,7 +524,7 @@ pub const load = struct {
 
     /// Load the 8-bit contents of memory specified by register pair rr into register reg
     /// Example: 0x0A -> LD A, (BC)
-    pub fn reg_rrMem(proc: *Processor, reg: *Register, regPair: Processor.RegisterPair) void {
+    pub fn reg8_reg16_indirect(proc: *Processor, reg: *Register, regPair: Processor.RegisterPair) void {
         switch (regPair) {
             .AF => reg.value = proc.memory.read(proc.getAF()),
             .BC => reg.value = proc.memory.read(proc.getBC()),
@@ -559,7 +536,7 @@ pub const load = struct {
     /// Store the contents of register reg into the memory location specified by register pair
     /// HL, and simultaneously increment the contents of HL
     /// Example: 0x22 -> LD (HL+), A
-    pub fn hlMem_inc_reg(proc: *Processor, reg: *Register) void {
+    pub fn hl_indirect_inc_reg8(proc: *Processor, reg: *Register) void {
         const hl = proc.getHL();
         proc.memory.write(hl, reg.value);
         proc.setHL(hl +% 1);
@@ -567,7 +544,7 @@ pub const load = struct {
 
     /// Store the contents of register reg into the memory location specified by register pair
     /// HL, and simultaneously decrement the contents of HL.
-    pub fn hlMem_dec_reg(proc: *Processor, reg: *Register) void {
+    pub fn hl_indirect_dec_reg8(proc: *Processor, reg: *Register) void {
         const hl = proc.getHL();
         proc.memory.write(hl, reg.value);
         proc.setHL(hl -% 1);
@@ -576,7 +553,7 @@ pub const load = struct {
     /// Load the contents of memory specified by register pair rr into register reg, and simultaneously
     /// increment the contents of HL.
     /// Example: 0x2A -> LD A, (HL+)
-    pub fn reg_hlMem_inc(proc: *Processor, reg: *Register) void {
+    pub fn reg8_hl_indirect_inc(proc: *Processor, reg: *Register) void {
         const hl = proc.getHL();
         reg.value = proc.memory.read(hl);
         proc.setHL(hl +% 1);
@@ -585,7 +562,7 @@ pub const load = struct {
     /// Load the contents of memory specified by register pair HL into register reg, and
     /// simultaneously decrement the contents of HL.
     /// Example: 0x3A -> LD A, (HL-)
-    pub fn reg_hlMem_dec(proc: *Processor, reg: *Register) void {
+    pub fn reg8_hl_indirect_dec(proc: *Processor, reg: *Register) void {
         const hl = proc.getHL();
         reg.value = proc.memory.read(hl);
         proc.setHL(hl -% 1);
@@ -676,7 +653,7 @@ pub const controlFlow = struct {
     /// Load the contents of register pair HL into the program counter PC. The next instruction is fetched from
     /// the location specified by the new value of PC.
     /// Example: 0xE9 -> JP HL
-    pub fn jump_rr(proc: *Processor, regPair: Processor.RegisterPair) void {
+    pub fn jump_hl(proc: *Processor, regPair: Processor.RegisterPair) void {
         var loReg: *Register = undefined;
         var hiReg: *Register = undefined;
         switch (regPair) {
@@ -1266,18 +1243,18 @@ pub const misc = struct {
 const expectEqual = std.testing.expectEqual;
 
 // Arithmetic Instructions
-test "inc_r8" {
+test "arithmetic.inc_reg8" {
     var memory: Memory = .init();
     var processor = Processor.init(&memory, .{});
 
-    arithmetic.inc_r8(&processor, &processor.B);
+    arithmetic.inc_reg8(&processor, &processor.B);
 
     try expectEqual(0x01, processor.B.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.H));
 
-    arithmetic.inc_r8(&processor, &processor.B);
+    arithmetic.inc_reg8(&processor, &processor.B);
 
     try expectEqual(0x02, processor.B.value);
     try expectEqual(false, processor.isFlagSet(.Z));
@@ -1285,7 +1262,7 @@ test "inc_r8" {
     try expectEqual(false, processor.isFlagSet(.H));
 
     processor.B.value = 0xFF;
-    arithmetic.inc_r8(&processor, &processor.B);
+    arithmetic.inc_reg8(&processor, &processor.B);
 
     try expectEqual(0x00, processor.B.value);
     try expectEqual(true, processor.isFlagSet(.Z));
@@ -1293,95 +1270,95 @@ test "inc_r8" {
     try expectEqual(true, processor.isFlagSet(.H));
 
     processor.B.value = 0x0F;
-    arithmetic.inc_r8(&processor, &processor.B);
+    arithmetic.inc_reg8(&processor, &processor.B);
     try expectEqual(0x10, processor.B.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(true, processor.isFlagSet(.H));
 
     processor.E.value = 0x0F;
-    arithmetic.inc_r8(&processor, &processor.E);
+    arithmetic.inc_reg8(&processor, &processor.E);
     try expectEqual(0x10, processor.E.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(true, processor.isFlagSet(.H));
 }
 
-test "dec_reg" {
+test "arithmetic.dec_reg8" {
     var memory: Memory = .init();
     var processor = Processor.init(&memory, .{ .D = 0x02 });
 
-    arithmetic.dec_reg(&processor, &processor.D);
+    arithmetic.dec_reg8(&processor, &processor.D);
     try expectEqual(0x01, processor.D.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(true, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.H));
 
-    arithmetic.dec_reg(&processor, &processor.D);
+    arithmetic.dec_reg8(&processor, &processor.D);
     try expectEqual(0x00, processor.D.value);
     try expectEqual(true, processor.isFlagSet(.Z));
     try expectEqual(true, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.H));
 
-    arithmetic.dec_reg(&processor, &processor.D);
+    arithmetic.dec_reg8(&processor, &processor.D);
     try expectEqual(0xFF, processor.D.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(true, processor.isFlagSet(.N));
     try expectEqual(true, processor.isFlagSet(.H));
 }
 
-test "inc_rr" {
+test "arithmetic.inc_reg16" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{});
 
-    arithmetic.inc_rr(&processor, .AF);
+    arithmetic.inc_reg16(&processor, .AF);
     try expectEqual(1, processor.getAF());
 
     processor.setAF(0xFFFF);
-    arithmetic.inc_rr(&processor, .AF);
+    arithmetic.inc_reg16(&processor, .AF);
     try expectEqual(0, processor.getAF());
 
     processor.setBC(0x00FF);
-    arithmetic.inc_rr(&processor, .BC);
+    arithmetic.inc_reg16(&processor, .BC);
     try expectEqual(0x0100, processor.getBC());
 
     processor.setDE(0x0101);
-    arithmetic.inc_rr(&processor, .DE);
+    arithmetic.inc_reg16(&processor, .DE);
     try expectEqual(0x0102, processor.getDE());
 
     processor.setHL(0x0FFF);
-    arithmetic.inc_rr(&processor, .HL);
+    arithmetic.inc_reg16(&processor, .HL);
     try expectEqual(0x1000, processor.getHL());
 }
 
-test "dec_rr" {
+test "arithmetic.dec_reg16" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{});
 
-    arithmetic.dec_rr(&processor, .AF);
+    arithmetic.dec_reg16(&processor, .AF);
     try expectEqual(0xFFFF, processor.getAF());
 
     processor.setBC(0x0100);
-    arithmetic.dec_rr(&processor, .BC);
+    arithmetic.dec_reg16(&processor, .BC);
     try expectEqual(0x00FF, processor.getBC());
 
     processor.setDE(0x0102);
-    arithmetic.dec_rr(&processor, .DE);
+    arithmetic.dec_reg16(&processor, .DE);
     try expectEqual(0x0101, processor.getDE());
 
     processor.setHL(0x1000);
-    arithmetic.dec_rr(&processor, .HL);
+    arithmetic.dec_reg16(&processor, .HL);
     try expectEqual(0x0FFF, processor.getHL());
 }
 
-test "add_reg" {
+test "arithmetic.add_reg8" {
     const PC: u16 = 0x0100;
     const A: u8 = 0x14;
     const B: u8 = 0x07;
     var memory: Memory = .init();
     var processor = Processor.init(&memory, .{ .PC = PC, .A = A, .B = B });
 
-    arithmetic.add_reg(&processor, &processor.B);
+    arithmetic.add_reg8(&processor, &processor.B);
     try expectEqual(0x1B, processor.A.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
@@ -1390,7 +1367,7 @@ test "add_reg" {
 
     processor.A.value = 0xFF;
     processor.C.value = 0xFF;
-    arithmetic.add_reg(&processor, &processor.C);
+    arithmetic.add_reg8(&processor, &processor.C);
     try expectEqual(0xFE, processor.A.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
@@ -1398,7 +1375,7 @@ test "add_reg" {
     try expectEqual(true, processor.isFlagSet(.H));
 
     processor.D.value = 0x02;
-    arithmetic.add_reg(&processor, &processor.D);
+    arithmetic.add_reg8(&processor, &processor.D);
     try expectEqual(0x00, processor.A.value);
     try expectEqual(true, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
@@ -1406,7 +1383,7 @@ test "add_reg" {
     try expectEqual(true, processor.isFlagSet(.H));
 
     processor.E.value = 0x01;
-    arithmetic.add_reg(&processor, &processor.E);
+    arithmetic.add_reg8(&processor, &processor.E);
     try expectEqual(0x01, processor.A.value);
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
@@ -1414,14 +1391,14 @@ test "add_reg" {
     try expectEqual(false, processor.isFlagSet(.H));
 }
 
-test "arithmetic.add16_rr_rr" {
+test "arithmetic.add_reg16_reg16" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{
         .B = 0x11,
         .C = 0x5E,
     });
     
-    arithmetic.add16_rr_rr(&processor, .HL, .BC);
+    arithmetic.add_reg16_reg16(&processor, .HL, .BC);
     try expectEqual(0x115E, processor.getHL());
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
@@ -1430,7 +1407,7 @@ test "arithmetic.add16_rr_rr" {
 }
 
 // Load instructions
-test "load.rr_imm16" {
+test "load.reg16_imm16" {
     const PC: u16 = 0x0100;
     var memory: Memory = .init();
     var processor = Processor.init(&memory, .{ .PC = PC });
@@ -1440,7 +1417,7 @@ test "load.rr_imm16" {
     processor.memory.write(PC, immLo);
     processor.memory.write(PC + 1, immHi);
 
-    load.rr_imm16(&processor, .BC);
+    load.reg16_imm16(&processor, .BC);
     try expectEqual(immHi, processor.B.value);
     try expectEqual(immLo, processor.C.value);
 }
