@@ -1,2600 +1,1963 @@
 const std = @import("std");
-const Register = @import("register.zig");
-const Processor = @import("processor.zig");
-const Memory = @import("memory.zig");
-const mask = @import("masks.zig");
 const utils = @import("utils.zig");
+
+const Register = @import("register.zig");
+const Memory = @import("memory.zig");
+const instructions = @import("instruction.zig");
+
+const masks = @import("masks.zig");
 
 const Bit = utils.Bit;
 
-const FlagCondition = enum {
+const HI_MASK = masks.HI_MASK;
+const LO_MASK = masks.LO_MASK;
+
+const Z_MASK = masks.Z_MASK;
+const N_MASK = masks.N_MASK;
+const H_MASK = masks.H_MASK;
+const C_MASK = masks.C_MASK;
+
+pub const Flag = enum {
     Z,
-    NZ,
     N,
-    NN,
     H,
-    NH,
     C,
-    NC
 };
 
-pub const arithmetic = struct {
-    /// Increment the contents of register reg by 1.
-    /// Example: 0x05 -> DEC B
-    pub fn inc_reg8(
-        proc: *Processor,
-        reg: *Register,
-    ) void {
-        const sum = utils.Arithmetic(u8).add(.{
-            .a = reg.value,
-            .b = 1
-        });
-        reg.value = sum.value;
-        proc.unsetFlag(.N);
-        if (sum.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (sum.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
-    }
+pub const RegisterPair = enum { AF, BC, DE, HL };
 
-    /// Decrement the contents of register reg by 1
-    /// Example: 0x0D -> DEC C
-    pub fn dec_reg8(
-        proc: *Processor,
-        reg: *Register,
-    ) void {
-        const remainder = utils.Arithmetic(u8).subtract(.{
-            .a = reg.value,
-            .b = 1
-        });
-        reg.value = remainder.value;
-        proc.setFlag(.N);
-        if (remainder.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
-    }
+const Processor = @This();
 
-    /// Increment the contents of register pair rr by 1
-    pub fn inc_reg16(proc: *Processor, regPair: Processor.RegisterPair) void {
-        switch (regPair) {
-            .AF => proc.setAF(proc.getAF() +% 1),
-            .BC => proc.setBC(proc.getBC() +% 1),
-            .DE => proc.setDE(proc.getDE() +% 1),
-            .HL => proc.setHL(proc.getHL() +% 1),
-        }
-    }
+A: Register = .{},
+F: Register = .{},
+B: Register = .{},
+C: Register = .{},
+D: Register = .{},
+E: Register = .{},
+H: Register = .{},
+L: Register = .{},
 
-    /// Decrement the contents of register pair rr by 1
-    pub fn dec_reg16(proc: *Processor, regPair: Processor.RegisterPair) void {
-        switch (regPair) {
-            .AF => proc.setAF(proc.getAF() -% 1),
-            .BC => proc.setBC(proc.getBC() -% 1),
-            .DE => proc.setDE(proc.getDE() -% 1),
-            .HL => proc.setHL(proc.getHL() -% 1),
-        }
-    }
+SP: u16 = 0,
+PC: u16 = 0,
 
-    pub fn inc_sp(proc: *Processor) void {
-        proc.SP +%= 1;
-    }
+// Interrupt Master Enabled
+IME: bool = false,
 
-    pub fn dec_sp(proc: *Processor) void {
-        proc.SP -%= 1;
-    }
+// Can we use this as a halting mechanism?
+isHalted: bool = false,
 
-    /// Add to HL the value of SP
-    pub fn add_hl_sp(proc: *Processor) void {
-        const result = utils.Arithmetic(u16).add(.{
-            .a = proc.getHL(),
-            .b = proc.SP,
-        });
+memory: *Memory = undefined,
 
-        proc.setHL(result.value);
-        proc.setFlag(.N);
-        if (result.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (result.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
-    }
-
-    pub fn add_sp_offset(proc: *Processor) void {
-        const imm = proc.fetch();
-        const result = utils.Arithmetic(u16).add_offset(proc.SP, imm);
-        proc.SP = result.value;
-        proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        if (result.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (result.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
-    }
-
-    fn add_aux(proc: *Processor, values: struct {
-        b: u8,
-        carry: u1 = 0,
-    }) void {
-        const sum = utils.Arithmetic(u8).add(.{
-            .a = proc.A.value,
-            .b = values.b,
-            .carry = values.carry,
-        });
-        proc.A.value = sum.value;
-        proc.unsetFlag(.N);
-        if (sum.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (sum.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (sum.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
-    }
-
-    /// Add the contents of register reg to the contents of accumulator (A) register,
-    /// and store the results in the accumulator (A) register.
-    /// Example: 0x80 ADD A, B
-    pub fn add_reg8(proc: *Processor, reg: *Register) void {
-        add_aux(proc, .{ .b = reg.value });
-    }
-
-    /// Add the contents of memory specified by register pair HL to the contents of register A, and store the results
-    /// in register A.
-    /// Example: 0x86 -> ADD A, (HL)
-    pub fn add_hl_indirect(proc: *Processor) void {
-        const val: u8 = proc.memory.read(proc.getHL());
-        add_aux(proc, .{ .b = val });
-    }
-
-    pub fn add_imm8(proc: *Processor) void {
-        const imm = proc.fetch();
-        add_aux(proc, .{ .b =  imm });
-    }
-
-    /// Add the contents of register reg and the CY flag to the contents of the accumulator (A) register, and
-    /// store the results in accumulator (A) register.
-    /// Example: 0x88 -> ADC A, B
-    pub fn addc_reg8(proc: *Processor, reg: *Register) void {
-        const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
-        add_aux(proc, .{
-            .b =  reg.value,
-            .carry = cy,
-        });
-    }
-
-    /// Add the contents of memory specified by register pair HL and the CY flag to the contents of
-    /// accumulator (A) register and store the results in the accumulator (A) register.
-    /// Example: 0x8E -> ADC A, (HL)
-    pub fn addc_hl_indirect(proc: *Processor) void {
-        const val = proc.memory.read(proc.getHL());
-        const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
-        add_aux(proc, .{
-            .b = val,
-            .carry = cy,
-        });
-    }
-
-    pub fn add_reg16_reg16(proc: *Processor, dest: Processor.RegisterPair, src: Processor.RegisterPair) void {
-        const dest_setter, const dest_getter = switch (dest) {
-            .AF => .{ &Processor.setAF, &Processor.getAF },
-            .BC => .{ &Processor.setBC, &Processor.getBC },
-            .DE => .{ &Processor.setDE, &Processor.getDE },
-            .HL => .{ &Processor.setHL, &Processor.getHL },
-        };
-
-        const src_getter = switch(src) {
-            .AF => &Processor.getAF,
-            .BC => &Processor.getBC,
-            .DE => &Processor.getDE,
-            .HL => &Processor.getHL,
-        };
-
-        const result = utils.Arithmetic(u16).add(.{
-            .a = dest_getter(proc),
-            .b = src_getter(proc),
-        });
-
-        dest_setter(proc, result.value);
-        proc.unsetFlag(.N);
-        if (result.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (result.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
-    }
-
-    pub fn addc_imm8(proc: *Processor) void {
-        const val = proc.memory.read(proc.fetch());
-        const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
-        add_aux(proc, .{
-            .b = val,
-            .carry = cy,
-        });
-    }
-
-    fn sub_aux(proc: *Processor, values: struct{
-        b: u8,
-        carry: u1 = 0,
-    }) void {
-        const remainder = utils.Arithmetic(u8).subtract(.{
-            .a = proc.A.value,
-            .b = values.b,
-            .carry = values.carry,
-        });
-        proc.A.value = remainder.value;
-        proc.setFlag(.N);
-        if (remainder.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (remainder.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
-    }
-
-    /// Subtract the contents of register reg to the contents of accumulator (A) register,
-    /// and store the results in the accumulator (A) register.
-    /// Example: 0x93 -> SUB E
-    pub fn sub_reg8(proc: *Processor, reg: *Register) void {
-        sub_aux(proc, .{
-            .b = reg.value
-        });
-    }
-
-    pub fn sub_imm8(proc: *Processor) void {
-        const val = proc.fetch();
-        sub_aux(proc, .{
-            .b = val,
-        });
-    }
-
-    /// Subtract the contents of register reg and the CY flag from the contents of accumulator (A) register,
-    /// and store the results in accumulator (A) register.
-    pub fn subc_reg8(proc: *Processor, reg: *Register) void {
-        const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
-        sub_aux(proc, .{
-            .b = reg.value,
-            .carry = cy,
-        });
-    }
-
-    pub fn subc_imm8(proc: *Processor) void {
-        const val = proc.fetch();
-        const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
-        sub_aux(proc, .{
-            .b = val,
-            .carry = cy,
-        });
-    }
-
-    /// Subtract the contents of memory specified by register pair HL from the contents of accumulator (A) register
-    /// and store the results in accumulator (A) register.
-    /// Example: 0x96 -> SUB A, (HL)
-    pub fn sub_hl_indirect(proc: *Processor) void {
-        const val = proc.memory.read(proc.getHL());
-        sub_aux(proc, .{
-            .b = val
-        });
-    }
-
-    pub fn subc_hl_indirect(proc: *Processor) void {
-        const val = proc.memory.read(proc.getHL());
-        const cy: u1 = if (proc.isFlagSet(.C)) 1 else 0;
-        sub_aux(proc, .{
-            .b = val,
-            .carry = cy
-        });
-    }
-
-    fn and_aux(proc: *Processor, value: u8) void {
-        proc.A.value &= value;
-        if (proc.A.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.setFlag(.H);
-        proc.unsetFlag(.C);
-    }
-
-    /// Take the logical AND for each bit of the contents of register reg and the contents of register A,
-    /// and store the results in register A.
-    /// Example: 0xA0 -> AND A, B
-    pub fn and_reg8(proc: *Processor, reg: *Register) void {
-        and_aux(proc, reg.value);
-    }
-
-    pub fn and_imm8(proc: *Processor) void {
-        const imm = proc.fetch();
-        and_aux(proc, imm);
-    }
-
-    pub fn and_hl_indirect(proc: *Processor) void {
-        const val = proc.memory.read(proc.getHL());
-        and_aux(proc, val);
-    }
-
-    fn or_aux(proc: *Processor, value: u8) void {
-        proc.A.value |= value;
-        if (proc.A.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-        proc.unsetFlag(.C);
-    }
-
-    pub fn or_reg8(proc: *Processor, reg: *Register) void {
-        or_aux(proc, reg.value);
-    }
-
-    pub fn or_imm8(proc: *Processor) void {
-        const imm = proc.fetch();
-        or_aux(proc, imm);
-    }
-
-    pub fn or_hl_indirect(proc: *Processor) void {
-        const val = proc.memory.read(proc.getHL());
-        or_aux(proc, val);
-    }
-
-    fn xor_aux(proc: *Processor, value: u8) void {
-        proc.A.value ^= value;
-        if (proc.A.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-        proc.unsetFlag(.C);
-    }
-
-    pub fn xor_reg8(proc: *Processor, reg: *Register) void {
-        xor_aux(proc, reg.value);
-    }
-
-    pub fn xor_imm8(proc: *Processor) void {
-        const imm = proc.fetch();
-        xor_aux(proc, imm);
-    }
-
-    pub fn xor_hl_indirect(proc: *Processor) void {
-        const val = proc.memory.read(proc.getHL());
-        xor_aux(proc, val);
-    }
-
-    fn compare_aux(proc: *Processor, value: u8) void {
-        const remainder = utils.Arithmetic(u8).add(proc.A.value, value);
-        if (remainder.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.setFlag(.N);
-        if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
-        if (remainder.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-    }
-
-    pub fn compare_reg8(proc: *Processor, reg: *Register) void {
-        compare_aux(proc, reg.value);
-    }
-
-    pub fn compare_hl_indirect(proc: *Processor) void {
-        const val = proc.memory.read(proc.getHL());
-        compare_aux(proc, val);
-    }
-
-    pub fn compare_imm8(proc: *Processor) void {
-        const imm = proc.fetch();
-        compare_aux(proc, imm);
-    }
+const InitProcessor = struct {
+    A: u8 = 0,
+    F: u8 = 0,
+    B: u8 = 0,
+    C: u8 = 0,
+    D: u8 = 0,
+    E: u8 = 0,
+    H: u8 = 0,
+    L: u8 = 0,
+    SP: u16 = 0,
+    PC: u16 = 0,
+    IME: bool = false,
 };
 
-pub const load = struct {
-    /// Load the 8-bit immediate operand d8 into register reg.
-    /// Example: 0x06 -> LD B, d8
-    pub fn reg_imm8(proc: *Processor, reg: *Register) void {
-        reg.value = proc.fetch();
+pub fn init(memory: *Memory, initProc: InitProcessor) Processor {
+    return .{
+        .memory = memory,
+        .A = .{ .value = initProc.A },
+        .F = .{ .value = initProc.F },
+        .B = .{ .value = initProc.B },
+        .C = .{ .value = initProc.C },
+        .D = .{ .value = initProc.D },
+        .E = .{ .value = initProc.E },
+        .H = .{ .value = initProc.H },
+        .L = .{ .value = initProc.L },
+        .SP = initProc.SP,
+        .PC = initProc.PC,
+        .IME = initProc.IME,
+    };
+}
+
+/// Read from memory the value pointed to by PC
+pub inline fn readFromPC(proc: *Processor) u8 {
+    return proc.memory.read(proc.PC);
+}
+
+/// Fetches the next instruction or byte of data from the current memory address pointed at by PC
+pub inline fn fetch(proc: *Processor) u8 {
+    const instruction = proc.readFromPC();
+    proc.PC += 1;
+    return instruction;
+}
+
+/// Pop the current value from the stack pointed to by SP
+pub inline fn popStack(proc: *Processor) u8 {
+    const val = proc.memory.read(proc.SP);
+    proc.SP += 1;
+    return val;
+}
+
+/// Push a value into the stack
+pub inline fn pushStack(proc: *Processor, val: u8) void {
+    proc.SP -= 1;
+    proc.memory.write(proc.SP, val);
+}
+
+inline fn setRegisterPair(hiReg: *Register, loReg: *Register, value: u16) void {
+    hiReg.value = @truncate(value >> 8);
+    loReg.value = @truncate(value);
+}
+
+inline fn getRegisterPair(hiReg: *Register, loReg: *Register) u16 {
+    return (@as(u16, hiReg.value) << 8) | loReg.value;
+}
+
+pub fn setAF(proc: *Processor, value: u16) void {
+    setRegisterPair(&proc.A, &proc.F, value);
+}
+
+pub fn getAF(proc: *Processor) u16 {
+    return getRegisterPair(&proc.A, &proc.F);
+}
+
+pub fn setBC(proc: *Processor, value: u16) void {
+    setRegisterPair(&proc.B, &proc.C, value);
+}
+
+pub fn getBC(proc: *Processor) u16 {
+    return getRegisterPair(&proc.B, &proc.C);
+}
+
+pub fn setDE(proc: *Processor, value: u16) void {
+    setRegisterPair(&proc.D, &proc.E, value);
+}
+
+pub fn getDE(proc: *Processor) u16 {
+    return getRegisterPair(&proc.D, &proc.E);
+}
+
+pub fn setHL(proc: *Processor, value: u16) void {
+    setRegisterPair(&proc.H, &proc.L, value);
+}
+
+pub fn getHL(proc: *Processor) u16 {
+    return getRegisterPair(&proc.H, &proc.L);
+}
+
+pub fn incrementHL(proc: *Processor) void {
+    proc.setHL(proc.getHL() +% 1);
+}
+
+pub fn decrementHL(proc: *Processor) void {
+    proc.setHL(proc.getHL() -% 1);
+}
+
+pub inline fn isFlagSet(proc: *Processor, flag: Flag) bool {
+    return switch (flag) {
+        .Z => (proc.F.value & Z_MASK) == Z_MASK,
+        .N => (proc.F.value & N_MASK) == N_MASK,
+        .H => (proc.F.value & H_MASK) == H_MASK,
+        .C => (proc.F.value & C_MASK) == C_MASK,
+    };
+}
+
+pub inline fn setFlag(proc: *Processor, flag: Flag) void {
+    switch (flag) {
+        .Z => proc.F.value |= Z_MASK,
+        .N => proc.F.value |= N_MASK,
+        .H => proc.F.value |= H_MASK,
+        .C => proc.F.value |= C_MASK,
     }
+}
 
-    /// Load to the 8-bit register reg, data from the address specified by the 8-bit immediate data a8. The full
-    /// 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least
-    /// significant byte to the value of a8, so the possible range is 0xff0-0xffff.
-    /// Example: 0xF0 -> LD A, (a8)
-    pub fn reg_imm8_indirect(proc: *Processor, reg: *Register) void {
-        const imm = proc.fetch();
-        const addr = utils.fromTwoBytes(imm, 0xFF);
-        reg.value = proc.memory.read(addr);
+pub inline fn unsetFlag(proc: *Processor, flag: Flag) void {
+    switch (flag) {
+        .Z => proc.F.value &= ~Z_MASK,
+        .N => proc.F.value &= ~N_MASK,
+        .H => proc.F.value &= ~H_MASK,
+        .C => proc.F.value &= ~C_MASK,
     }
+}
 
-    /// Load the contents of the source register into the destination register.
-    pub fn reg8_reg8(dest: *Register, src: *Register) void {
-        dest.value = src.value;
-    }
+pub inline fn getFlag(proc: *Processor, flag: Flag) u1 {
+    return switch (flag) {
+        .Z => @truncate(proc.F.value >> 7),
+        .N => @truncate(proc.F.value >> 6),
+        .H => @truncate(proc.F.value >> 5),
+        .C => @truncate(proc.F.value >> 4),
+    };
+}
 
-    pub fn reg8_indirect_reg8(proc: *Processor, dest: *Register, src: *Register) void {
-        const addr = utils.fromTwoBytes(dest.value, 0xFF);
-        proc.memory.write(addr, src.value);
-    }
+pub inline fn resetFlags(proc: *Processor) void {
+    proc.F.value = 0;
+}
 
-    /// Load to the 8-bit A register, data from the address specified by the 8-bit C register. The full 16-bit
-    /// address is obtianed by setting the most significant byte to 0xff and the least significant byte to the
-    /// value of C, so the possible range is 0xff00-0xffff.
-    /// Example: 0xF2 -> LD A, (C)
-    pub fn reg8_reg8_indirect(proc: *Processor, dest: *Register, src: *Register) void {
-        dest.value = proc.memory.read(utils.fromTwoBytes(src.value, 0xFF));
-    }
+fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
+    const op_code = proc.fetch();
+    switch (op_code) {
+        // RLC B
+        0x00 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.B),
 
-    /// Load to the 8-bit register reg, data from the absolute address specified by the 16-bit operand (a16).
-    /// Example: 0xFA -> LD A, (a16)
-    pub fn reg8_imm16_indirect(proc: *Processor, dest: *Register) void {
-        const lo = proc.fetch();
-        const hi = proc.fetch();
-        const addr = utils.fromTwoBytes(lo, hi);
-
-        dest.value = proc.memory.read(addr);
-    }
+        // RLC C
+        0x01 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.C),
 
-    /// Load the 2 bytes of immediate data into register pair rr
-    /// The first byte of immediate data is the lower byte (i.e. bits 0-7), and
-    /// the second byte of immediate data is the higher byte (i.e., bits 8-15)
-    /// Example: 0x01 -> LD BC, d16
-    pub fn reg16_imm16(proc: *Processor, regPair: Processor.RegisterPair) void {
-        switch (regPair) {
-            .AF => {
-                proc.F.value = proc.fetch();
-                proc.A.value = proc.fetch();
-            },
-            .BC => {
-                proc.C.value = proc.fetch();
-                proc.B.value = proc.fetch();
-            },
-            .DE => {
-                proc.E.value = proc.fetch();
-                proc.D.value = proc.fetch();
-            },
-            .HL => {
-                proc.L.value = proc.fetch();
-                proc.H.value = proc.fetch();
-            }
-        }
-    }
+        // RLC D
+        0x02 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.D),
 
-    /// Load to the address specified by the 8-bit immediate data, data from the 8-bit register. The full
-    /// 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least significant
-    /// byte to the value of a8, so the possible range is 0xff00-0xffff.
-    pub fn imm8_indirect_reg8(proc: *Processor, reg: *Register) void {
-        const imm = proc.fetch();
-        proc.memory.write(mask.HI_MASK | imm, reg.value);
-    }
+        // RLC E
+        0x03 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.E),
 
-    /// Store the contents of a register reg into the memory location specified by the register pair rr.
-    /// Example: 0x12 -> LD (DE), A
-    pub fn hl_indirect_reg8(proc: *Processor, reg: *Register) void {
-        proc.memory.write(proc.getHL(), reg.value);
-    }
+        // RLC H
+        0x04 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.H),
 
-    /// Store the contents of 8-bit immediate operand d8 in the memory location
-    /// specified by register pair rr.
-    /// Example: 0x36 -> LD (HL), d8
-    pub fn reg16_indirect_imm8(proc: *Processor, regPair: Processor.RegisterPair) void {
-        const value = proc.fetch();
-        switch (regPair) {
-            .AF => proc.memory.write(proc.getAF(), value),
-            .BC => proc.memory.write(proc.getBC(), value),
-            .DE => proc.memory.write(proc.getDE(), value),
-            .HL => proc.memory.write(proc.getHL(), value),
-        }
-    }
+        // RLC L
+        0x05 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.L),
 
-    /// Store the contents of the accumulator register in the memory location specified by
-    /// register pair rr
-    /// Example: 0x02 -> LD (BC), A
-    pub fn reg16_indirect_acc8(proc: *Processor, regPair: Processor.RegisterPair) void {
-        const addr = switch (regPair) {
-            .AF => proc.getAF(),
-            .BC => proc.getBC(),
-            .DE => proc.getDE(),
-            .HL => proc.getHL(),
-        };
-        proc.memory.write(addr, proc.A.value);
-    }
+        // RLC (HL)
+        0x06 => instructions.bitShift.rotate_left_circular_hlMem(proc),
 
-    /// Store the contents of register A in the internal RAM or register specified by the 16-bit immediate
-    /// operand a16.
-    /// Example: 0xEA -> LD (a16), A
-    pub fn imm16Mem_reg(proc: *Processor, reg: *Register) void {
-        const lo = proc.fetch();
-        const hi = proc.fetch();
-        const addr = utils.fromTwoBytes(lo, hi);
-        proc.memory.write(addr, reg.value);
-    }
+        // RLC A
+        0x07 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.A),
 
-    /// Store the lower byte of Special Purpose Register (SPR) at the address specified by the 16-bit
-    /// immediate operand a16, and store the upper byte of SPR at address a16 + 1.
-    /// Example: 0x08 -> LD (a16), SP
-    pub fn imm16Mem_spr(proc: *Processor, val: u16) void {
-        const lo = proc.fetch();
-        const hi = proc.fetch();
-        const addr: u16 = utils.fromTwoBytes(lo, hi);
-        proc.memory.write(addr, utils.getLoByte(val));
-        proc.memory.write(addr + 1, utils.getHiByte(val));
-    }
+        // RRC B
+        0x08 => instructions.bitShift.rotate_right_circular_r8(proc, &proc.B),
 
-    /// Load the 2 bytes of immediate data into special purpose register (SPR).
-    /// The first byte of immedaite data is the lower byte (i.e., bits 0-7), and the second byte of
-    /// immediate data is the higher byte (i.e., bits 8-15).
-    pub fn spr_imm16(proc: *Processor, spr: *u16) void {
-        spr.* = utils.fromTwoBytes(proc.fetch(), proc.fetch());
-    }
+        // RRC C
+        0x09 => instructions.bitShift.rotate_right_circular_r8(proc, &proc.C),
 
-    /// Load the contents of register pair rr into the Special Purpose Register.
-    /// Example: 0xF9 -> LD SP, HL
-    pub fn spr_rr(proc: *Processor, spr: *u16, regPair: Processor.RegisterPair) void {
-        var loReg: *Register = undefined;
-        var hiReg: *Register = undefined;
-        switch (regPair) {
-            .AF => {
-                hiReg = &proc.A;
-                loReg = &proc.F;
-            },
-            .BC => {
-                hiReg = &proc.B;
-                loReg = &proc.C;
-            },
-            .DE => {
-                hiReg = &proc.D;
-                loReg = &proc.E;
-            },
-            .HL => {
-                hiReg = &proc.H;
-                loReg = &proc.L;
-            },
-        }
-        spr.* = utils.fromTwoBytes(loReg.value, hiReg.value);
-    }
+        // RRC D
+        0x0A => instructions.bitShift.rotate_right_circular_r8(proc, &proc.D),
 
-    /// Load the 8-bit contents of memory specified by register pair rr into register reg
-    /// Example: 0x0A -> LD A, (BC)
-    pub fn reg8_reg16_indirect(proc: *Processor, reg: *Register, regPair: Processor.RegisterPair) void {
-        switch (regPair) {
-            .AF => reg.value = proc.memory.read(proc.getAF()),
-            .BC => reg.value = proc.memory.read(proc.getBC()),
-            .DE => reg.value = proc.memory.read(proc.getDE()),
-            .HL => reg.value = proc.memory.read(proc.getHL()),
-        }
-    }
+        // RRC E
+        0x0B => instructions.bitShift.rotate_right_circular_r8(proc, &proc.E),
 
-    /// Store the contents of register reg into the memory location specified by register pair
-    /// HL, and simultaneously increment the contents of HL
-    /// Example: 0x22 -> LD (HL+), A
-    pub fn hl_indirect_inc_reg8(proc: *Processor, reg: *Register) void {
-        const hl = proc.getHL();
-        proc.memory.write(hl, reg.value);
-        proc.setHL(hl +% 1);
-    }
+        // RRC H
+        0x0C => instructions.bitShift.rotate_right_circular_r8(proc, &proc.H),
 
-    /// Store the contents of register reg into the memory location specified by register pair
-    /// HL, and simultaneously decrement the contents of HL.
-    pub fn hl_indirect_dec_reg8(proc: *Processor, reg: *Register) void {
-        const hl = proc.getHL();
-        proc.memory.write(hl, reg.value);
-        proc.setHL(hl -% 1);
-    }
+        // RRC L
+        0x0D => instructions.bitShift.rotate_right_circular_r8(proc, &proc.L),
 
-    /// Load the contents of memory specified by register pair rr into register reg, and simultaneously
-    /// increment the contents of HL.
-    /// Example: 0x2A -> LD A, (HL+)
-    pub fn reg8_hl_indirect_inc(proc: *Processor, reg: *Register) void {
-        const hl = proc.getHL();
-        reg.value = proc.memory.read(hl);
-        proc.setHL(hl +% 1);
-    }
+        // RRC (HL)
+        0x0E => instructions.bitShift.rotate_right_circular_hlMem(proc),
 
-    /// Load the contents of memory specified by register pair HL into register reg, and
-    /// simultaneously decrement the contents of HL.
-    /// Example: 0x3A -> LD A, (HL-)
-    pub fn reg8_hl_indirect_dec(proc: *Processor, reg: *Register) void {
-        const hl = proc.getHL();
-        reg.value = proc.memory.read(hl);
-        proc.setHL(hl -% 1);
-    }
+        // RRC
+        0x0F => instructions.bitShift.rotate_right_circular_r8(proc, &proc.A),
 
-    // Add the 8-bit signed operand s8 (values -128 to +127) to the stack pointer SP, and store the result in
-    // register pair HL.
-    pub fn hl_sp_imm8(proc: *Processor) void {
-        const imm = proc.fetch();
-        const result = utils.Arithmetic(u16).add_offset(proc.SP, imm);
-        proc.SP = result.value;
-        proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        if (result.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
-        if (result.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-    }
-};
-
-pub const controlFlow = struct {
-    /// Jump s8 steps relative from the current address in the program counter (PC).
-    /// Example: 0x18 -> JR s8
-    pub fn jump_rel_imm8(proc: *Processor) void {
-        const offset = proc.fetch();
-        proc.PC = utils.addOffset(proc.PC, offset);
-    }
+        // RL B
+        0x10 => instructions.bitShift.rotate_left_r8(proc, &proc.B),
 
-    /// If the flag condition is met, jump s8 steps from the current address stored in the program counter (PC). If not, the
-    /// instruction following the current JP instruction is executed (as usual).
-    /// Example: 0x20 -> JR NZ, s8
-    pub fn jump_rel_cc_imm8(proc: *Processor, condition: FlagCondition) void {
-        const offset = proc.fetch();
-        const cc: bool = switch(condition) {
-            .Z => proc.isFlagSet(.Z),
-            .NZ => !proc.isFlagSet(.Z),
-            .N => proc.isFlagSet(.N),
-            .NN => !proc.isFlagSet(.N),
-            .H => proc.isFlagSet(.H),
-            .NH => !proc.isFlagSet(.H),
-            .C => proc.isFlagSet(.C),
-            .NC => !proc.isFlagSet(.C),
-        };
-
-        if (cc) {
-            proc.PC = utils.addOffset(proc.PC, offset);
-        }
-    }
+        // RL C
+        0x11 => instructions.bitShift.rotate_left_r8(proc, &proc.C),
 
-    /// Load the 16-bit immediate operand a16 into the program counter (PC). a16 specifies the address of the
-    /// subsequently executed instruction.
-    /// The second byte of the object code (immediately following the opcode) corresponds to the lower-order
-    /// byte of a16 (bits 0-7), and the third byte of the object code corresponds to the higher-order byte
-    /// (bits 8-15).
-    /// Example: 0xC3 -> JP a16
-    pub fn jump_imm16(proc: *Processor) void {
-        const lo = proc.fetch();
-        const hi = proc.fetch();
-        proc.PC = utils.fromTwoBytes(lo, hi);
-    }
+        // RL D
+        0x12 => instructions.bitShift.rotate_left_r8(proc, &proc.D),
 
+        // RL E
+        0x13 => instructions.bitShift.rotate_left_r8(proc, &proc.E),
 
-    /// Load the 16-bit immediate operand a16 into the program counter PC if the flag condition cc is met. If the
-    /// condition is met, then the subsequent instruction starts at address a16. If not, the contents of PC are
-    /// incremented, and the next instruction following the current JP instruction is executed (as usual).
-    ///
-    /// The second byte of the object code (immediately following the opcode) corresponds to the lower-order
-    /// byte of a16 (bits 0-7), and the third byte of the object code corresponds to the higher-order byte
-    /// (bits 8-15).
-    /// Example: 0xC2 -> JP NZ, a16
-    pub fn jump_cc_imm16(proc: *Processor, condition: FlagCondition) void {
-        const lo = proc.fetch();
-        const hi = proc.fetch();
-        const cc: bool = switch(condition) {
-            .Z => proc.isFlagSet(.Z),
-            .NZ => !proc.isFlagSet(.Z),
-            .N => proc.isFlagSet(.N),
-            .NN => !proc.isFlagSet(.N),
-            .H => proc.isFlagSet(.H),
-            .NH => !proc.isFlagSet(.H),
-            .C => proc.isFlagSet(.C),
-            .NC => !proc.isFlagSet(.C),
-        };
-
-        if (cc) {
-            proc.PC = utils.fromTwoBytes(lo, hi);
-        }
-    }
+        // RL H
+        0x14 => instructions.bitShift.rotate_left_r8(proc, &proc.H),
 
-    /// Load the contents of register pair HL into the program counter PC. The next instruction is fetched from
-    /// the location specified by the new value of PC.
-    /// Example: 0xE9 -> JP HL
-    pub fn jump_hl(proc: *Processor, regPair: Processor.RegisterPair) void {
-        var loReg: *Register = undefined;
-        var hiReg: *Register = undefined;
-        switch (regPair) {
-            .AF => {
-                hiReg = &proc.A;
-                loReg = &proc.F;
-            },
-            .BC => {
-                hiReg = &proc.B;
-                loReg = &proc.C;
-            },
-            .DE => {
-                hiReg = &proc.D;
-                loReg = &proc.E;
-            },
-            .HL => {
-                hiReg = &proc.H;
-                loReg = &proc.L;
-            },
-        }
-
-        proc.PC = utils.fromTwoBytes(loReg.value, hiReg.value);
-    }
+        // RL L
+        0x15 => instructions.bitShift.rotate_left_r8(proc, &proc.L),
 
-    /// Pop from the memory stack the program counter PC value pushed when the subroutine was called, returning
-    /// control to the source program.
-    /// The contents of the address specified by the stack pointer SP are loaded in the lower-order byte of PC,
-    /// and the contents of SP are incremented by 1. The contents of the address specified by the new SP value
-    /// are then loaded in the higher-order byte of PC, and the contents of SP are incremented by 1 again.
-    /// (The value of SP is 2 larger than before instruction execution.) The next instruction is fetched from
-    /// the address specified by the content of PC (as usual).
-    /// Example: 0xC9 -> RET
-    pub fn ret(proc: *Processor) void {
-        const lo: u8 = proc.popStack();
-        const hi: u8 = proc.popStack();
-        proc.PC = utils.fromTwoBytes(lo, hi);
-    }
+        // RL (HL)
+        0x16 => instructions.bitShift.rotate_left_hlMem(&proc),
 
+        // RL A
+        0x17 => instructions.bitShift.rotate_left_r8(proc, &proc.A),
 
-    /// If condition flag cc is met, control is returned to the source program by popping from the memory stack the program
-    /// counter PC value that was pushed to the stack when the subroutine was called.
-    ///
-    /// The contents of the address specified by the stack pointer SP are loaded in the lower-order byte of PC, and
-    /// the contents of SP are incremented by 1. The contents of the address specified by the new SP value are then
-    /// loaded in the higher-order byte of PC, and the contents of SP are incremented by 1 again. (The value of SP
-    /// is 2 larger than before instruction execution.) The next instruction is fetched from the address specified
-    /// by the content of PC (as usual).
-    /// Example: 0xC0 -> RET NZ
-    pub fn ret_cc(proc: *Processor, condition: FlagCondition) void {
-        const cc: bool = switch(condition) {
-            .Z => proc.isFlagSet(.Z),
-            .NZ => !proc.isFlagSet(.Z),
-            .N => proc.isFlagSet(.N),
-            .NN => !proc.isFlagSet(.N),
-            .H => proc.isFlagSet(.H),
-            .NH => !proc.isFlagSet(.H),
-            .C => proc.isFlagSet(.C),
-            .NC => !proc.isFlagSet(.C),
-        };
-
-        if (cc) {
-            ret(proc);
-        }
-    }
+        // RR B
+        0x18 => instructions.bitShift.rotate_right_r8(proc, &proc.B),
 
-    /// Used when an interrupt-service routine finishes. The address for the return from the interrupt is loaded
-    /// in the program counter PC. The master interrupt enable flag is returned to its pre-interrupt status.
-    /// The contents of the address specified by the stack pointer SP are loaded in the lower-order byte of PC,
-    /// and the contents of SP are incremented by 1. The contents of the address specified by the new SP value
-    /// are then loaded in the higher-order byte of PC, and the contents of SP are incremented by 1 again. 
-    /// (THe value of SP is 2 larger than before instruction execution.) The next instruction is fetched from
-    /// the address specified by the content of PC (as usual).
-    /// Example: 0xD9 -> RETI
-    pub fn reti(proc: *Processor) void {
-        ret(proc);
-        proc.IME = true;
-    }
+        // RR C
+        0x19 => instructions.bitShift.rotate_right_r8(proc, &proc.C),
 
-    /// Pop the contents from the memory stack into register pair rr by doing the following:
-    /// 1. Load the contents of memory specified by stack pointer SP into the lower portion of rr.
-    /// 2. Add 1 to SP and load the contents from the new memory location into the upper portion rr.
-    /// 3. By the end, SP should be 2 more than its initial value.
-    /// Example: 0xC1 -> POP BC
-    pub fn pop_rr(proc: *Processor, regPair: Processor.RegisterPair) void {
-        var hiReg: *Register = undefined;
-        var loReg: *Register = undefined;
-        switch (regPair) {
-            .AF => {
-                hiReg = &proc.A;
-                loReg = &proc.F;
-            },
-            .BC => {
-                hiReg = &proc.B;
-                loReg = &proc.C;
-            },
-            .DE => {
-                hiReg = &proc.D;
-                loReg = &proc.E;
-            },
-            .HL => {
-                hiReg = &proc.H;
-                loReg = &proc.L;
-            }
-        }
-        loReg.value = proc.popStack();
-        hiReg.value = proc.popStack();
-    }
+        // RR D
+        0x1A => instructions.bitShift.rotate_right_r8(proc, &proc.D),
 
-    /// Push the contents of register pair rr onto the memory stack by doing the following:
-    /// 1. Subtract 1 from the stack pointer SP, and put the contents of the higher portion of register pair
-    /// BC on on the stack.
-    /// 2. Subtract 1 from SP, and put the lower portion of register pair BC on the stack.
-    /// Example: 0xC5 -> PUSH BC
-    pub fn push_rr(proc: *Processor, regPair: Processor.RegisterPair) void {
-        var lo: *Register = undefined;
-        var hi: *Register = undefined;
-
-        switch (regPair) {
-            .AF => {
-                lo = &proc.F;
-                hi = &proc.A;
-            },
-            .BC => {
-                lo = &proc.C;
-                hi = &proc.B;
-            },
-            .DE => {
-                lo = &proc.E;
-                hi = &proc.D;
-            },
-            .HL => {
-                lo = &proc.L;
-                hi = &proc.H;
-            }
-        }
-
-        proc.pushStack(hi.value);
-        proc.pushStack(lo.value);
-    }
+        // RR E
+        0x1B => instructions.bitShift.rotate_right_r8(proc, &proc.E),
 
-    /// In memory, push the program counter PC value corresponding to the address following the CALL instruction
-    /// to the 2 bytes following the byte specified by the current stack pointer SP. Then load the 16-bit
-    /// immediate operand a16 into PC.
-    /// The subroutine is placed after the location specified by the new PC value. When the subroutine finishes,
-    /// control is returned to the source program using a return instruction and by popping the starting address
-    /// of the next instruction (which was just pushed) and moving it to the PC.
-    /// With the push, the current value of SP is decremented by 1, and the higher-order byte of PC is loaded in
-    /// the memory address specified by the new SP value. The value of SP is then decremented by 1 again, and
-    /// the lower-order byte of PC is loaded in the memory address specified by that value of SP.
-    /// The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed
-    /// in byte 3.
-    /// Example: 0xCD -> CALL a16
-    pub fn call_imm16(proc: *Processor) void {
-        const lo = proc.fetch();
-        const hi = proc.fetch();
-        proc.pushStack(utils.getHiByte(proc.PC));
-        proc.pushStack(utils.getLoByte(proc.PC));
-        proc.PC = utils.fromTwoBytes(lo, hi);
-    }
+        // RR H
+        0x1C => instructions.bitShift.rotate_right_r8(proc, &proc.H),
 
-    /// If condition flag is met, the program counter PC value corresponding to the memory location of the instruction
-    /// following the CALL instruction is pushed to the 2 bytes following the memory byte specified by the stack
-    /// pointer SP. The 16-bit immediate operand a16 is then loaded into PC.
-    ///
-    /// The lower-order byte of a16 is placed in byte 2 of the object code, and the higher-order byte is placed
-    /// in byte 3.
-    /// Example: 0xC4 -> CALL NZ, a16
-    pub fn call_cc_imm16(proc: *Processor, condition: FlagCondition) void {
-        const lo = proc.fetch();
-        const hi = proc.fetch();
-        const cc: bool = switch(condition) {
-            .Z => proc.isFlagSet(.Z),
-            .NZ => !proc.isFlagSet(.Z),
-            .N => proc.isFlagSet(.N),
-            .NN => !proc.isFlagSet(.N),
-            .H => proc.isFlagSet(.H),
-            .NH => !proc.isFlagSet(.H),
-            .C => proc.isFlagSet(.C),
-            .NC => !proc.isFlagSet(.C),
-        };
-        
-        if (cc) {
-            proc.pushStack(utils.getHiByte(proc.PC));
-            proc.pushStack(utils.getLoByte(proc.PC));
-            proc.PC = utils.fromTwoBytes(lo, hi);
-        }
-    }
+        // RR L
+        0x1D => instructions.bitShift.rotate_right_r8(proc, &proc.L),
 
-    /// Push the current value of the program counter PC onto the memory stack, and load into PC the 1th byte
-    /// of page 0 memory addresses, 0x00. The next instruction is fetched from the address specified by the new
-    /// content of PC (as usual).
-    /// With the push, the contents of the stack pointer SP are decremented by 1, and the higher-order byte of
-    /// PC is loaded in the memory address specified by the new SP value. The value of SP is then again
-    /// decremented by 1, and the lower-order byte of the PC is loaded in the memory address specified by that
-    /// value of SP.
-    /// The RST instruction can be used to jump to 1 of 8 addresses. Because all of the addresses are held in
-    /// page 0 memory, 0x00 is loaded in the higher-order byte of the PC, and 0x00 + (8 * index) is loaded in
-    /// the lower-order byte.
-    /// Example: 0xC7 -> RST 0 will load the address 0x0000
-    /// Example: 0xEF -> RST 5 will load the address 0x0028
-    pub fn rst(proc: *Processor, index: u3) void {
-        proc.pushStack(utils.getHiByte(proc.PC));
-        proc.pushStack(utils.getLoByte(proc.PC));
-        proc.PC = mask.HI_MASK | (0x08 * @as(u8, index));
-    }
+        // RR (HL)
+        0x1E => instructions.bitShift.rotate_right_hlMem(&proc),
 
-};
-
-pub const bitShift = struct {
-    /// Rotates the 8-bit A register value left through the carry flag.
-    /// Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). The carry flag is copied to bit
-    /// 0, and bit 7 is copied to the carry flag. Note that unlike the related RL r instruction, RLA always
-    /// sets the zero flag to 0 without looking at the resulting value of the calculation.
-    pub fn rotate_left_a(proc: *Processor) void {
-        const bit_7_mask: u8 = 0x80;
-        const bit_7: u1 = if ((proc.A.value & bit_7_mask) == bit_7_mask) 1 else 0;
-        const carry = proc.getFlag(.C);
-        if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-        proc.A.value <<= 1;
-        proc.A.value |= carry;
-    }
+        // RR A
+        0x1F => instructions.bitShift.rotate_right_r8(proc, &proc.A),
 
-    /// Rotates the 8-bit A register value left in a circular manner (carry flag is updated but not used).
-    /// Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). Bit 7 is copied both to bit
-    /// 0 and the carry flag. Note that unlike the related RLC r instruction, RLCA always sets the zero
-    /// flag to 0 without looking at the resulting value of the calculation.
-    pub fn rotate_left_circular_a(proc: *Processor) void {
-        const bit_7_mask: u8 = 0x80;
-        const bit_7: u1 = if ((proc.A.value & bit_7_mask) == bit_7_mask) 1 else 0;
-        if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-        proc.A.value <<= 1;
-        proc.A.value |= bit_7;
-    }
+        // SLA B
+        0x20 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.B),
 
-    /// Rotate the contents of register A to the right, through the carry (CY) flag.
-    /// That is, the contents of bit 7 are copied to bit 6, and the previous contents of bit 6 (before the copy) are
-    /// copied to bit 5. The same operation is repeated in sequence for the rest of the register.
-    /// The previous contents of the carry flag are copied to bit 7.
-    pub fn rotate_right_a(proc: *Processor) void {
-        const bit_0: u1 = @truncate(proc.A.value);
-        const carry_mask: u8 = if (proc.isFlagSet(.C)) 0x80 else 0x00;
-        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-        proc.A.value >>= 1;
-        proc.A.value |= carry_mask;
-    }
+        // SLA C
+        0x21 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.C),
 
-    /// Rotate the contents of register A to the right.
-    /// That is, the contents of bit 7 are copied to bit 6, and the previous contents of bit 6 (before the copy) are
-    /// copied to bit 5. The same operation is repeated in sequence for the rest of the register.
-    /// The contents of bit 0 are placed in both the CY flag and bit 7 of register A.
-    pub fn rotate_right_circular_a(proc: *Processor) void {
-        const bit_0: u1 = @truncate(proc.A.value);
-        const carry_mask: u8 = if (bit_0 == 1) 0x80 else 0x00;
-        proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        proc.A.value >>= 1;
-        proc.A.value |= carry_mask;
-    }
+        // SLA D
+        0x22 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.D),
 
-    /// Rotates the 8-bit register r value left in a circular manner (carry flag is updated but not used).
-    /// Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). Bit 7 is copied both to bit 0
-    /// and the carry flag.
-    pub fn rotate_left_circular_r8(proc: *Processor, register: *Register) void {
-        const bit_7: u1 = @truncate(register.value >> 7);
-        if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        register.value <<= 1;
-        register.value |= bit_7;
-        if (register.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-    }
+        // SLA E
+        0x23 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.E),
 
-    /// Rotates the 8-bit register r value right in a circular manner (carry flag is updated but not used).
-    /// Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). Bit 0 is copied both to bit 7
-    /// and the carry flag.
-    pub fn rotate_right_circular_r8(proc: *Processor, register: *Register) void {
-        const bit_0: u1 = @truncate(register.value);
-        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        const rotate_mask: u8 = if (bit_0 == 1) 0x80 else 0x00;
-        register.value >>= 1;
-        register.value |= rotate_mask;
-        if (register.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-    }
+        // SLA H
+        0x24 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.H),
 
-    /// Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, left in a
-    /// circular manner (carry flag is updated but not used).
-    /// Every bit is shifted t
-    pub fn rotate_left_circular_hlMem(proc: *Processor) void {
-        const contents: *u8 = &proc.memory.address[proc.getHL()];
-        const bit_7: u1 = @truncate(contents.* >> 7);
-        if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        contents.* <<= 1;
-        contents.* |= bit_7;
-        if (contents.* == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-    }
+        // SLA L
+        0x25 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.L),
 
-    /// Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, right in a
-    /// circular manner (carry flag is updated but not used).
-    /// Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). Bit 0 is copied both to bit 7
-    /// and the carry flag.
-    pub fn rotate_right_circular_hlMem(proc: *Processor) void {
-        const contents: *u8 = &proc.memory.address[proc.getHL()];
-        const bit_0: u1 = @truncate(contents.*);
-        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        const carry_mask: u8 = if (bit_0 == 1) 0x80 else 0x00;
-        contents.* >>= 1;
-        contents.* |= carry_mask;
-        if (contents.* == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-    }
+        // SLA (HL)
+        0x26 => instructions.bitShift.shift_left_arithmetic_hlMem(&proc),
 
-    /// Rotates the 8-bit register r value left through the carry flag.
-    /// Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). The carry flag is copied to bit
-    /// 0, and bit 7 is copied to the carry flag.{
-    pub fn rotate_left_arithmetic_r8(proc: *Processor, register: *Register) void {
-        const bit_7: u1 = @truncate(register.value >> 7);
-        const carry = proc.getFlag(.C);
-        register.value <<= 1;
-        register.value |= carry;
-        if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (register.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-    }
+        // SLA A
+        0x27 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.A),
 
-    /// Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, left through
-    /// the carry flag.
-    /// Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). The carry flag is copied to bit
-    /// 0, and bit 7 is copied to the carry flag.
-    pub fn rotate_left_hlMem(proc: *Processor) void {
-        const contents: *u8 = &proc.memory.address[proc.getHL()];
-        const bit_7: u1 = @truncate(contents.* >> 7);
-        const carry = proc.getFlag(.C);
-        contents.* <<= 1;
-        contents.* |= carry;
-        if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (contents.* == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-    }
+        // SRA B
+        0x28 => instructions.bitShift.shift_right_arithmetic_r8(proc, &proc.B),
 
-    /// Rotates the 8-bit register r value right through the carry flag.
-    /// Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). The carry flag is copied to bit
-    /// 7, and bit 0 is copied to the carry flag
-    pub fn rotate_right_r8(proc: *Processor, register: *Register) void {
-        const bit_0: u1 = @truncate(register.value);
-        const carry_mask: u8 = if (proc.getFlag(.C) == 1) 0x80 else 0x00;
-        register.value >>= 1;
-        register.value |= carry_mask;
-        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (register.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-    }
+        // SRA C
+        0x29 => instructions.bitShift.shift_right_arithmetic_r8(proc, &proc.C),
 
-    /// Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, right through
-    /// the carry flag.
-    /// Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). The carry flag is copied to bit
-    /// 7, and bit 0 is copied to the carry flag.
-    pub fn rotate_right_hlMem(proc: *Processor) void {
-        const contents: *u8 = &proc.memory.address[proc.getHL()];
-        const bit_0: u1 = @truncate(contents.*);
-        const carry_mask: u8 = if (proc.getFlag(.C) == 1) 0x80 else 0x00;
-        contents.* >>= 1;
-        contents.* |= carry_mask;
-        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        if (contents.* == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-    }
+        // SRA D
+        0x2A => instructions.bitShift.shift_right_arithmetic_r8(proc, &proc.D),
 
-    /// Shifts the 8-bit register r value left by one bit using an arithmetic shift.
-    /// Bit 7 is shifted to the carry flag, and bit 0 is set to a fixed value of 0.
-    pub fn shift_left_arithmetic_r8(proc: *Processor, register: *Register) void {
-        const bit_7: u1 = @truncate(register.value >> 7);
-        register.value <<= 1;
-        if (register.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-    }
+        // SRA E
+        0x2B => instructions.bitShift.shift_right_arithmetic_r8(proc, &proc.E),
 
-    /// Shifts, the 8-bit value at the address specified by the HL register, left by one bit using an
-    /// arithmetic shift.
-    /// Bit 7 is shifted to the carry flag, and bit 0 is set to a fixed value of 0.
-    pub fn shift_left_arithmetic_hlMem(proc: *Processor) void {
-        const contents: *u8 = &proc.memory.address[proc.getHL()];
-        const bit_7: u1 = @truncate(contents.* >> 7);
-        contents.* <<= 1;
-        if (contents.* == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (bit_7 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-    }
+        // SRA H
+        0x2C => instructions.bitShift.shift_right_arithmetic_r8(proc, &proc.H),
 
-    /// Shifts the 8-bit register r value right by one bit using an arithmetic shift.
-    /// Bit 7 retains its value, and bit 0 is shifted to the carry flag.
-    pub fn shift_right_arithmetic_r8(proc: *Processor, register: *Register) void {
-        const bit_0: u1 = @truncate(register.value);
-        const bit_7_mask: u8 = if ((register.value & 0x80) == 0x80) 0x80 else 0x00;
-        register.value >>= 1;
-        register.value |= bit_7_mask;
-        if (register.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-    }
+        // SRA L
+        0x2D => instructions.bitShift.shift_right_arithmetic_r8(proc, &proc.L),
 
-    /// Shifts, the 8-bit value at the address specified by the HL register, right by one bit using an
-    /// arithmetic shift.
-    /// Bit 7 retains its value, and bit 0 is shifted to the carry flag.
-    pub fn shift_right_arithmetic_hlMem(proc: *Processor) void {
-        const contents: *u8 = &proc.memory.address[proc.getHL()];
-        const bit_0: u1 = @truncate(contents.*);
-        const bit_7_mask: u8 = if ((contents.* & 0x80) == 0x80) 0x80 else 0x00;
-        contents.* >>= 1;
-        contents.* |= bit_7_mask;
-        if (contents.* == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-    }
+        // SRA (HL)
+        0x2E => instructions.bitShift.shift_right_arithmetic_hlMem(&proc),
 
-    /// Swaps the high and low 4-bit nibbles of the 8-bit register r.
-    pub fn swap_r8(proc: *Processor, register: *Register) void {
-        const lo_nibble_mask: u8 = (register.value & 0xF) << 4;
-        register.value >>= 4;
-        register.value |= lo_nibble_mask;
-        if (register.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-        proc.unsetFlag(.C);
-    }
+        // SRA A
+        0x2F => instructions.bitShift.shift_right_arithmetic_r8(proc, &proc.A),
 
-    /// Swaps the high and low 4-bit nibbles of the 8-bit data at the absolute address specified by the
-    /// 16-bit register HL
-    pub fn swap_hlMem(proc: *Processor) void {
-        const contents: *u8 = &proc.memory.address[proc.getHL()];
-        const lo_nibble_mask: u8 = (contents.* & 0xF) << 4;
-        contents.* >>= 4;
-        contents.* |= lo_nibble_mask;
-        if (contents.* == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-        proc.unsetFlag(.C);
-    }
+        // SWAP B
+        0x30 => instructions.bitShift.swap_r8(proc, &proc.B),
 
-    /// Shifts the 8-bit register r value right by one bit using a logical shift.
-    /// Bit 7 is set to a fixed value of 0, and bit 0 is shifted to the carry flag.
-    pub fn shift_right_logical_r8(proc: *Processor, register: *Register) void {
-        const bit_0: u1 = @truncate(register.value);
-        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        register.value >>= 1;
-        if (register.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-    }
+        // SWAP C
+        0x31 => instructions.bitShift.swap_r8(proc, &proc.C),
 
-    /// Shifts, the 8-bit value at the address specified by the HL register, right by one bit using a logical
-    /// shift.
-    /// Bit 7 is set to a fixed value of 0, and bit 0 is shifted to the carry flag.
-    pub fn shift_right_logical_hlMem(proc: *Processor) void {
-        const contents: *u8 = &proc.memory.address[proc.getHL()];
-        const bit_0: u1 = @truncate(contents.*);
-        if (bit_0 == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-        contents.* >>= 1;
-        if (contents.* == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-    }
-};
-
-pub const bitFlag = struct {
-    /// Tests the bit b of the 8-bit register r.
-    /// The zero flag is set to 1 if the chosen bit is 0, and 0 otherwise.
-    pub fn test_bit_r8(proc: *Processor, bit: Bit, register: *Register) void {
-        const b: u1 = @truncate(register.value >> @intFromEnum(bit));
-        if (b == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.setFlag(.H);
-    }
+        // SWAP D
+        0x32 => instructions.bitShift.swap_r8(proc, &proc.D),
 
-    /// Tests the bit b of the 8-bit data at the absolute address specified by the 16-bit register HL.
-    /// The zero flag is set to 1 if the chosen bit is 0, and 0 otherwise.
-    pub fn test_bit_hlMem(proc: *Processor, bit: Bit) void {
-        const contents: *u8 = &proc.memory.address[proc.getHL()];
-        const b: u1 = @truncate(contents.* >> @intFromEnum(bit));
-        if (b == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.N);
-        proc.setFlag(.H);
-    }
-};
-
-pub const bits = struct {
-    /// Resets the bit b of the 8-bit register r to 0.
-    pub fn reset_bit_r8(bit: Bit, register: *Register) void {
-        const bit_mask: u8 = ~(@as(u8, 1) << @intFromEnum(bit));
-        register.value &= bit_mask;
-    }
+        // SWAP E
+        0x33 => instructions.bitShift.swap_r8(proc, &proc.E),
 
-    /// Resets the bit b of the 8-bit data at the absolute address specified by the 16-bit register HL, to 0.
-    pub fn reset_bit_hlMem(proc:* Processor, bit: Bit) void {
-        const content: *u8 = &proc.memory.address[proc.getHL()];
-        const bit_mask: u8 = ~(@as(u8, 1) << @intFromEnum(bit));
-        content.* &= bit_mask;
-    }
+        // SWAP H
+        0x34 => instructions.bitShift.swap_r8(proc, &proc.H),
 
-    /// Sets the bit b of the 8-bit register r to 1
-    pub fn set_bit_r8(bit: Bit, register: *Register) void {
-        const bit_mask: u8 = @as(u8, 1) << @intFromEnum(bit);
-        register.value |= bit_mask;
-    }
+        // SWAP L
+        0x35 => instructions.bitShift.swap_r8(proc, &proc.L),
 
-    /// Sets the bit b of the 8-bit data at the absolute address specified by the 16-bit register HL, to 1.
-    pub fn set_bit_hlMem(proc: *Processor, bit: Bit) void {
-        const bit_mask: u8 = @as(u8, 1) << @intFromEnum(bit);
-        const content: *u8 = &proc.memory.address[proc.getHL()];
-        content.* |= bit_mask;
-    }
-};
-
-pub const misc = struct {
-    /// Set Carry Flag.
-    pub fn set_carry_flag(proc: *Processor) void {
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-        proc.setFlag(.C);
-    }
+        // SWAP (HL)
+        0x36 => instructions.bitShift.swap_hlMem(&proc),
+
+        // SWAP A
+        0x37 => instructions.bitShift.swap_r8(proc, &proc.A),
+
+        // SRL B
+        0x38 => instructions.bitShift.shift_right_logical_r8(proc, &proc.B),
+
+        // SRL C
+        0x39 => instructions.bitShift.shift_right_logical_r8(proc, &proc.C),
+
+        // SRL D
+        0x3A => instructions.bitShift.shift_right_logical_r8(proc, &proc.D),
+
+        // SRL E
+        0x3B => instructions.bitShift.shift_right_logical_r8(proc, &proc.E),
+
+        // SRL H
+        0x3C => instructions.bitShift.shift_right_logical_r8(proc, &proc.H),
+
+        // SRL L
+        0x3D => instructions.bitShift.shift_right_logical_r8(proc, &proc.L),
+
+        // SRL (HL)
+        0x3E => instructions.bitShift.shift_right_logical_hlMem(&proc),
+
+        // SRL A
+        0x3F => instructions.bitShift.shift_right_logical_r8(proc, &proc.A),
+
+        // BIT 0, B
+        0x40 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.B),
+
+        // BIT 0, C
+        0x41 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.C),
+
+        // BIT 0, D
+        0x42 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.D),
+
+        // BIT 0, E
+        0x43 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.D),
+
+        // BIT 0, H
+        0x44 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.H),
+
+        // BIT 0, L
+        0x45 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.L),
+
+        // BIT 0, (HL)
+        0x46 => instructions.bitFlag.test_bit_hlMem(proc, Bit.zero),
+
+        // BIT 0, A
+        0x47 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.A),
+
+        // BIT 1, B
+        0x48 => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.B),
+
+        // BIT 1, C
+        0x49 => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.C),
+
+        // BIT 1, D
+        0x4A => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.D),
+
+        // BIT 1, E
+        0x4B => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.E),
+
+        // BIT 1, H
+        0x4C => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.H),
+
+        // BIT 1, L
+        0x4D => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.L),
+
+        // BIT 1, (HL)
+        0x4E => instructions.bitFlag.test_bit_hlMem(proc, Bit.one),
+
+        // BIT 1, A
+        0x4F => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.A),
+
+        // BIT 2, B
+        0x50 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.B),
+
+        // BIT 2, C
+        0x51 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.C),
+
+        // BIT 2, D
+        0x52 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.D),
+
+        // BIT 2, E
+        0x53 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.E),
+
+        // BIT 2, H
+        0x54 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.H),
+
+        // BIT 2, L
+        0x55 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.L),
+
+        // BIT 2, (HL)
+        0x56 => instructions.bitFlag.test_bit_hlMem(proc, Bit.two),
+
+        // BIT 2, A
+        0x57 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.A),
+
+        // BIT 3, B
+        0x58 => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.B),
+
+        // BIT 3, C
+        0x59 => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.C),
+
+        // BIT 3, D
+        0x5A => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.D),
+
+        // BIT 3, E
+        0x5B => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.E),
+
+        // BIT 3, H
+        0x5C => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.H),
+
+        // BIT 3, L
+        0x5D => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.L),
+
+        // BIT 3, (HL)
+        0x5E => instructions.bitFlag.test_bit_hlMem(proc, Bit.three),
+
+        // BIT 3, A
+        0x5F => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.A),
+
+        // BIT 4, B
+        0x60 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.B),
+
+        // BIT 4, C
+        0x61 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.C),
+
+        // BIT 4, D
+        0x62 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.D),
+
+        // BIT 4, E
+        0x63 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.E),
+
+        // BIT 4, H
+        0x64 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.H),
+
+        // BIT 4, L
+        0x65 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.L),
+
+        // BIT 4, (HL)
+        0x66 => instructions.bitFlag.test_bit_hlMem(proc, Bit.four),
+
+        // BIT 4, A
+        0x67 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.A),
+
+        // BIT 5, B
+        0x68 => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.B),
+
+        // BIT 5, C
+        0x69 => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.C),
+
+        // BIT 5, D
+        0x6A => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.D),
+
+        // BIT 5, E
+        0x6B => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.E),
+
+        // BIT 5, H
+        0x6C => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.H),
+
+        // BIT 5, L
+        0x6D => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.L),
+
+        // BIT 5, (HL)
+        0x6E => instructions.bitFlag.test_bit_hlMem(proc, Bit.five),
+
+        // BIT 5, A
+        0x6F => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.A),
+
+        // BIT 6, B
+        0x70 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.B),
+
+        // BIT 6, C
+        0x71 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.C),
+
+        // BIT 6, D
+        0x72 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.D),
+
+        // BIT 6, E
+        0x73 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.E),
+
+        // BIT 6, H
+        0x74 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.H),
+
+        // BIT 6, L
+        0x75 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.L),
+
+        // BIT 6, (HL)
+        0x76 => instructions.bitFlag.test_bit_hlMem(proc, Bit.six),
+
+        // BIT 6, A
+        0x77 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.A),
+
+        // BIT 7, B
+        0x78 => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.B),
+
+        // BIT 7, C
+        0x79 => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.C),
+
+        // BIT 7, D
+        0x7A => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.D),
+
+        // BIT 7, E
+        0x7B => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.E),
+
+        // BIT 7, H
+        0x7C => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.H),
+
+        // BIT 7, L
+        0x7D => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.L),
+
+        // BIT 7, (HL)
+        0x7E => instructions.bitFlag.test_bit_hlMem(proc, Bit.seven),
+
+        // BIT 7, A
+        0x7F => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.A),
+
+        // RES 0, B
+        0x80 => instructions.bits.reset_bit_r8(.zero, &proc.B),
+
+        // RES 0, C
+        0x81 => instructions.bits.reset_bit_r8(.zero, &proc.C),
+
+        // RES 0, D
+        0x82 => instructions.bits.reset_bit_r8(.zero, &proc.D),
+
+        // RES 0, E
+        0x83 => instructions.bits.reset_bit_r8(.zero, &proc.E),
+
+        // RES 0, H
+        0x84 => instructions.bits.reset_bit_r8(.zero, &proc.H),
+
+        // RES 0, L
+        0x85 => instructions.bits.reset_bit_r8(.zero, &proc.L),
+
+        // RES 0, (HL)
+        0x86 => instructions.bits.reset_bit_hlMem(proc, .zero),
+
+        // RES 0, A
+        0x87 => instructions.bits.reset_bit_r8(.zero, &proc.A),
+
+        // RES 1, B
+        0x88 => instructions.bits.reset_bit_r8(.one, &proc.B),
+
+        // RES 1, C
+        0x89 => instructions.bits.reset_bit_r8(.one, &proc.C),
+
+        // RES 1, D
+        0x8A => instructions.bits.reset_bit_r8(.one, &proc.D),
+
+        // RES 1, E
+        0x8B => instructions.bits.reset_bit_r8(.one, &proc.E),
+
+        // RES 1, H
+        0x8C => instructions.bits.reset_bit_r8(.one, &proc.H),
+
+        // RES 1, L
+        0x8D => instructions.bits.reset_bit_r8(.one, &proc.L),
+
+        // RES 1, (HL)
+        0x8E => instructions.bits.reset_bit_hlMem(proc, .one),
+
+        // RES 1, A
+        0x8F => instructions.bits.reset_bit_r8(.two, &proc.A),
+
+        // RES 2, B
+        0x90 => instructions.bits.reset_bit_r8(.two, &proc.B),
+
+        // RES 2, C
+        0x91 => instructions.bits.reset_bit_r8(.two, &proc.C),
+
+        // RES 2, D
+        0x92 => instructions.bits.reset_bit_r8(.two, &proc.D),
+
+        // RES 2, E
+        0x93 => instructions.bits.reset_bit_r8(.two, &proc.E),
+
+        // RES 2, H
+        0x94 => instructions.bits.reset_bit_r8(.two, &proc.H),
+
+        // RES 2, L
+        0x95 => instructions.bits.reset_bit_r8(.two, &proc.L),
+
+        // RES 2, (HL)
+        0x96 => instructions.bits.reset_bit_hlMem(proc, .two),
+
+        // RES 2, A
+        0x97 => instructions.bits.reset_bit_r8(.two, &proc.A),
+
+        // RES 3, B
+        0x98 => instructions.bits.reset_bit_r8(.three, &proc.B),
+
+        // RES 3, C
+        0x99 => instructions.bits.reset_bit_r8(.three, &proc.C),
+
+        // RES 3, D
+        0x9A => instructions.bits.reset_bit_r8(.three, &proc.D),
+
+        // RES 3, E
+        0x9B => instructions.bits.reset_bit_r8(.three, &proc.E),
+
+        // RES 3, H
+        0x9C => instructions.bits.reset_bit_r8(.three, &proc.H),
+
+        // RES 3, L
+        0x9D => instructions.bits.reset_bit_r8(.three, &proc.L),
+
+        // RES 3, (HL)
+        0x9E => instructions.bits.reset_bit_hlMem(proc, .three),
+
+        // RES 3, A
+        0x9F => instructions.bits.reset_bit_r8(.three, &proc.A),
+
+        // RES 4, B
+        0xA0 => instructions.bits.reset_bit_r8(.four, &proc.B),
+
+        // RES 4, C
+        0xA1 => instructions.bits.reset_bit_r8(.four, &proc.C),
+
+        // RES 4, D
+        0xA2 => instructions.bits.reset_bit_r8(.four, &proc.D),
+
+        // RES 4, E
+        0xA3 => instructions.bits.reset_bit_r8(.four, &proc.E),
+
+        // RES 4, H
+        0xA4 => instructions.bits.reset_bit_r8(.four, &proc.H),
+
+        // RES 4, L
+        0xA5 => instructions.bits.reset_bit_r8(.four, &proc.L),
+
+        // RES 4, (HL)
+        0xA6 => instructions.bits.reset_bit_hlMem(proc, .four),
+
+        // RES 4, A
+        0xA7 => instructions.bits.reset_bit_r8(.four, &proc.A),
+
+        // RES 5, B
+        0xA8 => instructions.bits.reset_bit_r8(.five, &proc.B),
+
+        // RES 5, C
+        0xA9 => instructions.bits.reset_bit_r8(.five, &proc.C),
+
+        // RES 5, D
+        0xAA => instructions.bits.reset_bit_r8(.five, &proc.D),
+
+        // RES 5, E
+        0xAB => instructions.bits.reset_bit_r8(.five, &proc.E),
+
+        // RES 5, H
+        0xAC => instructions.bits.reset_bit_r8(.five, &proc.H),
+
+        // RES 5, L
+        0xAD => instructions.bits.reset_bit_r8(.five, &proc.L),
+
+        // RES 5, (HL)
+        0xAE => instructions.bits.reset_bit_hlMem(proc, .five),
+
+        // RES 5, A
+        0xAF => instructions.bits.reset_bit_r8(.five, &proc.A),
+
+        // RES 6, B
+        0xB0 => instructions.bits.reset_bit_r8(.six, &proc.B),
+
+        // RES 6, C
+        0xB1 => instructions.bits.reset_bit_r8(.six, &proc.C),
+
+        // RES 6, D
+        0xB2 => instructions.bits.reset_bit_r8(.six, &proc.D),
+
+        // RES 6, E
+        0xB3 => instructions.bits.reset_bit_r8(.six, &proc.E),
+
+        // RES 6, H
+        0xB4 => instructions.bits.reset_bit_r8(.six, &proc.H),
+
+        // RES 6, L
+        0xB5 => instructions.bits.reset_bit_r8(.six, &proc.L),
+
+        // RES 6, (HL)
+        0xB6 => instructions.bits.reset_bit_hlMem(proc, .six),
+
+        // RES 6, A
+        0xB7 => instructions.bits.reset_bit_r8(.six, &proc.A),
+
+        // RES 7, B
+        0xB8 => instructions.bits.reset_bit_r8(.seven, &proc.B),
+
+        // RES 7, C
+        0xB9 => instructions.bits.reset_bit_r8(.seven, &proc.C),
+
+        // RES 7, D
+        0xBA => instructions.bits.reset_bit_r8(.seven, &proc.D),
+
+        // RES 7, E
+        0xBB => instructions.bits.reset_bit_r8(.seven, &proc.E),
+
+        // RES 7, H
+        0xBC => instructions.bits.reset_bit_r8(.seven, &proc.H),
+
+        // RES 7, L
+        0xBD => instructions.bits.reset_bit_r8(.seven, &proc.L),
+
+        // RES 7, (HL)
+        0xBE => instructions.bits.reset_bit_hlMem(proc, .seven),
+
+        // RES 7, A
+        0xBF => instructions.bits.reset_bit_r8(.seven, &proc.A),
+
+        // SET 0, B
+        0xC0 => instructions.bits.set_bit_r8(.zero, &proc.B),
+
+        // SET 0, C
+        0xC1 => instructions.bits.set_bit_r8(.zero, &proc.C),
+
+        // SET 0, D
+        0xC2 => instructions.bits.set_bit_r8(.zero, &proc.D),
+
+        // SET 0, E
+        0xC3 => instructions.bits.set_bit_r8(.zero, &proc.E),
+
+        // SET 0, H
+        0xC4 => instructions.bits.set_bit_r8(.zero, &proc.H),
+
+        // SET 0, L
+        0xC5 => instructions.bits.set_bit_r8(.zero, &proc.L),
+
+        // SET 0, (HL)
+        0xC6 => instructions.bits.set_bit_hlMem(proc, .zero),
+
+        // SET 0, A
+        0xC7 => instructions.bits.set_bit_r8(.zero, &proc.A),
+
+        // SET 1, B
+        0xC8 => instructions.bits.set_bit_r8(.one, &proc.B),
+
+        // SET 1, C
+        0xC9 => instructions.bits.set_bit_r8(.one, &proc.C),
+
+        // SET 1, D
+        0xCA => instructions.bits.set_bit_r8(.one, &proc.D),
+
+        // SET 1, E
+        0xCB => instructions.bits.set_bit_r8(.one, &proc.E),
+
+        // SET 1, H
+        0xCC => instructions.bits.set_bit_r8(.one, &proc.H),
+
+        // SET 1, L
+        0xCD => instructions.bits.set_bit_r8(.one, &proc.L),
+
+        // SET 1, (HL)
+        0xCE => instructions.bits.set_bit_hlMem(&proc, .one),
+
+        // SET 1, A
+        0xCF => instructions.bits.set_bit_r8(.one, &proc.A),
+
+        // SET 2, B
+        0xD0 => instructions.bits.set_bit_r8(.two, &proc.B),
+
+        // SET 2, C
+        0xD1 => instructions.bits.set_bit_r8(.two, &proc.C),
+
+        // SET 2, D
+        0xD2 => instructions.bits.set_bit_r8(.two, &proc.D),
+
+        // SET 2, E
+        0xD3 => instructions.bits.set_bit_r8(.two, &proc.E),
+
+        // SET 2, H
+        0xD4 => instructions.bits.set_bit_r8(.two, &proc.H),
+
+        // SET 2, L
+        0xD5 => instructions.bits.set_bit_r8(.two, &proc.L),
+
+        // SET 2, (HL)
+        0xD6 => instructions.bits.set_bit_hlMem(proc, .two),
+
+        // SET 2, A
+        0xD7 => instructions.bits.set_bit_r8(.two, &proc.A),
+
+        // SET 3, B
+        0xD8 => instructions.bits.set_bit_r8(.three, &proc.B),
+
+        // SET 3, C
+        0xD9 => instructions.bits.set_bit_r8(.three, &proc.C),
+
+        // SET 3, D
+        0xDA => instructions.bits.set_bit_r8(.three, &proc.D),
+
+        // SET 3, E
+        0xDB => instructions.bits.set_bit_r8(.three, &proc.E),
+
+        // SET 3, H
+        0xDC => instructions.bits.set_bit_r8(.three, &proc.H),
+
+        // SET 3, L
+        0xDD => instructions.bits.set_bit_r8(.three, &proc.L),
+
+        // SET 3, (HL)
+        0xDE => instructions.bits.set_bit_hlMem(&proc, .three),
+
+        // SET 3, A
+        0xDF => instructions.bits.set_bit_r8(.three, &proc.A),
+
+        // SET 4, B
+        0xE0 => instructions.bits.set_bit_r8(.four, &proc.B),
+
+        // SET 4, C
+        0xE1 => instructions.bits.set_bit_r8(.four, &proc.C),
+
+        // SET 4, D
+        0xE2 => instructions.bits.set_bit_r8(.four, &proc.D),
+
+        // SET 4, E
+        0xE3 => instructions.bits.set_bit_r8(.four, &proc.E),
+
+        // SET 4, H
+        0xE4 => instructions.bits.set_bit_r8(.four, &proc.H),
+
+        // SET 4, L
+        0xE5 => instructions.bits.set_bit_r8(.four, &proc.L),
+
+        // SET 4, (HL)
+        0xE6 => instructions.bits.set_bit_hlMem(proc, .four),
+
+        // SET 4 A
+        0xE7 => instructions.bits.set_bit_r8(.four, &proc.A),
+
+        // SET 5, B
+        0xE8 => instructions.bits.set_bit_r8(.five, &proc.B),
+
+        // SET 5, C
+        0xE9 => instructions.bits.set_bit_r8(.five, &proc.C),
+
+        // SET 5, D
+        0xEA => instructions.bits.set_bit_r8(.five, &proc.D),
+
+        // SET 5, E
+        0xEB => instructions.bits.set_bit_r8(.five, &proc.E),
+
+        // SET 5, H
+        0xEC => instructions.bits.set_bit_r8(.five, &proc.H),
+
+        // SET 5, L
+        0xED => instructions.bits.set_bit_r8(.five, &proc.L),
+
+        // SET 5, (HL)
+        0xEE => instructions.bits.set_bit_hlMem(&proc, .five),
+
+        // SET 5, A
+        0xEF => instructions.bits.set_bit_r8(.five, &proc.A),
+
+        // SET 6, B
+        0xF0 => instructions.bits.set_bit_r8(.six, &proc.B),
+
+        // SET 6, C
+        0xF1 => instructions.bits.set_bit_r8(.six, &proc.C),
+
+        // SET 6, D
+        0xF2 => instructions.bits.set_bit_r8(.six, &proc.D),
+
+        // SET 6, E
+        0xF3 => instructions.bits.set_bit_r8(.six, &proc.E),
+
+        // SET 6, H
+        0xF4 => instructions.bits.set_bit_r8(.six, &proc.H),
+
+        // SET 6, L
+        0xF5 => instructions.bits.set_bit_r8(.six, &proc.L),
+
+        // SET 6, (HL)
+        0xF6 => instructions.bits.set_bit_hlMem(proc, .six),
 
-    /// Complement Carry Flag.
-    pub fn complement_carry_flag(proc: *Processor) void {
-        proc.unsetFlag(.N);
-        proc.unsetFlag(.H);
-        if (proc.isFlagSet(.C)) proc.unsetFlag(.C) else proc.setFlag(.C);
+        // SET 6 A
+        0xF7 => instructions.bits.set_bit_r8(.six, &proc.A),
+
+        // SET 7, B
+        0xF8 => instructions.bits.set_bit_r8(.seven, &proc.B),
+
+        // SET 7, C
+        0xF9 => instructions.bits.set_bit_r8(.seven, &proc.C),
+
+        // SET 7, D
+        0xFA => instructions.bits.set_bit_r8(.seven, &proc.D),
+
+        // SET 7, E
+        0xFB => instructions.bits.set_bit_r8(.seven, &proc.E),
+
+        // SET 7, H
+        0xFC => instructions.bits.set_bit_r8(.seven, &proc.H),
+
+        // SET 7, L
+        0xFD => instructions.bits.set_bit_r8(.seven, &proc.L),
+
+        // SET 7, (HL)
+        0xFE => instructions.bits.set_bit_hlMem(&proc, .seven),
+
+        // SET 7, A
+        0xFF => instructions.bits.set_bit_r8(.seven, &proc.A),
     }
+}
 
-    /// ComPLement accumulator (A = ~A); also called bitwise NOT.
-    pub fn complement_a8(proc: *Processor) void {
-        proc.A.value = ~proc.A.value;
+pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
+    if (proc.isHalted) {
+        std.debug.print("Processor is currently halted. Not executing any operations\n", .{});
+        return;
     }
+
+    switch (op_code) {
+        // NOP (No operation) Only advances the program counter by 1.
+        0x00 => {},
+
+        // LD BC, d16
+        0x01 => instructions.load.reg16_imm16(proc, .BC),
+
+        // LD (BC), A
+        0x02 => instructions.load.reg16_indirect_acc8(proc, .BC, &proc.A),
+
+        // INC BC
+        0x03 => instructions.arithmetic.inc_reg16(proc, .BC),
+
+        // INC B
+        0x04 => instructions.arithmetic.inc_reg8(proc, &proc.B),
+
+        // DEC B
+        0x05 => instructions.arithmetic.dec_reg8(proc, &proc.B),
+
+        // LD B, d8
+        0x06 => instructions.load.reg_imm8(proc, &proc.B),
+
+        // RLCA
+        0x07 => instructions.bitShift.rotate_left_circular_a(&proc),
+
+        // LD (a16), SP
+        0x08 => instructions.load.imm16Mem_spr(proc, proc.SP),
+
+        // ADD HL, BC
+        0x09 => instructions.arithmetic.add_reg16_reg16(proc, .HL, .BC),
+
+        // LD A, (BC)
+        0x0A => instructions.load.reg8_reg16_indirect(proc, &proc.A, .BC),
+
+        // DEC BC
+        0x0B => instructions.arithmetic.dec_reg16(proc, .BC),
+
+        // INC C
+        0x0C => instructions.arithmetic.inc_reg8(proc, &proc.C),
+
+        // DEC C
+        0x0D => instructions.arithmetic.dec_reg8(proc, &proc.C),
+
+        // LD C, d8
+        0x0E => instructions.load.reg_imm8(proc, &proc.C),
+
+        // RRCA
+        0x0F => instructions.bitShift.rotate_right_circular_a(proc),
+
+        // LD DE, d16
+        0x11 => instructions.load.reg16_imm16(proc, .DE),
+
+        // LD (DE), A
+        0x12 => instructions.load.reg16_indirect_acc8(proc, .DE, &proc.A),
+
+        // INC DE
+        0x13 => instructions.arithmetic.inc_reg16(proc, .DE),
+
+        // INC D
+        0x14 => instructions.arithmetic.inc_reg8(proc, &proc.D),
+
+        // DEC D
+        0x15 => instructions.arithmetic.dec_reg8(proc, &proc.D),
+
+        // LD D, d8
+        0x16 => instructions.load.reg_imm8(proc, &proc.D),
+
+        // RLA
+        0x17 => instructions.bitShift.rotate_left_a(&proc),
+
+        // JR s8
+        0x18 => instructions.controlFlow.jump_rel_imm8(proc),
+
+        // ADD HL, DE
+        0x19 => instructions.arithmetic.add_reg16_reg16(proc, .HL, .DE),
+
+        // DEC DE
+        0x1B => instructions.arithmetic.dec_reg16(proc, .DE),
+
+        // INC E
+        0x1C => instructions.arithmetic.inc_reg8(proc, &proc.E),
+
+        // DEC E
+        0x1D => instructions.arithmetic.dec_reg8(proc, &proc.E),
+
+        // RRA
+        0x1F => instructions.bitShift.rotate_right_a(proc),
+
+        // JR NZ, s8
+        0x20 => instructions.controlFlow.jump_rel_cc_imm8(proc, .NZ),
+
+        // LD HL, d16
+        0x21 => instructions.load.reg16_imm16(proc, .HL),
+
+        // INC HL
+        0x23 => instructions.arithmetic.inc_reg16(proc, .HL),
+
+        // INC H
+        0x24 => instructions.arithmetic.inc_reg8(proc, &proc.H),
+
+        // DEC H
+        0x25 => instructions.arithmetic.dec_reg8(proc, &proc.H),
+
+        // DAA
+        0x27 => instructions.misc.decimal_adjust_accumulator(proc),
+
+        // JR Z, s8
+        0x28 => instructions.controlFlow.jump_rel_cc_imm8(proc, .Z),
+
+        // ADD HL, HL
+        0x29 => instructions.arithmetic.add_reg16_reg16(proc, .HL, .HL),
+
+        // DEC HL
+        0x2B => instructions.arithmetic.dec_reg16(proc, .HL),
+
+        // INC L
+        0x2C => instructions.arithmetic.inc_reg8(proc, &proc.L),
+
+        // DEC L
+        0x2D => instructions.arithmetic.dec_reg8(proc, &proc.L),
+
+        // CPL
+        0x2F => instructions.misc.complement_a8(proc),
+
+        // JR NC, s8
+        0x30 => instructions.controlFlow.jump_rel_cc_imm8(proc, .NC),
+
+        // INC SP
+        0x33 => instructions.arithmetic.inc_sp(proc),
+
+        // INC (HL)
+        0x34 => instructions.arithmetic.inc_reg16(proc, .HL),
+
+        // DEC (HL)
+        0x35 => instructions.arithmetic.dec_reg16(proc, .HL),
+
+        // SCF
+        0x37 => instructions.misc.set_carry_flag(proc),
+
+        // JR C, s8
+        0x38 => instructions.controlFlow.jump_rel_cc_imm8(proc, .C),
+
+        // ADD HL, SP
+        0x39 => instructions.arithmetic.add_hl_sp(proc),
+
+        // DEC SP
+        0x3B => instructions.arithmetic.dec_sp(proc),
+
+        // INC A
+        0x3C => instructions.arithmetic.inc_reg8(proc, &proc.A),
+
+        // DEC A
+        0x3D => instructions.arithmetic.dec_reg8(proc, &proc.A),
+
+        // CCF
+        0x3F => instructions.misc.complement_carry_flag(proc),
+
+        // LD A, (DE)
+        0x1A => instructions.load.reg8_reg16_indirect(proc, &proc.A, .DE),
+
+        // LD E, d8
+        0x1E => instructions.load.reg_imm8(proc, &proc.E),
+
+        // LD (HL+), A
+        0x22 => instructions.load.hl_indirect_inc_reg8(proc, &proc.A),
+
+        // LD H, d8
+        0x26 => instructions.load.reg_imm8(proc, &proc.H),
+
+        // LD A, (HL+)
+        0x2A => instructions.load.reg8_hl_indirect_inc(proc, &proc.A),
+
+        // LD L, d8
+        0x2E => instructions.load.reg_imm8(proc, &proc.L),
+
+        // LD SP, d16
+        0x31 => instructions.load.spr_imm16(proc, &proc.SP),
+
+        // LD (HL-), A
+        0x32 => instructions.load.hl_indirect_dec_reg8(proc, &proc.A),
+
+        // LD (HL), d8
+        0x36 => instructions.load.reg16_indirect_imm8(proc, .HL),
+
+        // LD A, (HL-)
+        0x3A => instructions.load.reg8_hl_indirect_dec(proc, &proc.A),
+
+        // LD A, d8
+        0x3E => instructions.load.reg_imm8(proc, &proc.A),
+
+        // LD B, B
+        0x40 => instructions.load.reg8_reg8(&proc.B, &proc.B),
+
+        // LD B, C
+        0x41 => instructions.load.reg8_reg8(&proc.B, &proc.C),
+
+        // LD B, D
+        0x42 => instructions.load.reg8_reg8(&proc.B, &proc.D),
+
+        // LD B, E
+        0x43 => instructions.load.reg8_reg8(&proc.B, &proc.E),
+
+        // LD B, H
+        0x44 => instructions.load.reg8_reg8(&proc.B, &proc.H),
+
+        // LD B, L
+        0x45 => instructions.load.reg8_reg8(&proc.B, &proc.L),
+
+        // LD B, (HL)
+        0x46 => instructions.load.reg8_reg16_indirect(proc, &proc.B, .HL),
+
+        // LD B, A
+        0x47 => instructions.load.reg8_reg8(&proc.B, &proc.A),
+
+        // LD C, B
+        0x48 => instructions.load.reg8_reg8(&proc.C, &proc.B),
+
+        // LD C, C
+        0x49 => instructions.load.reg8_reg8(&proc.C, &proc.C),
+
+        // LD C, D
+        0x4A => instructions.load.reg8_reg8(&proc.C, &proc.D),
+
+        // LD C, E
+        0x4B => instructions.load.reg8_reg8(&proc.C, &proc.E),
+
+        // LD C, H
+        0x4C => instructions.load.reg8_reg8(&proc.C, &proc.H),
+
+        // LD C, L
+        0x4D => instructions.load.reg8_reg8(&proc.C, &proc.L),
+
+        // LD C, (HL)
+        0x4E => instructions.load.reg8_reg16_indirect(proc, &proc.C, .HL),
+
+        // LD C, A
+        0x4F => instructions.load.reg8_reg8(&proc.C, &proc.A),
+
+        // LD D, B
+        0x50 => instructions.load.reg8_reg8(&proc.D, &proc.B),
+
+        // LD D, C
+        0x51 => instructions.load.reg8_reg8(&proc.D, &proc.C),
+
+        // LD D, D
+        0x52 => instructions.load.reg8_reg8(&proc.D, &proc.D),
+
+        // LD D, E
+        0x53 => instructions.load.reg8_reg8(&proc.D, &proc.E),
+
+        // LD D, H
+        0x54 => instructions.load.reg8_reg8(&proc.D, &proc.H),
+
+        // LD D, L
+        0x55 => instructions.load.reg8_reg8(&proc.D, &proc.L),
+
+        // LD D, (HL)
+        0x56 => instructions.load.reg8_reg16_indirect(proc, &proc.D, .HL),
+
+        // LD D, A
+        0x57 => instructions.load.reg8_reg8(&proc.D, &proc.A),
+
+        // LD E, B
+        0x58 => instructions.load.reg8_reg8(&proc.E, &proc.B),
+
+        // LD E, C
+        0x59 => instructions.load.reg8_reg8(&proc.E, &proc.C),
+
+        // LD E, D
+        0x5A => instructions.load.reg8_reg8(&proc.E, &proc.D),
+
+        // LD E, E
+        0x5B => instructions.load.reg8_reg8(&proc.E, &proc.E),
+
+        // LD E, H
+        0x5C => instructions.load.reg8_reg8(&proc.E, &proc.H),
+
+        // LD E, L
+        0x5D => instructions.load.reg8_reg8(&proc.E, &proc.L),
+
+        // LD E, (HL)
+        0x5E => instructions.load.reg8_reg16_indirect(proc, &proc.E, .HL),
+
+        // LD E, A
+        0x5F => instructions.load.reg8_reg8(&proc.E, &proc.A),
+
+        // LD H, B
+        0x60 => instructions.load.reg8_reg8(&proc.H, &proc.B),
+
+        // LD H, C
+        0x61 => instructions.load.reg8_reg8(&proc.H, &proc.C),
+
+        // LD H, D
+        0x62 => instructions.load.reg8_reg8(&proc.H, &proc.D),
+
+        // LD H, E
+        0x63 => instructions.load.reg8_reg8(&proc.H, &proc.E),
+
+        // LD H, H
+        0x64 => instructions.load.reg8_reg8(&proc.H, &proc.H),
+
+        // LD H, L
+        0x65 => instructions.load.reg8_reg8(&proc.H, &proc.L),
+
+        // LD H, (HL)
+        0x66 => instructions.load.reg8_reg16_indirect(proc, &proc.H, .HL),
+
+        // LD H, A
+        0x67 => instructions.load.reg8_reg8(&proc.H, &proc.A),
+
+        // LD L, B
+        0x68 => instructions.load.reg8_reg8(&proc.L, &proc.B),
+
+        // LD L, C
+        0x69 => instructions.load.reg8_reg8(&proc.L, &proc.C),
+
+        // LD L, D
+        0x6A => instructions.load.reg8_reg8(&proc.L, &proc.D),
+
+        // LD L, E
+        0x6B => instructions.load.reg8_reg8(&proc.L, &proc.E),
+
+        // LD L, H
+        0x6C => instructions.load.reg8_reg8(&proc.L, &proc.H),
+
+        // LD L, L
+        0x6D => instructions.load.reg8_reg8(&proc.L, &proc.L),
+
+        // LD L, (HL)
+        0x6E => instructions.load.reg8_reg16_indirect(proc, &proc.L, .HL),
+
+        // LD L, A
+        0x6F => instructions.load.reg8_reg8(&proc.L, &proc.A),
+
+        // LD (HL), B
+        0x70 => instructions.load.hl_indirect_reg8(proc, &proc.B),
+
+        // LD (HL), C
+        0x71 => instructions.load.hl_indirect_reg8(proc, &proc.C),
+
+        // LD (HL), D
+        0x72 => instructions.load.hl_indirect_reg8(proc, &proc.D),
+
+        // LD (HL), E
+        0x73 => instructions.load.hl_indirect_reg8(proc, &proc.E),
+
+        // LD (HL), H
+        0x74 => instructions.load.hl_indirect_reg8(proc, &proc.H),
+
+        // LD (HL), L
+        0x75 => instructions.load.hl_indirect_reg8(proc, &proc.L),
+
+        // HALT
+        0x76 => { proc.isHalted = true; },
+
+        // LD (HL), A
+        0x77 => instructions.load.hl_indirect_reg8(proc, &proc.A),
+
+        // LD A, B
+        0x78 => instructions.load.reg8_reg8(&proc.A, &proc.B),
+
+        // LD A, C
+        0x79 => instructions.load.reg8_reg8(&proc.A, &proc.C),
+
+        // LD A, D
+        0x7A => instructions.load.reg8_reg8(&proc.A, &proc.D),
+
+        // LD A, E
+        0x7B => instructions.load.reg8_reg8(&proc.A, &proc.E),
+
+        // LD A, H
+        0x7C => instructions.load.reg8_reg8(&proc.A, &proc.H),
+
+        // LD A, L
+        0x7D => instructions.load.reg8_reg8(&proc.A, &proc.L),
+
+        // LD A, (HL)
+        0x7E => instructions.load.reg8_reg16_indirect(proc, &proc.A, .HL),
+
+        // LD A, A
+        0x7F => instructions.load.reg8_reg8(&proc.A, &proc.A),
+
+        // ADD B
+        0x80 => instructions.arithmetic.add_reg8(proc, &proc.B),
+
+        // ADD C
+        0x81 => instructions.arithmetic.add_reg8(proc, &proc.C),
+
+        // ADD D
+        0x82 => instructions.arithmetic.add_reg8(proc, &proc.D),
+
+        // ADD E
+        0x83 => instructions.arithmetic.add_reg8(proc, &proc.E),
+
+        // ADD H
+        0x84 => instructions.arithmetic.add_reg8(proc, &proc.H),
+
+        // ADD L
+        0x85 => instructions.arithmetic.add_reg8(proc, &proc.L),
+
+        // ADD A, (HL)
+        0x86 => instructions.arithmetic.add_hl_indirect(proc),
+
+        // ADD A ,A
+        0x87 => instructions.arithmetic.add_reg8(proc, &proc.A),
+
+        // ADC B
+        0x88 => instructions.arithmetic.addc_reg8(proc, &proc.B),
+
+        // ADC C
+        0x89 => instructions.arithmetic.addc_reg8(proc, &proc.C),
+
+        // ADC D
+        0x8A => instructions.arithmetic.addc_reg8(proc, &proc.D),
+
+        // ADC E
+        0x8B => instructions.arithmetic.addc_reg8(proc, &proc.E),
+
+        // ADC H
+        0x8C => instructions.arithmetic.addc_reg8(proc, &proc.H),
+
+        // ADC H
+        0x8D => instructions.arithmetic.addc_reg8(proc, &proc.L),
+
+        // ADC (HL)
+        0x8E => instructions.arithmetic.addc_hl_indirect(proc),
+
+        // ADC A
+        0x8F => instructions.arithmetic.addc_reg8(proc, &proc.A),
+
+        // SUB B
+        0x90 => instructions.arithmetic.sub_reg8(proc, &proc.B),
+
+        // SUB C
+        0x91 => instructions.arithmetic.sub_reg8(proc, &proc.C),
+
+        // SUB D
+        0x92 => instructions.arithmetic.sub_reg8(proc, &proc.D),
+
+        // SUB E
+        0x93 => instructions.arithmetic.sub_reg8(proc, &proc.E),
+
+        // SUB H
+        0x94 => instructions.arithmetic.sub_reg8(proc, &proc.H),
+
+        // SUB L
+        0x95 => instructions.arithmetic.sub_reg8(proc, &proc.L),
+
+        // SUB (HL)
+        0x96 => instructions.arithmetic.sub_hl_indirect(proc),
+
+        // SUB A, A
+        0x97 => instructions.arithmetic.sub_reg8(proc, &proc.A),
+
+        // SBC B
+        0x98 => instructions.arithmetic.subc_reg8(proc, &proc.B),
+
+        // SBC C
+        0x99 => instructions.arithmetic.subc_reg8(proc, &proc.C),
+
+        // SBC D
+        0x9A => instructions.arithmetic.subc_reg8(proc, &proc.D),
+
+        // SBC E
+        0x9B => instructions.arithmetic.subc_reg8(proc, &proc.E),
+
+        // SBC H
+        0x9C => instructions.arithmetic.subc_reg8(proc, &proc.H),
+
+        // SBC L
+        0x9D => instructions.arithmetic.subc_reg8(proc, &proc.L),
+
+        // SBC A, (HL)
+        0x9E => instructions.arithmetic.subc_hl_indirect(proc),
+
+        // SBC A, A
+        0x9F => instructions.arithmetic.subc_reg8(proc, &proc.A),
+
+        // AND B
+        0xA0 => instructions.arithmetic.and_reg8(proc, &proc.B),
+
+        // AND C
+        0xA1 => instructions.arithmetic.and_reg8(proc, &proc.C),
+
+        // AND D
+        0xA2 => instructions.arithmetic.and_reg8(proc, &proc.D),
+
+        // AND E
+        0xA3 => instructions.arithmetic.and_reg8(proc, &proc.E),
+
+        // AND H
+        0xA4 => instructions.arithmetic.and_reg8(proc, &proc.H),
+
+        // AND L
+        0xA5 => instructions.arithmetic.and_reg8(proc, &proc.L),
+
+        // AND A, (HL)
+        0xA6 => instructions.arithmetic.and_hl_indirect(proc),
+
+        // AND A, A
+        0xA7 => instructions.arithmetic.and_reg8(proc, &proc.A),
+
+        // XOR B
+        0xA8 => instructions.arithmetic.xor_reg8(proc, &proc.B),
+
+        // XOR C
+        0xA9 => instructions.arithmetic.xor_reg8(proc, &proc.C),
+
+        // XOR D
+        0xAA => instructions.arithmetic.xor_reg8(proc, &proc.D),
+
+        // XOR E
+        0xAB => instructions.arithmetic.xor_reg8(proc, &proc.E),
+
+        // XOR H
+        0xAC => instructions.arithmetic.xor_reg8(proc, &proc.H),
+
+        // XOR L
+        0xAD => instructions.arithmetic.xor_reg8(proc, &proc.L),
+
+        // XOR (HL)
+        0xAE => instructions.arithmetic.xor_hl_indirect(proc),
+
+        // XOR A, A
+        0xAF => instructions.arithmetic.xor_reg8(proc, &proc.A),
+
+        // OR B
+        0xB0 => instructions.arithmetic.or_reg8(proc, &proc.B),
+
+        // OR C
+        0xB1 => instructions.arithmetic.or_reg8(proc, &proc.C),
+
+        // OR D
+        0xB2 => instructions.arithmetic.or_reg8(proc, &proc.D),
+
+        // OR E
+        0xB3 => instructions.arithmetic.or_reg8(proc, &proc.E),
+
+        // OR H
+        0xB4 => instructions.arithmetic.or_reg8(proc, &proc.H),
+
+        // OR L
+        0xB5 => instructions.arithmetic.or_reg8(proc, &proc.L),
+
+        // OR (HL)
+        0xB6 => instructions.arithmetic.or_hl_indirect(proc),
+
+        // OR A, A
+        0xB7 => instructions.arithmetic.or_reg8(proc, &proc.A),
+
+        // CP B
+        0xB8 => instructions.arithmetic.compare_reg8(proc, &proc.B),
+
+        // CP C
+        0xB9 => instructions.arithmetic.compare_reg8(proc, &proc.C),
+
+        // CP D
+        0xBA => instructions.arithmetic.compare_reg8(proc, &proc.D),
+
+        // CP E
+        0xBB => instructions.arithmetic.compare_reg8(proc, &proc.E),
+
+        // CP H
+        0xBC => instructions.arithmetic.compare_reg8(proc, &proc.H),
+
+        // CP L
+        0xBD => instructions.arithmetic.compare_reg8(proc, &proc.L),
+
+        // CP (HL)
+        0xBE => instructions.arithmetic.compare_hl_indirect(proc),
+
+        // CP A, A
+        0xBF => instructions.arithmetic.compare_reg8(proc, &proc.A),
+
+        // RET NZ
+        0xC0 => instructions.controlFlow.ret_cc(proc, .NZ),
+
+        // POP BC
+        0xC1 => instructions.controlFlow.pop_rr(proc, .BC),
+
+        // JP NZ, a16
+        0xC2 => instructions.controlFlow.jump_cc_imm16(proc, .NZ),
+
+        // JP a16
+        0xC3 => instructions.controlFlow.jump_imm16(proc),
+
+        // CALL NZ, a16
+        0xC4 => instructions.controlFlow.call_cc_imm16(proc, .NZ),
+
+        // PUSH BC
+        0xC5 => instructions.controlFlow.push_rr(proc, .BC),
+
+        // ADD A, d8
+        0xC6 => instructions.arithmetic.add_imm8(proc),
+
+        // RST 0
+        0xC7 => instructions.controlFlow.rst(proc, 0),
+
+        // RET Z
+        0xC8 => instructions.controlFlow.ret_cc(proc, .Z),
+
+        // RET
+        0xC9 => instructions.controlFlow.ret(proc),
+
+        // JP Z, a16
+        0xCA => instructions.controlFlow.jump_cc_imm16(proc, .Z),
+
+        // CB Prefix
+        0xCB => proc.decodeAndExecuteCBPrefix(),
+
+        // CALL Z, a16
+        0xCC => instructions.controlFlow.call_cc_imm16(proc, .Z),
+
+        // CALL a16
+        0xCD => instructions.controlFlow.call_imm16(proc),
+
+        // ADC A, d8
+        0xCE => instructions.arithmetic.addc_imm8(proc),
+
+        // RST 1
+        0xCF => instructions.controlFlow.rst(proc, 1),
+
+        // RET NC
+        0xD0 => instructions.controlFlow.ret_cc(proc, .NC),
+
+        // POP DE
+        0xD1 => instructions.controlFlow.pop_rr(proc, .DE),
+
+        // JP NC, a16
+        0xD2 => instructions.controlFlow.jump_cc_imm16(proc, .NC),
+
+        // CALL NC, a16
+        0xD4 => instructions.controlFlow.call_cc_imm16(proc, .N),
+
+        // PUSH DE
+        0xD5 => instructions.controlFlow.push_rr(proc, .DE),
+
+        // 0xD6
+        0xD6 => instructions.arithmetic.sub_imm8(proc),
+
+        // RST 2
+        0xD7 => instructions.controlFlow.rst(proc, 2),
+
+        // RET C
+        0xD8 => instructions.controlFlow.ret_cc(proc, .C),
+
+        // RETI
+        0xD9 => instructions.controlFlow.reti(proc),
+
+        // JP C, a16
+        0xDA => instructions.controlFlow.jump_cc_imm16(proc, .C),
+
+        // CALL C, a16
+        0xDC => instructions.controlFlow.call_cc_imm16(proc, .C),
+
+        // RST 3
+        0xDF => instructions.controlFlow.rst(proc, 3),
+
+        // SBC A, d8
+        0xDE => instructions.arithmetic.subc_imm8(proc),
+
+        // LD (a8), A
+        0xE0 => instructions.load.imm8_indirect_reg8(proc, &proc.A),
+
+        // POP HL
+        0xE1 => instructions.controlFlow.pop_rr(proc, .HL),
+
+        // LD (C), A
+        0xE2 => instructions.load.reg8_indirect_reg8(proc, &proc.C, &proc.A),
+
+        // PUSH HL
+        0xE5 => instructions.controlFlow.push_rr(proc, .HL),
+
+        // AND d8
+        0xE6 => instructions.arithmetic.and_imm8(proc),
+
+        // RST 4
+        0xE7 => instructions.controlFlow.rst(proc, 4),
+
+        // ADD SP s8
+        0xE8 => instructions.arithmetic.add_sp_offset(proc),
+
+        // JP HL
+        0xE9 => instructions.controlFlow.jump_hl(proc, .HL),
+
+        // LD (a16), A
+        0xEA => instructions.load.imm16Mem_reg(proc, &proc.A),
+
+        // XOR d8
+        0xEE => instructions.arithmetic.xor_imm8(proc),
+
+        // RST 5
+        0xEF => instructions.controlFlow.rst(proc, 5),
+
+        // LD A, (a8)
+        0xF0 => instructions.load.reg_imm8_indirect(proc, &proc.A),
+
+        // POP AF
+        0xF1 => instructions.controlFlow.pop_rr(proc, .AF),
+
+        // LD A, (C)
+        0xF2 => instructions.load.reg8_reg8_indirect(proc, &proc.A, &proc.C),
+
+        // DI
+        0xF3 => { proc.IME = false; },
+
+        // PUSH AF
+        0xF5 => instructions.controlFlow.push_rr(proc, .AF),
+
+        // OR d8
+        0xF6 => instructions.arithmetic.or_imm8(proc),
+
+        // RST 6
+        0xF7 => instructions.controlFlow.rst(proc, 6),
+
+        // LD HL, SP+s8
+        0xF8 => instructions.load.hl_sp_imm8(proc),
+
+        // LD SP, HL
+        0xF9 => instructions.load.spr_rr(proc, &proc.SP, .HL),
+
+        // LD A, (a16)
+        0xFA => instructions.load.reg8_imm16_indirect(proc, &proc.A),
+
+        // EI
+        0xFB => { proc.IME = true; },
+
+        // CP d8
+        0xFE => instructions.arithmetic.compare_imm8(proc),
+
+        // RST 7
+        0xFF => instructions.controlFlow.rst(proc, 7),
 
-    /// Decimal Adjust Accumulator.
-    /// Designed to be used after performing an arithmetic instruction (ADD, ADC, SUB, SBC) whose inputs were in
-    /// Binary-Coded Decimal (BCD), adjusting the result to likewise be in BCD.
-    /// The exact behavior of this instruction depends on the state of the subtract flag N:
-    pub fn decimal_adjust_accumulator(proc: *Processor) void {
-        const N: u1 = @intFromBool(proc.isFlagSet(.N));
-        var adjustment: u8 = 0;
-        switch (N) {
-            0 => {
-                if (proc.isFlagSet(.H) or proc.A.value & 0x0F > 0x09) adjustment += 0x06;
-                if (proc.isFlagSet(.C) or proc.A.value > 0x99) {
-                    adjustment += 0x60;
-                    proc.setFlag(.C);
-                } else {
-                    proc.unsetFlag(.C);
-                }
-                proc.A.value +%= adjustment;
-            },
-            1 => {
-                if (proc.isFlagSet(.H)) adjustment += 0x06;
-                if (proc.isFlagSet(.C)) adjustment += 0x60;
-                proc.A.value -%= adjustment;
-            },
-        }
-        if (proc.A.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-        proc.unsetFlag(.H);
+        else => {
+            std.debug.print("op_code: {any} not implemented!", .{op_code});
+        },
     }
-};
+}
 
 const expectEqual = std.testing.expectEqual;
 
-// Arithmetic Instructions
-test "arithmetic.inc_reg8" {
+test "getRegisterPair" {
+    var memory: Memory = .init();
+    const H: u8 = 0x45;
+    const L: u8 = 0x7F;
+    var processor = Processor.init(&memory, .{ .H = H, .L = L });
+
+    try expectEqual(utils.fromTwoBytes(L, H), Processor.getRegisterPair(&processor.H, &processor.L));
+}
+
+test "setRegisterPair" {
     var memory: Memory = .init();
     var processor = Processor.init(&memory, .{});
 
-    arithmetic.inc_reg8(&processor, &processor.B);
+    const D: u8 = 0x91;
+    const E: u8 = 0xC2;
+    Processor.setRegisterPair(&processor.D, &processor.E, utils.fromTwoBytes(E, D));
 
-    try expectEqual(0x01, processor.B.value);
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(false, processor.isFlagSet(.N));
-    try expectEqual(false, processor.isFlagSet(.H));
+    try expectEqual(D, processor.D.value);
+    try expectEqual(E, processor.E.value);
+}
 
-    arithmetic.inc_reg8(&processor, &processor.B);
+test "isFlagSet, Z" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{ .F = Z_MASK });
 
-    try expectEqual(0x02, processor.B.value);
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(false, processor.isFlagSet(.N));
-    try expectEqual(false, processor.isFlagSet(.H));
-
-    processor.B.value = 0xFF;
-    arithmetic.inc_reg8(&processor, &processor.B);
-
-    try expectEqual(0x00, processor.B.value);
     try expectEqual(true, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
-    try expectEqual(true, processor.isFlagSet(.H));
-
-    processor.B.value = 0x0F;
-    arithmetic.inc_reg8(&processor, &processor.B);
-    try expectEqual(0x10, processor.B.value);
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(false, processor.isFlagSet(.N));
-    try expectEqual(true, processor.isFlagSet(.H));
-
-    processor.E.value = 0x0F;
-    arithmetic.inc_reg8(&processor, &processor.E);
-    try expectEqual(0x10, processor.E.value);
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(false, processor.isFlagSet(.N));
-    try expectEqual(true, processor.isFlagSet(.H));
-}
-
-test "arithmetic.dec_reg8" {
-    var memory: Memory = .init();
-    var processor = Processor.init(&memory, .{ .D = 0x02 });
-
-    arithmetic.dec_reg8(&processor, &processor.D);
-    try expectEqual(0x01, processor.D.value);
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(true, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.H));
-
-    arithmetic.dec_reg8(&processor, &processor.D);
-    try expectEqual(0x00, processor.D.value);
-    try expectEqual(true, processor.isFlagSet(.Z));
-    try expectEqual(true, processor.isFlagSet(.N));
-    try expectEqual(false, processor.isFlagSet(.H));
-
-    arithmetic.dec_reg8(&processor, &processor.D);
-    try expectEqual(0xFF, processor.D.value);
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(true, processor.isFlagSet(.N));
-    try expectEqual(true, processor.isFlagSet(.H));
-}
-
-test "arithmetic.inc_reg16" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{});
-
-    arithmetic.inc_reg16(&processor, .AF);
-    try expectEqual(1, processor.getAF());
-
-    processor.setAF(0xFFFF);
-    arithmetic.inc_reg16(&processor, .AF);
-    try expectEqual(0, processor.getAF());
-
-    processor.setBC(0x00FF);
-    arithmetic.inc_reg16(&processor, .BC);
-    try expectEqual(0x0100, processor.getBC());
-
-    processor.setDE(0x0101);
-    arithmetic.inc_reg16(&processor, .DE);
-    try expectEqual(0x0102, processor.getDE());
-
-    processor.setHL(0x0FFF);
-    arithmetic.inc_reg16(&processor, .HL);
-    try expectEqual(0x1000, processor.getHL());
-}
-
-test "arithmetic.dec_reg16" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{});
-
-    arithmetic.dec_reg16(&processor, .AF);
-    try expectEqual(0xFFFF, processor.getAF());
-
-    processor.setBC(0x0100);
-    arithmetic.dec_reg16(&processor, .BC);
-    try expectEqual(0x00FF, processor.getBC());
-
-    processor.setDE(0x0102);
-    arithmetic.dec_reg16(&processor, .DE);
-    try expectEqual(0x0101, processor.getDE());
-
-    processor.setHL(0x1000);
-    arithmetic.dec_reg16(&processor, .HL);
-    try expectEqual(0x0FFF, processor.getHL());
-}
-
-test "arithmetic.add_reg8" {
-    const PC: u16 = 0x0100;
-    const A: u8 = 0x14;
-    const B: u8 = 0x07;
-    var memory: Memory = .init();
-    var processor = Processor.init(&memory, .{ .PC = PC, .A = A, .B = B });
-
-    arithmetic.add_reg8(&processor, &processor.B);
-    try expectEqual(0x1B, processor.A.value);
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.C));
-    try expectEqual(false, processor.isFlagSet(.H));
+}
 
-    processor.A.value = 0xFF;
-    processor.C.value = 0xFF;
-    arithmetic.add_reg8(&processor, &processor.C);
-    try expectEqual(0xFE, processor.A.value);
+test "isFlagSet, N" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{ .F = N_MASK });
+
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(true, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.H));
+    try expectEqual(false, processor.isFlagSet(.C));
+}
+
+test "isFlagSet, H" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{ .F = H_MASK });
+
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.H));
+    try expectEqual(false, processor.isFlagSet(.C));
+}
+
+test "isFlagSet, C" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{ .F = C_MASK });
+
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.H));
     try expectEqual(true, processor.isFlagSet(.C));
-    try expectEqual(true, processor.isFlagSet(.H));
+}
 
-    processor.D.value = 0x02;
-    arithmetic.add_reg8(&processor, &processor.D);
-    try expectEqual(0x00, processor.A.value);
+test "setFlag, Z" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{});
+    processor.setFlag(.Z);
+
     try expectEqual(true, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
-    try expectEqual(true, processor.isFlagSet(.C));
-    try expectEqual(true, processor.isFlagSet(.H));
-
-    processor.E.value = 0x01;
-    arithmetic.add_reg8(&processor, &processor.E);
-    try expectEqual(0x01, processor.A.value);
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(false, processor.isFlagSet(.N));
-    try expectEqual(false, processor.isFlagSet(.C));
     try expectEqual(false, processor.isFlagSet(.H));
-}
-
-test "arithmetic.add_reg16_reg16" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{
-        .B = 0x11,
-        .C = 0x5E,
-    });
-    
-    arithmetic.add_reg16_reg16(&processor, .HL, .BC);
-    try expectEqual(0x115E, processor.getHL());
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.C));
-    try expectEqual(false, processor.isFlagSet(.H));
 }
-
-// Load instructions
-test "load.reg16_imm16" {
-    const PC: u16 = 0x0100;
-    var memory: Memory = .init();
-    var processor = Processor.init(&memory, .{ .PC = PC });
-    const immLo: u8 = 0x03;
-    const immHi: u8 = 0xA5;
-
-    processor.memory.write(PC, immLo);
-    processor.memory.write(PC + 1, immHi);
-
-    load.reg16_imm16(&processor, .BC);
-    try expectEqual(immHi, processor.B.value);
-    try expectEqual(immLo, processor.C.value);
-}
-
-test "bitShift.rotate_left_a" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .A = 0xFF });
-
-    bitShift.rotate_left_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1110, processor.A.value);
-
-    bitShift.rotate_left_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1101, processor.A.value);
-
-    processor.unsetFlag(.C);
-    bitShift.rotate_left_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1010, processor.A.value);
-}
-
-test "bitShift.rotate_left_circular_a" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .A = 0xF0 });
-
-    bitShift.rotate_left_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1110_0001, processor.A.value);
-
-    bitShift.rotate_left_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1100_0011, processor.A.value);
-
-    bitShift.rotate_left_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1000_0111, processor.A.value);
-
-    bitShift.rotate_left_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b0000_1111, processor.A.value);
-
-    bitShift.rotate_left_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b0001_1110, processor.A.value);
-
-    bitShift.rotate_left_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b0011_1100, processor.A.value);
-
-    bitShift.rotate_left_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b0111_1000, processor.A.value);
-
-    bitShift.rotate_left_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b1111_0000, processor.A.value);
-}
-
-test "bitShift.rotate_right_a" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .A = 0xFE }); // 0b1111_1110
-
-    bitShift.rotate_right_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b0111_1111, processor.A.value);
-
-    bitShift.rotate_right_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b0011_1111, processor.A.value);
-
-    bitShift.rotate_right_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1001_1111, processor.A.value);
-
-    bitShift.rotate_right_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1100_1111, processor.A.value);
-
-    bitShift.rotate_right_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1110_0111, processor.A.value);
-
-    processor.unsetFlag(.C);
-    bitShift.rotate_right_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b0111_0011, processor.A.value);
-}
-
-test "bitShift.rotate_right_circular_a" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .A = 0xFE }); // 0b1111_1110
-
-    bitShift.rotate_right_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b0111_1111, processor.A.value);
-
-    bitShift.rotate_right_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1011_1111, processor.A.value);
-
-    bitShift.rotate_right_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1101_1111, processor.A.value);
-
-    bitShift.rotate_right_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1110_1111, processor.A.value);
-
-    bitShift.rotate_right_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_0111, processor.A.value);
-
-    bitShift.rotate_right_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1011, processor.A.value);
-
-    bitShift.rotate_right_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1101, processor.A.value);
-
-    bitShift.rotate_right_circular_a(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1110, processor.A.value);
-}
-
-test "bitShift.rotate_left_circular_r8" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .B = 0x7F });
-
-    bitShift.rotate_left_circular_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b1111_1110, processor.B.value);
-
-    bitShift.rotate_left_circular_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1101, processor.B.value);
-
-    bitShift.rotate_left_circular_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1011, processor.B.value);
-
-    processor.C.value = 0x00;
-    bitShift.rotate_left_circular_r8(&processor, &processor.C);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x00, processor.C.value);
-}
-
-test "bitShift.rotate_right_circular_r8" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .B = 0xFE });
-
-    bitShift.rotate_right_circular_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b0111_1111, processor.B.value);
-
-    bitShift.rotate_right_circular_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1011_1111, processor.B.value);
-
-    bitShift.rotate_right_circular_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1101_1111, processor.B.value);
-
-    processor.C.value = 0x00;
-    bitShift.rotate_right_circular_r8(&processor, &processor.C);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x00, processor.C.value);
-}
-
-test "bitShift.rotate_left_circular_hlMem" {
-    const HL: u16 = 0xAC13;
-    const contents = 0x7F; // 0b0111_1111
-    var memory = Memory.init();
-    memory.write(HL, contents);
-
-    var processor = Processor.init(&memory, .{});
-    processor.setHL(HL);
-
-    bitShift.rotate_left_circular_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b1111_1110, processor.memory.read(HL));
-
-    bitShift.rotate_left_circular_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1101, processor.memory.read(HL));
-
-    bitShift.rotate_left_circular_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1011, processor.memory.read(HL));
-
-    bitShift.rotate_left_circular_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_0111, processor.memory.read(HL));
-
-    memory.write(HL, 0x00);
-    bitShift.rotate_left_circular_hlMem(&processor);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x00, processor.memory.read(HL));
-}
-
-test "bitShift.rotate_right_circular_hlMem" {
-    const HL: u16 = 0xAC13;
-    const contents = 0xFE; // 0b1111_1110
-    var memory = Memory.init();
-    memory.write(HL, contents);
-
-    var processor = Processor.init(&memory, .{});
-    processor.setHL(HL);
-
-    bitShift.rotate_right_circular_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b0111_1111, processor.memory.read(HL));
-
-    bitShift.rotate_right_circular_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1011_1111, processor.memory.read(HL));
-
-    bitShift.rotate_right_circular_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1101_1111, processor.memory.read(HL));
-
-    bitShift.rotate_right_circular_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1110_1111, processor.memory.read(HL));
-
-    memory.write(HL, 0x00);
-    bitShift.rotate_right_circular_hlMem(&processor);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x00, processor.memory.read(HL));
-}
-
-test "bitShift.rotate_left_arithmetic_r8" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .B = 0x7F });
-
-    bitShift.rotate_left_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b1111_1110, processor.B.value);
-
-    bitShift.rotate_left_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1100, processor.B.value);
-
-    bitShift.rotate_left_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1001, processor.B.value);
-
-    bitShift.rotate_left_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_0011, processor.B.value);
-
-    processor.unsetFlag(.C);
-    processor.H.value = 0x00;
-    bitShift.rotate_left_arithmetic_r8(&processor, &processor.H);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x00, processor.H.value);
-
-    processor.setFlag(.C);
-    bitShift.rotate_left_arithmetic_r8(&processor, &processor.H);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b0000_0001, processor.H.value);
-}
-
-test "bitShift.rotate_left_hlMem" {
-    var HL: u16 = 0x17C2;
-    var memory = Memory.init();
-    memory.address[HL] = 0x7F;
-    var processor = Processor.init(&memory, .{
-        .H = 0x17,
-        .L = 0xC2,
-    });
-
-    bitShift.rotate_left_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b1111_1110, processor.memory.address[HL]);
-
-    bitShift.rotate_left_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1100, processor.memory.address[HL]);
-    bitShift.rotate_left_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1001, processor.memory.address[HL]);
-
-    bitShift.rotate_left_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_0011, processor.memory.address[HL]);
-
-    HL = 0x0100;
-    processor.memory.address[HL] = 0;
-    processor.setHL(HL);
-    processor.unsetFlag(.C);
-    bitShift.rotate_left_hlMem(&processor);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x00, processor.memory.address[HL]);
-
-    processor.setFlag(.C);
-    bitShift.rotate_left_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b0000_0001, processor.memory.address[HL]);
-}
-
-test "bitShift.rotate_right_r8" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .B = 0xFE });
-
-    bitShift.rotate_right_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b0111_1111, processor.B.value);
-
-    bitShift.rotate_right_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b0011_1111, processor.B.value);
-
-    bitShift.rotate_right_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1001_1111, processor.B.value);
-
-    bitShift.rotate_right_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1100_1111, processor.B.value);
-
-    processor.unsetFlag(.C);
-    processor.H.value = 0x00;
-    bitShift.rotate_right_r8(&processor, &processor.H);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x00, processor.H.value);
-
-    processor.setFlag(.C);
-    bitShift.rotate_right_r8(&processor, &processor.H);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b1000_0000, processor.H.value);
-}
-
-test "bitShift.rotate_right_hlMem" {
-    var HL: u16 = 0x80C3;
-    var memory = Memory.init();
-    memory.address[HL] = 0xFE;
-    var processor = Processor.init(&memory, .{
-        .H = 0x80,
-        .L = 0xC3,
-    });
-
-    bitShift.rotate_right_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b0111_1111, processor.memory.address[HL]);
-
-    bitShift.rotate_right_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b0011_1111, processor.memory.address[HL]);
-
-    bitShift.rotate_right_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1001_1111, processor.memory.address[HL]);
-
-    bitShift.rotate_right_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1100_1111, processor.memory.address[HL]);
-
-    HL = 0x0100;
-    processor.setHL(HL);
-    processor.memory.address[HL] = 0;
-    processor.unsetFlag(.C);
-    bitShift.rotate_right_hlMem(&processor);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x00, processor.memory.address[HL]);
-
-    processor.setFlag(.C);
-    bitShift.rotate_right_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b1000_0000, processor.memory.address[HL]);
-}
-
-test "bitShift.shift_left_arithmetic_r8" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .B = 0x7F });
-
-    bitShift.shift_left_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b1111_1110, processor.B.value);
-
-    bitShift.shift_left_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1100, processor.B.value);
-
-    bitShift.shift_left_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1000, processor.B.value);
-
-    bitShift.shift_left_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_0000, processor.B.value);
-
-    bitShift.shift_left_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1110_0000, processor.B.value);
-
-    processor.B.value = 0x0;
-    bitShift.shift_left_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x0, processor.B.value);
-}
-
-test "bitShift.shift_left_arithmetic_hlMem" {
-    const HL = 0x01B2;
-    var memory = Memory.init();
-    memory.address[HL] = 0x7F;
-    var processor = Processor.init(&memory, .{
-        .H = 0x01,
-        .L = 0xB2,
-    });
-
-    bitShift.shift_left_arithmetic_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b1111_1110, processor.memory.address[HL]);
-
-    bitShift.shift_left_arithmetic_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1100, processor.memory.address[HL]);
-
-    bitShift.shift_left_arithmetic_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1000, processor.memory.address[HL]);
-
-    bitShift.shift_left_arithmetic_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_0000, processor.memory.address[HL]);
-
-    bitShift.shift_left_arithmetic_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1110_0000, processor.memory.address[HL]);
-
-    processor.memory.address[HL] = 0;
-    bitShift.shift_left_arithmetic_hlMem(&processor);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x0, processor.memory.address[HL]);
-}
-
-test "bitShift.shift_right_arithmetic_r8" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .B = 0xF7 }); // 0b1111_0111
-
-    bitShift.shift_right_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1011, processor.B.value);
-
-    bitShift.shift_right_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1101, processor.B.value);
-
-    bitShift.shift_right_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1110, processor.B.value);
-
-    bitShift.shift_right_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b1111_1111, processor.B.value);
-
-    bitShift.shift_right_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1111, processor.B.value);
-
-    processor.B.value = 0x0;
-    bitShift.shift_right_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x0, processor.B.value);
-
-    bitShift.shift_right_arithmetic_r8(&processor, &processor.B);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x0, processor.B.value);
-}
-
-test "bitShift.shift_right_arithmetic_hlMem" {
-    const HL: u16 = 0x74F0;
-    var memory = Memory.init();
-    memory.address[HL] = 0xF7;
-    var processor = Processor.init(&memory, .{});
-    processor.setHL(HL);
-
-    bitShift.shift_right_arithmetic_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1011, processor.memory.address[HL]);
-
-    bitShift.shift_right_arithmetic_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1101, processor.memory.address[HL]);
-
-    bitShift.shift_right_arithmetic_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1110, processor.memory.address[HL]);
-
-    bitShift.shift_right_arithmetic_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0b1111_1111, processor.memory.address[HL]);
-
-    bitShift.shift_right_arithmetic_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0b1111_1111, processor.memory.address[HL]);
-
-    processor.memory.address[HL] = 0x0;
-    bitShift.shift_right_arithmetic_hlMem(&processor);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x0, processor.memory.address[HL]);
-
-    bitShift.shift_right_arithmetic_hlMem(&processor);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x0, processor.memory.address[HL]);
-}
-
-test "bitShift.swap_r8" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{
-        .B = 0x93,
-        .C = 0x00,
-    });
-
-    bitShift.swap_r8(&processor, &processor.B);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x39, processor.B.value);
-
-    bitShift.swap_r8(&processor, &processor.C);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x00, processor.C.value);
-}
-
-test "bitShift.swap_hlMem" {
-    const HL: u16 = 0x95A2;
-    var memory = Memory.init();
-    memory.address[HL] = 0xA2;
-    var processor = Processor.init(&memory, .{});
-    processor.setHL(HL);
-
-    bitShift.swap_hlMem(&processor);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x2A, processor.memory.address[HL]);
-
-    memory.address[HL] = 0x00;
-    bitShift.swap_hlMem(&processor);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0x00, processor.memory.address[HL]);
-}
-
-test "bitFlag.test_bit_r8" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .D = 0xF0 });
-
-    bitFlag.test_bit_r8(&processor, .seven, &processor.D);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-
-    bitFlag.test_bit_r8(&processor, .six, &processor.D);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-
-    bitFlag.test_bit_r8(&processor, .five, &processor.D);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-
-    bitFlag.test_bit_r8(&processor, .four, &processor.D);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-
-    bitFlag.test_bit_r8(&processor, .three, &processor.D);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-
-    bitFlag.test_bit_r8(&processor, .two, &processor.D);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-
-    bitFlag.test_bit_r8(&processor, .one, &processor.D);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-
-    bitFlag.test_bit_r8(&processor, .zero, &processor.D);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-}
-
-test "bitFlag.test_bit_hlMem" {
-    const HL: u16 = 0x31E7;
-    var memory = Memory.init();
-    memory.address[HL] = 0xF0;
-    var processor = Processor.init(&memory, .{});
-    processor.setHL(HL);
-
-    bitFlag.test_bit_hlMem(&processor, .seven);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-
-    bitFlag.test_bit_hlMem(&processor, .six);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-
-    bitFlag.test_bit_hlMem(&processor, .five);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-
-    bitFlag.test_bit_hlMem(&processor, .four);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-
-    bitFlag.test_bit_hlMem(&processor, .three);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-
-    bitFlag.test_bit_hlMem(&processor, .two);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-
-    bitFlag.test_bit_hlMem(&processor, .one);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-
-    bitFlag.test_bit_hlMem(&processor, .zero);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-}
-
-test "bits.reset_bit_r8" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .D = 0xFF });
-
-    bits.reset_bit_r8(.zero, &processor.D);
-    try expectEqual(0b1111_1110, processor.D.value);
-    processor.D.value = 0xFF;
-
-    bits.reset_bit_r8(.one, &processor.D);
-    try expectEqual(0b1111_1101, processor.D.value);
-    processor.D.value = 0xFF;
-
-    bits.reset_bit_r8(.two, &processor.D);
-    try expectEqual(0b1111_1011, processor.D.value);
-    processor.D.value = 0xFF;
-
-    bits.reset_bit_r8(.three, &processor.D);
-    try expectEqual(0b1111_0111, processor.D.value);
-    processor.D.value = 0xFF;
-
-    bits.reset_bit_r8(.four, &processor.D);
-    try expectEqual(0b1110_1111, processor.D.value);
-    processor.D.value = 0xFF;
-
-    bits.reset_bit_r8(.five, &processor.D);
-    try expectEqual(0b1101_1111, processor.D.value);
-    processor.D.value = 0xFF;
-
-    bits.reset_bit_r8(.six, &processor.D);
-    try expectEqual(0b1011_1111, processor.D.value);
-    processor.D.value = 0xFF;
-
-    bits.reset_bit_r8(.seven, &processor.D);
-    try expectEqual(0b0111_1111, processor.D.value);
-}
-
-test "bits.reset_bit_hlMem" {
-    const HL: u16 = 0x0789;
-    var memory = Memory.init();
-    memory.address[HL] = 0xFF;
-    var processor = Processor.init(&memory, .{});
-    processor.setHL(HL);
-
-    bits.reset_bit_hlMem(&processor, .zero);
-    try expectEqual(0b1111_1110, memory.address[HL]);
-    memory.address[HL] = 0xFF;
-
-    bits.reset_bit_hlMem(&processor, .one);
-    try expectEqual(0b1111_1101, memory.address[HL]);
-    memory.address[HL] = 0xFF;
-
-    bits.reset_bit_hlMem(&processor, .two);
-    try expectEqual(0b1111_1011, memory.address[HL]);
-    memory.address[HL] = 0xFF;
-
-    bits.reset_bit_hlMem(&processor, .three);
-    try expectEqual(0b1111_0111, memory.address[HL]);
-    memory.address[HL] = 0xFF;
-
-    bits.reset_bit_hlMem(&processor, .four);
-    try expectEqual(0b1110_1111, memory.address[HL]);
-    memory.address[HL] = 0xFF;
-
-    bits.reset_bit_hlMem(&processor, .five);
-    try expectEqual(0b1101_1111, memory.address[HL]);
-    memory.address[HL] = 0xFF;
-
-    bits.reset_bit_hlMem(&processor, .six);
-    try expectEqual(0b1011_1111, memory.address[HL]);
-    memory.address[HL] = 0xFF;
-
-    bits.reset_bit_hlMem(&processor, .seven);
-    try expectEqual(0b0111_1111, memory.address[HL]);
-}
-
-test "bits.set_bit_r8" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .D = 0x00 });
-
-    bits.set_bit_r8(.zero, &processor.D);
-    try expectEqual(0b0000_0001, processor.D.value);
-    processor.D.value = 0x00;
-
-    bits.set_bit_r8(.one, &processor.D);
-    try expectEqual(0b0000_0010, processor.D.value);
-    processor.D.value = 0x00;
-
-    bits.set_bit_r8(.two, &processor.D);
-    try expectEqual(0b0000_0100, processor.D.value);
-    processor.D.value = 0x00;
-
-    bits.set_bit_r8(.three, &processor.D);
-    try expectEqual(0b0000_1000, processor.D.value);
-    processor.D.value = 0x00;
-
-    bits.set_bit_r8(.four, &processor.D);
-    try expectEqual(0b0001_0000, processor.D.value);
-    processor.D.value = 0x00;
-
-    bits.set_bit_r8(.five, &processor.D);
-    try expectEqual(0b0010_0000, processor.D.value);
-    processor.D.value = 0x00;
-
-    bits.set_bit_r8(.six, &processor.D);
-    try expectEqual(0b0100_0000, processor.D.value);
-    processor.D.value = 0x00;
-
-    bits.set_bit_r8(.seven, &processor.D);
-    try expectEqual(0b1000_0000, processor.D.value);
-}
-
-test "bits.set_bit_hlMem" {
-    const HL: u16 = 0x93A0;
-    var memory = Memory.init();
-    memory.address[HL] = 0x00;
-    var processor = Processor.init(&memory, .{});
-    processor.setHL(HL);
-
-    bits.set_bit_hlMem(&processor, .zero);
-    try expectEqual(0b0000_0001, processor.memory.address[HL]);
-    processor.memory.address[HL] = 0x00;
-
-    bits.set_bit_hlMem(&processor, .one);
-    try expectEqual(0b0000_0010, processor.memory.address[HL]);
-    processor.memory.address[HL] = 0x00;
-
-    bits.set_bit_hlMem(&processor, .two);
-    try expectEqual(0b0000_0100, processor.memory.address[HL]);
-    processor.memory.address[HL] = 0x00;
-
-    bits.set_bit_hlMem(&processor, .three);
-    try expectEqual(0b0000_1000, processor.memory.address[HL]);
-    processor.memory.address[HL] = 0x00;
-
-    bits.set_bit_hlMem(&processor, .four);
-    try expectEqual(0b0001_0000, processor.memory.address[HL]);
-    processor.memory.address[HL] = 0x00;
-
-    bits.set_bit_hlMem(&processor, .five);
-    try expectEqual(0b0010_0000, processor.memory.address[HL]);
-    processor.memory.address[HL] = 0x00;
-
-    bits.set_bit_hlMem(&processor, .six);
-    try expectEqual(0b0100_0000, processor.memory.address[HL]);
-    processor.memory.address[HL] = 0x00;
-
-    bits.set_bit_hlMem(&processor, .seven);
-    try expectEqual(0b1000_0000, processor.memory.address[HL]);
-}
-
-test "misc.set_carry_flag" {
+//
+test "setFlag, N" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{});
-
-    misc.set_carry_flag(&processor);
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-}
-
-test "misc.complement_carry_flag" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{});
-
-    misc.complement_carry_flag(&processor);
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-
-    misc.complement_carry_flag(&processor);
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-
-    misc.complement_carry_flag(&processor);
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-}
-
-test "misc.complement_a8" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{
-        .A = 0xF0,
-    });
-
-    misc.complement_a8(&processor);
-    try expectEqual(0x0F, processor.A.value);
-
-    misc.complement_a8(&processor);
-    try expectEqual(0xF0, processor.A.value);
-}
-
-test "misc.decimal_adjust_accumulator" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .A = 0x1F });
-
-    processor.unsetFlag(.N);
-    misc.decimal_adjust_accumulator(&processor);
-    try expectEqual(0x25, processor.A.value);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0, processor.getFlag(.H));
-
-    processor.unsetFlag(.C);
-    processor.unsetFlag(.N);
-    processor.A.value = 0x60;
-    misc.decimal_adjust_accumulator(&processor);
-    try expectEqual(0x60, processor.A.value);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0, processor.getFlag(.H));
-
-    processor.unsetFlag(.C);
-    processor.unsetFlag(.N);
-    processor.A.value = 0xC3;
-    misc.decimal_adjust_accumulator(&processor);
-    try expectEqual(0x23, processor.A.value);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(1, processor.getFlag(.C));
-    try expectEqual(0, processor.getFlag(.H));
-
-    processor.unsetFlag(.C);
     processor.setFlag(.N);
-    processor.A.value = 0x60;
-    misc.decimal_adjust_accumulator(&processor);
-    try expectEqual(0x60, processor.A.value);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0, processor.getFlag(.H));
 
-    processor.unsetFlag(.C);
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(true, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.H));
+    try expectEqual(false, processor.isFlagSet(.C));
+}
+
+test "setFlag, H" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{});
     processor.setFlag(.H);
+
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.H));
+    try expectEqual(false, processor.isFlagSet(.C));
+}
+
+test "setFlag, C" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{});
+    processor.setFlag(.C);
+
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.H));
+    try expectEqual(true, processor.isFlagSet(.C));
+}
+
+test "unsetFlag, Z" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{});
+    processor.setFlag(.Z);
     processor.setFlag(.N);
-    processor.A.value = 0x6A;
-    misc.decimal_adjust_accumulator(&processor);
-    try expectEqual(0x64, processor.A.value);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.C));
-    try expectEqual(0, processor.getFlag(.H));
+    processor.setFlag(.H);
+    processor.setFlag(.C);
+
+    processor.unsetFlag(.Z);
+
+    try expectEqual(false, processor.isFlagSet(.Z));
+    try expectEqual(true, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.H));
+    try expectEqual(true, processor.isFlagSet(.C));
+}
+
+test "unsetFlag, N" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{});
+    processor.setFlag(.Z);
+    processor.setFlag(.N);
+    processor.setFlag(.H);
+    processor.setFlag(.C);
+
+    processor.unsetFlag(.N);
+
+    try expectEqual(true, processor.isFlagSet(.Z));
+    try expectEqual(false, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.H));
+    try expectEqual(true, processor.isFlagSet(.C));
+}
+
+test "unsetFlag, H" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{});
+    processor.setFlag(.Z);
+    processor.setFlag(.N);
+    processor.setFlag(.H);
+    processor.setFlag(.C);
 
     processor.unsetFlag(.H);
-    processor.unsetFlag(.N);
-    processor.A.value = 0x00;
-    misc.decimal_adjust_accumulator(&processor);
-    try expectEqual(0x00, processor.A.value);
+
+    try expectEqual(true, processor.isFlagSet(.Z));
+    try expectEqual(true, processor.isFlagSet(.N));
+    try expectEqual(false, processor.isFlagSet(.H));
+    try expectEqual(true, processor.isFlagSet(.C));
+}
+
+test "unsetFlag, C" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{});
+    processor.setFlag(.Z);
+    processor.setFlag(.N);
+    processor.setFlag(.H);
+    processor.setFlag(.C);
+
+    processor.unsetFlag(.C);
+
+    try expectEqual(true, processor.isFlagSet(.Z));
+    try expectEqual(true, processor.isFlagSet(.N));
+    try expectEqual(true, processor.isFlagSet(.H));
+    try expectEqual(false, processor.isFlagSet(.C));
+}
+
+test "popStack" {
+    const SP: u16 = 0x0AFF;
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{ .SP = SP });
+
+    const content: u8 = 0x13;
+    processor.memory.write(SP, content);
+
+    try expectEqual(content, processor.popStack());
+    try expectEqual(SP + 1, processor.SP);
+}
+
+test "pushStack" {
+    const SP: u16 = 0x0AFF;
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{ .SP = SP });
+
+    const content: u8 = 0x13;
+    processor.pushStack(content);
+
+    try expectEqual(content, processor.memory.read(SP - 1));
+    try expectEqual(SP - 1, processor.SP);
+}
+
+test "getFlag" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{});
+    processor.setFlag(.Z);
+
     try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.C));
+    try expectEqual(0, processor.getFlag(.N));
     try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+
+    processor.setFlag(.N);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(1, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+
+    processor.setFlag(.H);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(1, processor.getFlag(.N));
+    try expectEqual(1, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+
+    processor.setFlag(.C);
+    try expectEqual(1, processor.getFlag(.Z));
+    try expectEqual(1, processor.getFlag(.N));
+    try expectEqual(1, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+
+    processor.resetFlags();
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+
+    processor.setFlag(.N);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(1, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    processor.resetFlags();
+
+    processor.setFlag(.H);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(1, processor.getFlag(.H));
+    try expectEqual(0, processor.getFlag(.C));
+    processor.resetFlags();
+
+    processor.setFlag(.C);
+    try expectEqual(0, processor.getFlag(.Z));
+    try expectEqual(0, processor.getFlag(.N));
+    try expectEqual(0, processor.getFlag(.H));
+    try expectEqual(1, processor.getFlag(.C));
+    processor.resetFlags();
 }
