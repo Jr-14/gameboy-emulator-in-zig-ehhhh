@@ -29,6 +29,7 @@ idea to catalogue them.
 - [Random Numbers](https://zig.guide/standard-library/random-numbers/)
 - [Result Location Semantics](https://ziglang.org/documentation/0.15.2/#Result-Location-Semantics)
 - [Function Parameter Type Inference](https://ziglang.org/documentation/0.15.2/#Function-Parameter-Type-Inference)
+- [Zig Build System](https://ziglang.org/learn/build-system/)
 
 # Emulator Design
 - [How Do Emulators Work? A Deep Dive into Emulator Design](https://www.retroreversing.com/how-emulators-work)
