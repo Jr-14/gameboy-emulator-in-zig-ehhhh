@@ -1,13 +1,16 @@
 const std = @import("std");
 const utils = @import("utils.zig");
 
-const Register = @import("register.zig");
+const PackedRegisterPair = @import("register_packed.zig").PackgedRegisterPair;
 const Memory = @import("memory.zig");
-const instructions = @import("instruction.zig");
+const instructions = @import("instruction_new.zig");
 
 const masks = @import("masks.zig");
+pub const FlagMasks = masks.FlagMasks;
+const Flag = masks.ProcessorFlag;
 
 const Bit = utils.Bit;
+
 
 const HI_MASK = masks.HI_MASK;
 const LO_MASK = masks.LO_MASK;
@@ -17,25 +20,24 @@ const N_MASK = masks.N_MASK;
 const H_MASK = masks.H_MASK;
 const C_MASK = masks.C_MASK;
 
-pub const Flag = enum {
-    Z,
-    N,
-    H,
-    C,
-};
 
 pub const RegisterPair = enum { AF, BC, DE, HL };
 
+const FlagsRegister = packed struct {
+    zero: u1 = 0,
+    negative: u1 = 0,
+    half_carry: u1 = 0,
+    carry: u1 = 0,
+    _unused: u4 = 0,
+};
+
 const Processor = @This();
 
-A: Register = .{},
-F: Register = .{},
-B: Register = .{},
-C: Register = .{},
-D: Register = .{},
-E: Register = .{},
-H: Register = .{},
-L: Register = .{},
+accumulator: u8 = 0,
+flags: FlagsRegister = .{},
+BC: PackedRegisterPair = .{ .value = 0 },
+DE: PackedRegisterPair = .{ .value = 0 },
+HL: PackedRegisterPair = .{ .value = 0 },
 
 SP: u16 = 0,
 PC: u16 = 0,
@@ -48,9 +50,12 @@ isHalted: bool = false,
 
 memory: *Memory = undefined,
 
-const InitProcessor = struct {
-    A: u8 = 0,
-    F: u8 = 0,
+const ProcessorValues = struct {
+    accumulator: u8 = 0,
+    zeroFlag: u1 = 0,
+    negativeFlag: u1 = 0,
+    halfCarryFlag: u1 = 0,
+    carryFlag: u1 = 0,
     B: u8 = 0,
     C: u8 = 0,
     D: u8 = 0,
@@ -62,21 +67,62 @@ const InitProcessor = struct {
     IME: bool = false,
 };
 
-pub fn init(memory: *Memory, initProc: InitProcessor) Processor {
+pub fn init(memory: *Memory, initialValues: ProcessorValues) Processor {
     return .{
         .memory = memory,
-        .A = .{ .value = initProc.A },
-        .F = .{ .value = initProc.F },
-        .B = .{ .value = initProc.B },
-        .C = .{ .value = initProc.C },
-        .D = .{ .value = initProc.D },
-        .E = .{ .value = initProc.E },
-        .H = .{ .value = initProc.H },
-        .L = .{ .value = initProc.L },
-        .SP = initProc.SP,
-        .PC = initProc.PC,
-        .IME = initProc.IME,
+        .accumulator = initialValues.accumulator,
+        .SP = initialValues.SP,
+        .PC = initialValues.PC,
+        .IME = initialValues.IME,
+        .flags = .{
+            .zero = initialValues.zeroFlag,
+            .negative = initialValues.negativeFlag,
+            .half_carry = initialValues.halfCarryFlag,
+            .carry = initialValues.carry_flag,
+        },
+        .BC = .{
+            .bytes = .{
+                .high = initialValues.B,
+                .low = initialValues.C,
+            }
+        },
+        .DE = .{
+            .bytes = .{
+                .high = initialValues.D,
+                .low = initialValues.E,
+            }
+        },
+        .HL = .{
+            .bytes = .{
+                .high = initialValues.H,
+                .low = initialValues.L,
+            }
+        },
     };
+}
+
+pub inline fn B(proc: *Processor) *u8 {
+    return &proc.BC.bytes.high;
+}
+
+pub inline fn C(proc: *Processor) *u8 {
+    return &proc.BC.bytes.low;
+}
+
+pub inline fn D(proc: *Processor) *u8 {
+    return &proc.DE.bytes.high;
+}
+
+pub inline fn E(proc: *Processor) *u8 {
+    return &proc.DE.bytes.low;
+}
+
+pub inline fn H(proc: *Processor) *u8 {
+    return &proc.HL.bytes.high;
+}
+
+pub inline fn L(proc: *Processor) *u8 {
+    return &proc.HL.bytes.low;
 }
 
 /// Read from memory the value pointed to by PC
@@ -104,93 +150,20 @@ pub inline fn pushStack(proc: *Processor, val: u8) void {
     proc.memory.write(proc.SP, val);
 }
 
-inline fn setRegisterPair(hiReg: *Register, loReg: *Register, value: u16) void {
-    hiReg.value = @truncate(value >> 8);
-    loReg.value = @truncate(value);
-}
-
-inline fn getRegisterPair(hiReg: *Register, loReg: *Register) u16 {
-    return (@as(u16, hiReg.value) << 8) | loReg.value;
-}
-
-pub fn setAF(proc: *Processor, value: u16) void {
-    setRegisterPair(&proc.A, &proc.F, value);
-}
-
-pub fn getAF(proc: *Processor) u16 {
-    return getRegisterPair(&proc.A, &proc.F);
-}
-
-pub fn setBC(proc: *Processor, value: u16) void {
-    setRegisterPair(&proc.B, &proc.C, value);
-}
-
-pub fn getBC(proc: *Processor) u16 {
-    return getRegisterPair(&proc.B, &proc.C);
-}
-
-pub fn setDE(proc: *Processor, value: u16) void {
-    setRegisterPair(&proc.D, &proc.E, value);
-}
-
-pub fn getDE(proc: *Processor) u16 {
-    return getRegisterPair(&proc.D, &proc.E);
-}
-
-pub fn setHL(proc: *Processor, value: u16) void {
-    setRegisterPair(&proc.H, &proc.L, value);
-}
-
-pub fn getHL(proc: *Processor) u16 {
-    return getRegisterPair(&proc.H, &proc.L);
-}
-
-pub fn incrementHL(proc: *Processor) void {
-    proc.setHL(proc.getHL() +% 1);
-}
-
-pub fn decrementHL(proc: *Processor) void {
-    proc.setHL(proc.getHL() -% 1);
-}
-
 pub inline fn isFlagSet(proc: *Processor, flag: Flag) bool {
     return switch (flag) {
-        .Z => (proc.F.value & Z_MASK) == Z_MASK,
-        .N => (proc.F.value & N_MASK) == N_MASK,
-        .H => (proc.F.value & H_MASK) == H_MASK,
-        .C => (proc.F.value & C_MASK) == C_MASK,
-    };
-}
-
-pub inline fn setFlag(proc: *Processor, flag: Flag) void {
-    switch (flag) {
-        .Z => proc.F.value |= Z_MASK,
-        .N => proc.F.value |= N_MASK,
-        .H => proc.F.value |= H_MASK,
-        .C => proc.F.value |= C_MASK,
-    }
-}
-
-pub inline fn unsetFlag(proc: *Processor, flag: Flag) void {
-    switch (flag) {
-        .Z => proc.F.value &= ~Z_MASK,
-        .N => proc.F.value &= ~N_MASK,
-        .H => proc.F.value &= ~H_MASK,
-        .C => proc.F.value &= ~C_MASK,
-    }
-}
-
-pub inline fn getFlag(proc: *Processor, flag: Flag) u1 {
-    return switch (flag) {
-        .Z => @truncate(proc.F.value >> 7),
-        .N => @truncate(proc.F.value >> 6),
-        .H => @truncate(proc.F.value >> 5),
-        .C => @truncate(proc.F.value >> 4),
+        .zero => proc.flags.zero == 1,
+        .negative => proc.flags.negative == 1,
+        .half_carry => proc.flags.half_carry == 1,
+        .carry => proc.flags.carry == 1,
     };
 }
 
 pub inline fn resetFlags(proc: *Processor) void {
-    proc.F.value = 0;
+    proc.flags.zero = 0;
+    proc.flags.negative = 0;
+    proc.flags.half_carry = 0;
+    proc.flags.carry = 0;
 }
 
 fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
@@ -1061,7 +1034,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x1F => instructions.bitShift.rotate_right_a(proc),
 
         // JR NZ, s8
-        0x20 => instructions.controlFlow.jump_rel_cc_imm8(proc, .NZ),
+        0x20 => instructions.controlFlow.jump_rel_cc_imm8(proc, &proc.flags.zero, .is_not_set),
 
         // LD HL, d16
         0x21 => instructions.load.reg16_imm16(proc, .HL),
@@ -1713,27 +1686,6 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
 
 const expectEqual = std.testing.expectEqual;
 
-test "getRegisterPair" {
-    var memory: Memory = .init();
-    const H: u8 = 0x45;
-    const L: u8 = 0x7F;
-    var processor = Processor.init(&memory, .{ .H = H, .L = L });
-
-    try expectEqual(utils.fromTwoBytes(L, H), Processor.getRegisterPair(&processor.H, &processor.L));
-}
-
-test "setRegisterPair" {
-    var memory: Memory = .init();
-    var processor = Processor.init(&memory, .{});
-
-    const D: u8 = 0x91;
-    const E: u8 = 0xC2;
-    Processor.setRegisterPair(&processor.D, &processor.E, utils.fromTwoBytes(E, D));
-
-    try expectEqual(D, processor.D.value);
-    try expectEqual(E, processor.E.value);
-}
-
 test "isFlagSet, Z" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .F = Z_MASK });
@@ -1784,7 +1736,7 @@ test "setFlag, Z" {
     try expectEqual(false, processor.isFlagSet(.H));
     try expectEqual(false, processor.isFlagSet(.C));
 }
-//
+
 test "setFlag, N" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{});

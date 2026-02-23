@@ -2,7 +2,7 @@ const std = @import("std");
 
 pub const PackgedRegisterPair = packed union {
     value: u16,
-    bytes: packed struct {
+    bytes: packed struct(u16) {
         low: u8,
         high: u8,
     },

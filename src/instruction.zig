@@ -1,6 +1,6 @@
 const std = @import("std");
 const Register = @import("register.zig");
-const Processor = @import("processor.zig");
+const Processor = @import("processor_new.zig.zig");
 const Memory = @import("memory.zig");
 const mask = @import("masks.zig");
 const utils = @import("utils.zig");
@@ -592,7 +592,7 @@ pub const controlFlow = struct {
     /// If the flag condition is met, jump s8 steps from the current address stored in the program counter (PC). If not, the
     /// instruction following the current JP instruction is executed (as usual).
     /// Example: 0x20 -> JR NZ, s8
-    pub fn jump_rel_cc_imm8(proc: *Processor, condition: FlagCondition) void {
+    pub fn jump_rel_cc_imm8(proc: *Processor, flag: *u1, condition: FlagCondition) void {
         const offset = proc.fetch();
         const cc: bool = switch(condition) {
             .Z => proc.isFlagSet(.Z),
