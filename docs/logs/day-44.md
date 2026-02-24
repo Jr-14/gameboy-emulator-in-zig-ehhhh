@@ -14,3 +14,5 @@ has other "stuff" which I don't understand :(.
 
 Looks like I've yet to properly learn interrupt flags, and interrupt in general to see how they're used in Gameboy.
 [FFF - IE: Interrupt enable](https://gbdev.io/pandocs/Interrupts.html#ffff--ie-interrupt-enable)
+
+Total time: 300 minutes
