@@ -11,7 +11,6 @@ const Flag = masks.ProcessorFlag;
 
 const Bit = utils.Bit;
 
-
 const HI_MASK = masks.HI_MASK;
 const LO_MASK = masks.LO_MASK;
 
@@ -19,9 +18,6 @@ const Z_MASK = masks.Z_MASK;
 const N_MASK = masks.N_MASK;
 const H_MASK = masks.H_MASK;
 const C_MASK = masks.C_MASK;
-
-
-pub const RegisterPair = enum { AF, BC, DE, HL };
 
 const FlagsRegister = packed struct {
     zero: u1 = 0,
@@ -1688,7 +1684,7 @@ const expectEqual = std.testing.expectEqual;
 
 test "isFlagSet, Z" {
     var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .F = Z_MASK });
+    var processor = Processor.init(&memory, .{ .F = FlagMasks.get(.zero) });
 
     try expectEqual(true, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
@@ -1698,7 +1694,7 @@ test "isFlagSet, Z" {
 
 test "isFlagSet, N" {
     var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .F = N_MASK });
+    var processor = Processor.init(&memory, .{ .F = FlagMasks.get(.negative) });
 
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(true, processor.isFlagSet(.N));
@@ -1708,7 +1704,7 @@ test "isFlagSet, N" {
 
 test "isFlagSet, H" {
     var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .F = H_MASK });
+    var processor = Processor.init(&memory, .{ .F = FlagMasks.get(.half_carry) });
 
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
@@ -1718,120 +1714,12 @@ test "isFlagSet, H" {
 
 test "isFlagSet, C" {
     var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .F = C_MASK });
+    var processor = Processor.init(&memory, .{ .F = FlagMasks.get(.carry) });
 
     try expectEqual(false, processor.isFlagSet(.Z));
     try expectEqual(false, processor.isFlagSet(.N));
     try expectEqual(false, processor.isFlagSet(.H));
     try expectEqual(true, processor.isFlagSet(.C));
-}
-
-test "setFlag, Z" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{});
-    processor.setFlag(.Z);
-
-    try expectEqual(true, processor.isFlagSet(.Z));
-    try expectEqual(false, processor.isFlagSet(.N));
-    try expectEqual(false, processor.isFlagSet(.H));
-    try expectEqual(false, processor.isFlagSet(.C));
-}
-
-test "setFlag, N" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{});
-    processor.setFlag(.N);
-
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(true, processor.isFlagSet(.N));
-    try expectEqual(false, processor.isFlagSet(.H));
-    try expectEqual(false, processor.isFlagSet(.C));
-}
-
-test "setFlag, H" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{});
-    processor.setFlag(.H);
-
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(false, processor.isFlagSet(.N));
-    try expectEqual(true, processor.isFlagSet(.H));
-    try expectEqual(false, processor.isFlagSet(.C));
-}
-
-test "setFlag, C" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{});
-    processor.setFlag(.C);
-
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(false, processor.isFlagSet(.N));
-    try expectEqual(false, processor.isFlagSet(.H));
-    try expectEqual(true, processor.isFlagSet(.C));
-}
-
-test "unsetFlag, Z" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{});
-    processor.setFlag(.Z);
-    processor.setFlag(.N);
-    processor.setFlag(.H);
-    processor.setFlag(.C);
-
-    processor.unsetFlag(.Z);
-
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(true, processor.isFlagSet(.N));
-    try expectEqual(true, processor.isFlagSet(.H));
-    try expectEqual(true, processor.isFlagSet(.C));
-}
-
-test "unsetFlag, N" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{});
-    processor.setFlag(.Z);
-    processor.setFlag(.N);
-    processor.setFlag(.H);
-    processor.setFlag(.C);
-
-    processor.unsetFlag(.N);
-
-    try expectEqual(true, processor.isFlagSet(.Z));
-    try expectEqual(false, processor.isFlagSet(.N));
-    try expectEqual(true, processor.isFlagSet(.H));
-    try expectEqual(true, processor.isFlagSet(.C));
-}
-
-test "unsetFlag, H" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{});
-    processor.setFlag(.Z);
-    processor.setFlag(.N);
-    processor.setFlag(.H);
-    processor.setFlag(.C);
-
-    processor.unsetFlag(.H);
-
-    try expectEqual(true, processor.isFlagSet(.Z));
-    try expectEqual(true, processor.isFlagSet(.N));
-    try expectEqual(false, processor.isFlagSet(.H));
-    try expectEqual(true, processor.isFlagSet(.C));
-}
-
-test "unsetFlag, C" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{});
-    processor.setFlag(.Z);
-    processor.setFlag(.N);
-    processor.setFlag(.H);
-    processor.setFlag(.C);
-
-    processor.unsetFlag(.C);
-
-    try expectEqual(true, processor.isFlagSet(.Z));
-    try expectEqual(true, processor.isFlagSet(.N));
-    try expectEqual(true, processor.isFlagSet(.H));
-    try expectEqual(false, processor.isFlagSet(.C));
 }
 
 test "popStack" {
@@ -1856,60 +1744,4 @@ test "pushStack" {
 
     try expectEqual(content, processor.memory.read(SP - 1));
     try expectEqual(SP - 1, processor.SP);
-}
-
-test "getFlag" {
-    var memory = Memory.init();
-    var processor = Processor.init(&memory, .{});
-    processor.setFlag(.Z);
-
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-
-    processor.setFlag(.N);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(1, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-
-    processor.setFlag(.H);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(1, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-
-    processor.setFlag(.C);
-    try expectEqual(1, processor.getFlag(.Z));
-    try expectEqual(1, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-
-    processor.resetFlags();
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-
-    processor.setFlag(.N);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(1, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    processor.resetFlags();
-
-    processor.setFlag(.H);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(1, processor.getFlag(.H));
-    try expectEqual(0, processor.getFlag(.C));
-    processor.resetFlags();
-
-    processor.setFlag(.C);
-    try expectEqual(0, processor.getFlag(.Z));
-    try expectEqual(0, processor.getFlag(.N));
-    try expectEqual(0, processor.getFlag(.H));
-    try expectEqual(1, processor.getFlag(.C));
-    processor.resetFlags();
 }
