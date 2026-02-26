@@ -12,6 +12,11 @@ const Flag = masks.ProcessorFlag;
 
 const Bit = utils.Bit;
 
+pub const FlagCondition = enum(u1) {
+    is_not_set,
+    is_set,
+};
+
 const FlagsRegister = packed struct {
     zero: u1 = 0,
     negative: u1 = 0,

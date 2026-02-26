@@ -8,10 +8,7 @@ const utils = @import("utils.zig");
 
 const Bit = utils.Bit;
 
-const FlagCondition = enum(u1) {
-    is_not_set,
-    is_set,
-};
+const FlagCondition = Processor.FlagCondition;
 
 pub const arithmetic = struct {
     /// Increment the contents of register reg by 1.
