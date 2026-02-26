@@ -4,20 +4,13 @@ const utils = @import("utils.zig");
 const PackedRegisterPair = @import("register_packed.zig").PackgedRegisterPair;
 const Memory = @import("memory.zig");
 const instructions = @import("instruction_new.zig");
+const instructionsNew = @import("instructions/root.zig");
 
 const masks = @import("masks.zig");
 pub const FlagMasks = masks.FlagMasks;
 const Flag = masks.ProcessorFlag;
 
 const Bit = utils.Bit;
-
-const HI_MASK = masks.HI_MASK;
-const LO_MASK = masks.LO_MASK;
-
-const Z_MASK = masks.Z_MASK;
-const N_MASK = masks.N_MASK;
-const H_MASK = masks.H_MASK;
-const C_MASK = masks.C_MASK;
 
 const FlagsRegister = packed struct {
     zero: u1 = 0,
@@ -952,13 +945,13 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x02 => instructions.load.reg16_indirect_acc8(proc, .BC, &proc.A),
 
         // INC BC
-        0x03 => instructions.arithmetic.inc_reg16(proc, .BC),
+        0x03 => instructionsNew.arithmetic.inc_reg16(&proc.BC.value),
 
         // INC B
-        0x04 => instructions.arithmetic.inc_reg8(proc, &proc.B),
+        0x04 => instructionsNew.arithmetic.inc_reg8(proc, proc.B()),
 
         // DEC B
-        0x05 => instructions.arithmetic.dec_reg8(proc, &proc.B),
+        0x05 => instructionsNew.arithmetic.dec_reg8(proc, proc.B()),
 
         // LD B, d8
         0x06 => instructions.load.reg_imm8(proc, &proc.B),
@@ -970,19 +963,19 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x08 => instructions.load.imm16Mem_spr(proc, proc.SP),
 
         // ADD HL, BC
-        0x09 => instructions.arithmetic.add_reg16_reg16(proc, .HL, .BC),
+        0x09 => instructionsNew.arithmetic.add_reg16_reg16(proc, &proc.HL.value, &proc.BC.value),
 
         // LD A, (BC)
         0x0A => instructions.load.reg8_reg16_indirect(proc, &proc.A, .BC),
 
         // DEC BC
-        0x0B => instructions.arithmetic.dec_reg16(proc, .BC),
+        0x0B => instructionsNew.arithmetic.dec_reg16(proc, &proc.BC.value),
 
         // INC C
-        0x0C => instructions.arithmetic.inc_reg8(proc, &proc.C),
+        0x0C => instructionsNew.arithmetic.inc_reg8(proc, proc.C()),
 
         // DEC C
-        0x0D => instructions.arithmetic.dec_reg8(proc, &proc.C),
+        0x0D => instructionsNew.arithmetic.dec_reg8(proc, proc.C()),
 
         // LD C, d8
         0x0E => instructions.load.reg_imm8(proc, &proc.C),
@@ -997,13 +990,13 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x12 => instructions.load.reg16_indirect_acc8(proc, .DE, &proc.A),
 
         // INC DE
-        0x13 => instructions.arithmetic.inc_reg16(proc, .DE),
+        0x13 => instructionsNew.arithmetic.inc_reg16(proc, &proc.DE.value),
 
         // INC D
-        0x14 => instructions.arithmetic.inc_reg8(proc, &proc.D),
+        0x14 => instructionsNew.arithmetic.inc_reg8(proc, proc.D()),
 
         // DEC D
-        0x15 => instructions.arithmetic.dec_reg8(proc, &proc.D),
+        0x15 => instructionsNew.arithmetic.dec_reg8(proc, proc.D()),
 
         // LD D, d8
         0x16 => instructions.load.reg_imm8(proc, &proc.D),
@@ -1015,16 +1008,16 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x18 => instructions.controlFlow.jump_rel_imm8(proc),
 
         // ADD HL, DE
-        0x19 => instructions.arithmetic.add_reg16_reg16(proc, .HL, .DE),
+        0x19 => instructionsNew.arithmetic.add_reg16_reg16(proc, &proc.HL.value, &proc.DE.value),
 
         // DEC DE
-        0x1B => instructions.arithmetic.dec_reg16(proc, .DE),
+        0x1B => instructionsNew.arithmetic.dec_reg16(proc, &proc.DE.value),
 
         // INC E
-        0x1C => instructions.arithmetic.inc_reg8(proc, &proc.E),
+        0x1C => instructionsNew.arithmetic.inc_reg8(proc, proc.E()),
 
         // DEC E
-        0x1D => instructions.arithmetic.dec_reg8(proc, &proc.E),
+        0x1D => instructionsNew.arithmetic.dec_reg8(proc, proc.E()),
 
         // RRA
         0x1F => instructions.bitShift.rotate_right_a(proc),
@@ -1036,13 +1029,13 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x21 => instructions.load.reg16_imm16(proc, .HL),
 
         // INC HL
-        0x23 => instructions.arithmetic.inc_reg16(proc, .HL),
+        0x23 => instructionsNew.arithmetic.inc_reg16(proc, &proc.HL.value),
 
         // INC H
-        0x24 => instructions.arithmetic.inc_reg8(proc, &proc.H),
+        0x24 => instructionsNew.arithmetic.inc_reg8(proc, proc.H()),
 
         // DEC H
-        0x25 => instructions.arithmetic.dec_reg8(proc, &proc.H),
+        0x25 => instructionsNew.arithmetic.dec_reg8(proc, proc.H()),
 
         // DAA
         0x27 => instructions.misc.decimal_adjust_accumulator(proc),
@@ -1051,16 +1044,16 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x28 => instructions.controlFlow.jump_rel_cc_imm8(proc, .Z),
 
         // ADD HL, HL
-        0x29 => instructions.arithmetic.add_reg16_reg16(proc, .HL, .HL),
+        0x29 => instructionsNew.arithmetic.add_reg16_reg16(proc, &proc.HL.value, &proc.HL.value),
 
         // DEC HL
-        0x2B => instructions.arithmetic.dec_reg16(proc, .HL),
+        0x2B => instructionsNew.arithmetic.dec_reg16(proc, &proc.HL.value),
 
         // INC L
-        0x2C => instructions.arithmetic.inc_reg8(proc, &proc.L),
+        0x2C => instructionsNew.arithmetic.inc_reg8(proc, proc.L()),
 
         // DEC L
-        0x2D => instructions.arithmetic.dec_reg8(proc, &proc.L),
+        0x2D => instructionsNew.arithmetic.dec_reg8(proc, proc.L()),
 
         // CPL
         0x2F => instructions.misc.complement_a8(proc),
@@ -1069,13 +1062,13 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x30 => instructions.controlFlow.jump_rel_cc_imm8(proc, .NC),
 
         // INC SP
-        0x33 => instructions.arithmetic.inc_sp(proc),
+        0x33 => instructionsNew.arithmetic.inc_sp(proc),
 
         // INC (HL)
-        0x34 => instructions.arithmetic.inc_reg16(proc, .HL),
+        0x34 => instructionsNew.arithmetic.inc_reg16(proc, &proc.HL.value),
 
         // DEC (HL)
-        0x35 => instructions.arithmetic.dec_reg16(proc, .HL),
+        0x35 => instructionsNew.arithmetic.dec_reg16(proc, &proc.HL.value),
 
         // SCF
         0x37 => instructions.misc.set_carry_flag(proc),
@@ -1084,16 +1077,16 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x38 => instructions.controlFlow.jump_rel_cc_imm8(proc, .C),
 
         // ADD HL, SP
-        0x39 => instructions.arithmetic.add_hl_sp(proc),
+        0x39 => instructionsNew.arithmetic.add_hl_sp(proc),
 
         // DEC SP
-        0x3B => instructions.arithmetic.dec_sp(proc),
+        0x3B => instructionsNew.arithmetic.dec_sp(proc),
 
         // INC A
-        0x3C => instructions.arithmetic.inc_reg8(proc, &proc.A),
+        0x3C => instructionsNew.arithmetic.inc_reg8(proc, proc.A()),
 
         // DEC A
-        0x3D => instructions.arithmetic.dec_reg8(proc, &proc.A),
+        0x3D => instructionsNew.arithmetic.dec_reg8(proc, proc.A()),
 
         // CCF
         0x3F => instructions.misc.complement_carry_flag(proc),
@@ -1324,196 +1317,196 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x7F => instructions.load.reg8_reg8(&proc.A, &proc.A),
 
         // ADD B
-        0x80 => instructions.arithmetic.add_reg8(proc, &proc.B),
+        0x80 => instructionsNew.arithmetic.add_reg8(proc, proc.B()),
 
         // ADD C
-        0x81 => instructions.arithmetic.add_reg8(proc, &proc.C),
+        0x81 => instructionsNew.arithmetic.add_reg8(proc, proc.C()),
 
         // ADD D
-        0x82 => instructions.arithmetic.add_reg8(proc, &proc.D),
+        0x82 => instructionsNew.arithmetic.add_reg8(proc, proc.D()),
 
         // ADD E
-        0x83 => instructions.arithmetic.add_reg8(proc, &proc.E),
+        0x83 => instructionsNew.arithmetic.add_reg8(proc, proc.E()),
 
         // ADD H
-        0x84 => instructions.arithmetic.add_reg8(proc, &proc.H),
+        0x84 => instructionsNew.arithmetic.add_reg8(proc, proc.H()),
 
         // ADD L
-        0x85 => instructions.arithmetic.add_reg8(proc, &proc.L),
+        0x85 => instructionsNew.arithmetic.add_reg8(proc, proc.L()),
 
         // ADD A, (HL)
-        0x86 => instructions.arithmetic.add_hl_indirect(proc),
+        0x86 => instructionsNew.arithmetic.add_hl_indirect(proc),
 
         // ADD A ,A
-        0x87 => instructions.arithmetic.add_reg8(proc, &proc.A),
+        0x87 => instructionsNew.arithmetic.add_reg8(proc, &proc.accumulator),
 
         // ADC B
-        0x88 => instructions.arithmetic.addc_reg8(proc, &proc.B),
+        0x88 => instructionsNew.arithmetic.addc_reg8(proc, proc.B()),
 
         // ADC C
-        0x89 => instructions.arithmetic.addc_reg8(proc, &proc.C),
+        0x89 => instructionsNew.arithmetic.addc_reg8(proc, proc.C()),
 
         // ADC D
-        0x8A => instructions.arithmetic.addc_reg8(proc, &proc.D),
+        0x8A => instructionsNew.arithmetic.addc_reg8(proc, proc.D()),
 
         // ADC E
-        0x8B => instructions.arithmetic.addc_reg8(proc, &proc.E),
+        0x8B => instructionsNew.arithmetic.addc_reg8(proc, proc.E()),
 
         // ADC H
-        0x8C => instructions.arithmetic.addc_reg8(proc, &proc.H),
+        0x8C => instructionsNew.arithmetic.addc_reg8(proc, proc.H()),
 
         // ADC H
-        0x8D => instructions.arithmetic.addc_reg8(proc, &proc.L),
+        0x8D => instructionsNew.arithmetic.addc_reg8(proc, proc.L()),
 
         // ADC (HL)
-        0x8E => instructions.arithmetic.addc_hl_indirect(proc),
+        0x8E => instructionsNew.arithmetic.addc_hl_indirect(proc),
 
         // ADC A
-        0x8F => instructions.arithmetic.addc_reg8(proc, &proc.A),
+        0x8F => instructionsNew.arithmetic.addc_reg8(proc, proc.A()),
 
         // SUB B
-        0x90 => instructions.arithmetic.sub_reg8(proc, &proc.B),
+        0x90 => instructionsNew.arithmetic.sub_reg8(proc, proc.B()),
 
         // SUB C
-        0x91 => instructions.arithmetic.sub_reg8(proc, &proc.C),
+        0x91 => instructionsNew.arithmetic.sub_reg8(proc, proc.C()),
 
         // SUB D
-        0x92 => instructions.arithmetic.sub_reg8(proc, &proc.D),
+        0x92 => instructionsNew.arithmetic.sub_reg8(proc, proc.D()),
 
         // SUB E
-        0x93 => instructions.arithmetic.sub_reg8(proc, &proc.E),
+        0x93 => instructionsNew.arithmetic.sub_reg8(proc, proc.E()),
 
         // SUB H
-        0x94 => instructions.arithmetic.sub_reg8(proc, &proc.H),
+        0x94 => instructionsNew.arithmetic.sub_reg8(proc, proc.H()),
 
         // SUB L
-        0x95 => instructions.arithmetic.sub_reg8(proc, &proc.L),
+        0x95 => instructionsNew.arithmetic.sub_reg8(proc, proc.L()),
 
         // SUB (HL)
-        0x96 => instructions.arithmetic.sub_hl_indirect(proc),
+        0x96 => instructionsNew.arithmetic.sub_hl_indirect(proc),
 
         // SUB A, A
-        0x97 => instructions.arithmetic.sub_reg8(proc, &proc.A),
+        0x97 => instructionsNew.arithmetic.sub_reg8(proc, proc.A()),
 
         // SBC B
-        0x98 => instructions.arithmetic.subc_reg8(proc, &proc.B),
+        0x98 => instructionsNew.arithmetic.subc_reg8(proc, proc.B()),
 
         // SBC C
-        0x99 => instructions.arithmetic.subc_reg8(proc, &proc.C),
+        0x99 => instructionsNew.arithmetic.subc_reg8(proc, proc.C()),
 
         // SBC D
-        0x9A => instructions.arithmetic.subc_reg8(proc, &proc.D),
+        0x9A => instructionsNew.arithmetic.subc_reg8(proc, proc.D()),
 
         // SBC E
-        0x9B => instructions.arithmetic.subc_reg8(proc, &proc.E),
+        0x9B => instructionsNew.arithmetic.subc_reg8(proc, proc.E()),
 
         // SBC H
-        0x9C => instructions.arithmetic.subc_reg8(proc, &proc.H),
+        0x9C => instructionsNew.arithmetic.subc_reg8(proc, proc.H()),
 
         // SBC L
-        0x9D => instructions.arithmetic.subc_reg8(proc, &proc.L),
+        0x9D => instructionsNew.arithmetic.subc_reg8(proc, proc.L()),
 
         // SBC A, (HL)
-        0x9E => instructions.arithmetic.subc_hl_indirect(proc),
+        0x9E => instructionsNew.arithmetic.subc_hl_indirect(proc),
 
         // SBC A, A
-        0x9F => instructions.arithmetic.subc_reg8(proc, &proc.A),
+        0x9F => instructionsNew.arithmetic.subc_reg8(proc, proc.A()),
 
         // AND B
-        0xA0 => instructions.arithmetic.and_reg8(proc, &proc.B),
+        0xA0 => instructionsNew.arithmetic.and_reg8(proc, proc.B()),
 
         // AND C
-        0xA1 => instructions.arithmetic.and_reg8(proc, &proc.C),
+        0xA1 => instructionsNew.arithmetic.and_reg8(proc, proc.C()),
 
         // AND D
-        0xA2 => instructions.arithmetic.and_reg8(proc, &proc.D),
+        0xA2 => instructionsNew.arithmetic.and_reg8(proc, proc.D()),
 
         // AND E
-        0xA3 => instructions.arithmetic.and_reg8(proc, &proc.E),
+        0xA3 => instructionsNew.arithmetic.and_reg8(proc, proc.E()),
 
         // AND H
-        0xA4 => instructions.arithmetic.and_reg8(proc, &proc.H),
+        0xA4 => instructionsNew.arithmetic.and_reg8(proc, proc.H()),
 
         // AND L
-        0xA5 => instructions.arithmetic.and_reg8(proc, &proc.L),
+        0xA5 => instructionsNew.arithmetic.and_reg8(proc, proc.L()),
 
         // AND A, (HL)
-        0xA6 => instructions.arithmetic.and_hl_indirect(proc),
+        0xA6 => instructionsNew.arithmetic.and_hl_indirect(proc),
 
         // AND A, A
-        0xA7 => instructions.arithmetic.and_reg8(proc, &proc.A),
+        0xA7 => instructionsNew.arithmetic.and_reg8(proc, &proc.accumulator),
 
         // XOR B
-        0xA8 => instructions.arithmetic.xor_reg8(proc, &proc.B),
+        0xA8 => instructionsNew.arithmetic.xor_reg8(proc, proc.B()),
 
         // XOR C
-        0xA9 => instructions.arithmetic.xor_reg8(proc, &proc.C),
+        0xA9 => instructionsNew.arithmetic.xor_reg8(proc, proc.C()),
 
         // XOR D
-        0xAA => instructions.arithmetic.xor_reg8(proc, &proc.D),
+        0xAA => instructionsNew.arithmetic.xor_reg8(proc, proc.D()),
 
         // XOR E
-        0xAB => instructions.arithmetic.xor_reg8(proc, &proc.E),
+        0xAB => instructionsNew.arithmetic.xor_reg8(proc, proc.E()),
 
         // XOR H
-        0xAC => instructions.arithmetic.xor_reg8(proc, &proc.H),
+        0xAC => instructionsNew.arithmetic.xor_reg8(proc, proc.H()),
 
         // XOR L
-        0xAD => instructions.arithmetic.xor_reg8(proc, &proc.L),
+        0xAD => instructionsNew.arithmetic.xor_reg8(proc, proc.L()),
 
         // XOR (HL)
-        0xAE => instructions.arithmetic.xor_hl_indirect(proc),
+        0xAE => instructionsNew.arithmetic.xor_hl_indirect(proc),
 
         // XOR A, A
-        0xAF => instructions.arithmetic.xor_reg8(proc, &proc.A),
+        0xAF => instructionsNew.arithmetic.xor_reg8(proc, &proc.accumulator),
 
         // OR B
-        0xB0 => instructions.arithmetic.or_reg8(proc, &proc.B),
+        0xB0 => instructionsNew.arithmetic.or_reg8(proc, proc.B()),
 
         // OR C
-        0xB1 => instructions.arithmetic.or_reg8(proc, &proc.C),
+        0xB1 => instructionsNew.arithmetic.or_reg8(proc, proc.C()),
 
         // OR D
-        0xB2 => instructions.arithmetic.or_reg8(proc, &proc.D),
+        0xB2 => instructionsNew.arithmetic.or_reg8(proc, proc.D()),
 
         // OR E
-        0xB3 => instructions.arithmetic.or_reg8(proc, &proc.E),
+        0xB3 => instructionsNew.arithmetic.or_reg8(proc, proc.E()),
 
         // OR H
-        0xB4 => instructions.arithmetic.or_reg8(proc, &proc.H),
+        0xB4 => instructionsNew.arithmetic.or_reg8(proc, proc.H()),
 
         // OR L
-        0xB5 => instructions.arithmetic.or_reg8(proc, &proc.L),
+        0xB5 => instructionsNew.arithmetic.or_reg8(proc, proc.L()),
 
         // OR (HL)
-        0xB6 => instructions.arithmetic.or_hl_indirect(proc),
+        0xB6 => instructionsNew.arithmetic.or_hl_indirect(proc),
 
         // OR A, A
-        0xB7 => instructions.arithmetic.or_reg8(proc, &proc.A),
+        0xB7 => instructionsNew.arithmetic.or_reg8(proc, &proc.accumulator),
 
         // CP B
-        0xB8 => instructions.arithmetic.compare_reg8(proc, &proc.B),
+        0xB8 => instructionsNew.arithmetic.compare_reg8(proc, proc.B()),
 
         // CP C
-        0xB9 => instructions.arithmetic.compare_reg8(proc, &proc.C),
+        0xB9 => instructionsNew.arithmetic.compare_reg8(proc, proc.C()),
 
         // CP D
-        0xBA => instructions.arithmetic.compare_reg8(proc, &proc.D),
+        0xBA => instructionsNew.arithmetic.compare_reg8(proc, proc.D()),
 
         // CP E
-        0xBB => instructions.arithmetic.compare_reg8(proc, &proc.E),
+        0xBB => instructionsNew.arithmetic.compare_reg8(proc, proc.E()),
 
         // CP H
-        0xBC => instructions.arithmetic.compare_reg8(proc, &proc.H),
+        0xBC => instructionsNew.arithmetic.compare_reg8(proc, proc.H()),
 
         // CP L
-        0xBD => instructions.arithmetic.compare_reg8(proc, &proc.L),
+        0xBD => instructionsNew.arithmetic.compare_reg8(proc, proc.L()),
 
         // CP (HL)
-        0xBE => instructions.arithmetic.compare_hl_indirect(proc),
+        0xBE => instructionsNew.arithmetic.compare_hl_indirect(proc),
 
         // CP A, A
-        0xBF => instructions.arithmetic.compare_reg8(proc, &proc.A),
+        0xBF => instructionsNew.arithmetic.compare_reg8(proc, &proc.accumulator),
 
         // RET NZ
         0xC0 => instructions.controlFlow.ret_cc(proc, .NZ),
@@ -1534,7 +1527,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xC5 => instructions.controlFlow.push_rr(proc, .BC),
 
         // ADD A, d8
-        0xC6 => instructions.arithmetic.add_imm8(proc),
+        0xC6 => instructionsNew.arithmetic.add_imm8(proc),
 
         // RST 0
         0xC7 => instructions.controlFlow.rst(proc, 0),
@@ -1558,7 +1551,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xCD => instructions.controlFlow.call_imm16(proc),
 
         // ADC A, d8
-        0xCE => instructions.arithmetic.addc_imm8(proc),
+        0xCE => instructionsNew.arithmetic.addc_imm8(proc),
 
         // RST 1
         0xCF => instructions.controlFlow.rst(proc, 1),
@@ -1579,7 +1572,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xD5 => instructions.controlFlow.push_rr(proc, .DE),
 
         // 0xD6
-        0xD6 => instructions.arithmetic.sub_imm8(proc),
+        0xD6 => instructionsNew.arithmetic.sub_imm8(proc),
 
         // RST 2
         0xD7 => instructions.controlFlow.rst(proc, 2),
@@ -1600,7 +1593,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xDF => instructions.controlFlow.rst(proc, 3),
 
         // SBC A, d8
-        0xDE => instructions.arithmetic.subc_imm8(proc),
+        0xDE => instructionsNew.arithmetic.subc_imm8(proc),
 
         // LD (a8), A
         0xE0 => instructions.load.imm8_indirect_reg8(proc, &proc.A),
@@ -1615,13 +1608,13 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xE5 => instructions.controlFlow.push_rr(proc, .HL),
 
         // AND d8
-        0xE6 => instructions.arithmetic.and_imm8(proc),
+        0xE6 => instructionsNew.arithmetic.and_imm8(proc),
 
         // RST 4
         0xE7 => instructions.controlFlow.rst(proc, 4),
 
         // ADD SP s8
-        0xE8 => instructions.arithmetic.add_sp_offset(proc),
+        0xE8 => instructionsNew.arithmetic.add_sp_offset(proc),
 
         // JP HL
         0xE9 => instructions.controlFlow.jump_hl(proc, .HL),
@@ -1630,7 +1623,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xEA => instructions.load.imm16Mem_reg(proc, &proc.A),
 
         // XOR d8
-        0xEE => instructions.arithmetic.xor_imm8(proc),
+        0xEE => instructionsNew.arithmetic.xor_imm8(proc),
 
         // RST 5
         0xEF => instructions.controlFlow.rst(proc, 5),
@@ -1651,7 +1644,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xF5 => instructions.controlFlow.push_rr(proc, .AF),
 
         // OR d8
-        0xF6 => instructions.arithmetic.or_imm8(proc),
+        0xF6 => instructionsNew.arithmetic.or_imm8(proc),
 
         // RST 6
         0xF7 => instructions.controlFlow.rst(proc, 6),
@@ -1669,7 +1662,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xFB => { proc.IME = true; },
 
         // CP d8
-        0xFE => instructions.arithmetic.compare_imm8(proc),
+        0xFE => instructionsNew.arithmetic.compare_imm8(proc),
 
         // RST 7
         0xFF => instructions.controlFlow.rst(proc, 7),

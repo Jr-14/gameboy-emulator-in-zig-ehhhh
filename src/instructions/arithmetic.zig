@@ -35,9 +35,6 @@ pub fn dec_reg8(
     proc.flags.negative = 1;
     proc.flags.zero = remainder.value;
     proc.flags.half_carry = remainder.half_carry;
-    // proc.setFlag(.N);
-    // if (remainder.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-    // if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
 }
 
 /// Increment the contents of register pair rr by 1
@@ -65,28 +62,23 @@ pub fn add_hl_sp(proc: *Processor) void {
         .b = proc.SP,
     });
 
-    // proc.setHL(result.value);
     proc.HL.value = result.value;
+
     proc.flags.negative = 1;
     proc.flags.carry = result.carry;
     proc.flags.half_carry = result.half_carry;
-    // proc.setFlag(.N);
-    // if (result.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-    // if (result.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
 }
 
 pub fn add_sp_offset(proc: *Processor) void {
     const imm = proc.fetch();
     const result = utils.Arithmetic(u16).add_offset(proc.SP, imm);
+
     proc.SP = result.value;
+
     proc.flags.zero = 0;
     proc.flags.negative = 0;
     proc.flags.carry =  result.carry;
     proc.flags.half_carry = result.half_carry;
-    // proc.unsetFlag(.Z);
-    // proc.unsetFlag(.N);
-    // if (result.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-    // if (result.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
 }
 
 fn add_aux(proc: *Processor, values: struct {
@@ -103,10 +95,6 @@ fn add_aux(proc: *Processor, values: struct {
     proc.flags.zero = sum.value;
     proc.flags.carry = sum.carry;
     proc.flags.half_carry = sum.half_carry;
-    // proc.unsetFlag(.N);
-    // if (sum.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-    // if (sum.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-    // if (sum.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
 }
 
 /// Add the contents of register reg to the contents of accumulator (A) register,
@@ -157,10 +145,6 @@ pub fn add_reg16_reg16(proc: *Processor, dest: *u16, src: *u16) void {
     proc.flags.negative = 0;
     proc.flags.carry = result.carry;
     proc.flags.half_carry = result.half_carry;
-    // dest_setter(proc, result.value);
-    // proc.unsetFlag(.N);
-    // if (result.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-    // if (result.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
 }
 
 pub fn addc_imm8(proc: *Processor) void {
@@ -184,10 +168,6 @@ fn sub_aux(proc: *Processor, values: struct{
     proc.flags.zero = remainder.value;
     proc.flags.half_carry = remainder.half_carry;
     proc.flags.car = remainder.carry;
-    // proc.setFlag(.N);
-    // if (remainder.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-    // if (remainder.carry == 1) proc.setFlag(.C) else proc.unsetFlag(.C);
-    // if (remainder.half_carry == 1) proc.setFlag(.H) else proc.unsetFlag(.H);
 }
 
 /// Subtract the contents of register reg to the contents of accumulator (A) register,
@@ -239,14 +219,11 @@ pub fn subc_hl_indirect(proc: *Processor) void {
 
 fn and_aux(proc: *Processor, value: u8) void {
     proc.accumulator &= value;
+
     if (proc.accumulator == 0) proc.flags.zero = 1 else proc.flags.zero = 0;
     proc.flags.negative = 0;
     proc.flags.half_carry = 1;
     proc.flags.carry = 0;
-    // if (proc.A.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-    // proc.unsetFlag(.N);
-    // proc.setFlag(.H);
-    // proc.unsetFlag(.C);
 }
 
 /// Take the logical AND for each bit of the contents of register reg and the contents of register A,
@@ -268,11 +245,11 @@ pub fn and_hl_indirect(proc: *Processor) void {
 
 fn or_aux(proc: *Processor, value: u8) void {
     proc.accumulator |= value;
+
     if (proc.accumulator == 0) proc.flags.zero = 1 else proc.flags.zero = 0;
-    // if (proc.A.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-    // proc.unsetFlag(.N);
-    // proc.unsetFlag(.H);
-    // proc.unsetFlag(.C);
+    proc.flags.negative = 0;
+    proc.flags.half_carry = 0;
+    proc.flags.carry = 0;
 }
 
 pub fn or_reg8(proc: *Processor, registerValue: *u8) void {
@@ -291,14 +268,11 @@ pub fn or_hl_indirect(proc: *Processor) void {
 
 fn xor_aux(proc: *Processor, value: u8) void {
     proc.accumulator ^= value;
+
     if (proc.accumulator == 0) proc.flags.zero = 1 else proc.flags.zero = 0;
     proc.flags.negative = 0;
     proc.flags.half_carry = 0;
     proc.flags.carry = 0;
-    // if (proc.A.value == 0) proc.setFlag(.Z) else proc.unsetFlag(.Z);
-    // proc.unsetFlag(.N);
-    // proc.unsetFlag(.H);
-    // proc.unsetFlag(.C);
 }
 
 pub fn xor_reg8(proc: *Processor, registerValue: *u8) void {
@@ -317,6 +291,7 @@ pub fn xor_hl_indirect(proc: *Processor) void {
 
 fn compare_aux(proc: *Processor, value: u8) void {
     const remainder = utils.Arithmetic(u8).add(proc.A.value, value);
+
     if (remainder.value == 0) proc.flags.zero = 1 else proc.flags.zero = 0;
     proc.flags.negative = 0;
     proc.flags.half_carry = remainder.half_carry;
