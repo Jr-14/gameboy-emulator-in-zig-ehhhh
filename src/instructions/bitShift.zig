@@ -107,7 +107,7 @@ pub const bitShift = struct {
     /// Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, left in a
     /// circular manner (carry flag is updated but not used).
     /// Every bit is shifted t
-    pub fn rotate_left_circular_hlMem(proc: *Processor) void {
+    pub fn rotate_left_circular_hl_indirect(proc: *Processor) void {
         const contents: *u8 = &proc.memory.address[proc.HL.value];
         const bit_7: u1 = @truncate(contents.* >> 7);
 
@@ -124,7 +124,7 @@ pub const bitShift = struct {
     /// circular manner (carry flag is updated but not used).
     /// Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). Bit 0 is copied both to bit 7
     /// and the carry flag.
-    pub fn rotate_right_circular_hlMem(proc: *Processor) void {
+    pub fn rotate_right_circular_hl_indirect(proc: *Processor) void {
         const contents: *u8 = &proc.memory.address[proc.HL.value];
         const bit_0: u1 = @truncate(contents.*);
 
@@ -158,7 +158,7 @@ pub const bitShift = struct {
     /// the carry flag.
     /// Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). The carry flag is copied to bit
     /// 0, and bit 7 is copied to the carry flag.
-    pub fn rotate_left_hlMem(proc: *Processor) void {
+    pub fn rotate_left_hl_indirect(proc: *Processor) void {
         const contents: *u8 = &proc.memory.address[proc.HL.value];
         const bit_7: u1 = @truncate(contents.* >> 7);
 
@@ -192,7 +192,7 @@ pub const bitShift = struct {
     /// the carry flag.
     /// Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). The carry flag is copied to bit
     /// 7, and bit 0 is copied to the carry flag.
-    pub fn rotate_right_hlMem(proc: *Processor) void {
+    pub fn rotate_right_hl_indirect(proc: *Processor) void {
         const contents: *u8 = &proc.memory.address[proc.HL.value];
         const bit_0: u1 = @truncate(contents.*);
 
@@ -223,7 +223,7 @@ pub const bitShift = struct {
     /// Shifts, the 8-bit value at the address specified by the HL register, left by one bit using an
     /// arithmetic shift.
     /// Bit 7 is shifted to the carry flag, and bit 0 is set to a fixed value of 0.
-    pub fn shift_left_arithmetic_hlMem(proc: *Processor) void {
+    pub fn shift_left_arithmetic_hl_indirect(proc: *Processor) void {
         const contents: *u8 = &proc.memory.address[proc.HL.value];
         const bit_7: u1 = @truncate(contents.* >> 7);
 
@@ -253,7 +253,7 @@ pub const bitShift = struct {
     /// Shifts, the 8-bit value at the address specified by the HL register, right by one bit using an
     /// arithmetic shift.
     /// Bit 7 retains its value, and bit 0 is shifted to the carry flag.
-    pub fn shift_right_arithmetic_hlMem(proc: *Processor) void {
+    pub fn shift_right_arithmetic_hl_indirect(proc: *Processor) void {
         const contents: *u8 = &proc.memory.address[proc.HL.value];
         const bit_0: u1 = @truncate(contents.*);
         const bit_7: u1 = @truncate(contents.* >> 7);
@@ -281,7 +281,7 @@ pub const bitShift = struct {
 
     /// Swaps the high and low 4-bit nibbles of the 8-bit data at the absolute address specified by the
     /// 16-bit register HL
-    pub fn swap_hlMem(proc: *Processor) void {
+    pub fn swap_hl_indirect(proc: *Processor) void {
         const contents: *u8 = &proc.memory.address[proc.HL.value];
         const lo_nibble_mask: u8 = (contents.* & 0xF) << 4;
         contents.* >>= 4;
@@ -309,7 +309,8 @@ pub const bitShift = struct {
     /// Shifts, the 8-bit value at the address specified by the HL register, right by one bit using a logical
     /// shift.
     /// Bit 7 is set to a fixed value of 0, and bit 0 is shifted to the carry flag.
-    pub fn shift_right_logical_hlMem(proc: *Processor) void {
+    // pub fn shift_right_logical_hlMem(proc: *Processor) void {
+    pub fn shift_right_logical_hl_indirect(proc: *Processor) void {
         const contents: *u8 = &proc.memory.address[proc.HL.value];
         const bit_0: u1 = @truncate(contents.*);
 
@@ -324,7 +325,7 @@ pub const bitShift = struct {
 
 const expectEqual = std.testing.expectEqual;
 
-test "bitShift.rotate_left_a" {
+test "rotate_left_a" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .A = 0xFF });
 
@@ -351,7 +352,7 @@ test "bitShift.rotate_left_a" {
     try expectEqual(0b1111_1010, processor.accumulator);
 }
 
-test "bitShift.rotate_left_circular_a" {
+test "rotate_left_circular_a" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .A = 0xF0 });
 
@@ -412,7 +413,7 @@ test "bitShift.rotate_left_circular_a" {
     try expectEqual(0b1111_0000, processor.accumulator);
 }
 
-test "bitShift.rotate_right_a" {
+test "rotate_right_a" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .A = 0xFE }); // 0b1111_1110
 
@@ -460,7 +461,7 @@ test "bitShift.rotate_right_a" {
     try expectEqual(0b0111_0011, processor.accumulator);
 }
 
-test "bitShift.rotate_right_circular_a" {
+test "rotate_right_circular_a" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .A = 0xFE }); // 0b1111_1110
 
@@ -521,7 +522,7 @@ test "bitShift.rotate_right_circular_a" {
     try expectEqual(0b1111_1110, processor.accumulator);
 }
 
-test "bitShift.rotate_left_circular_r8" {
+test "rotate_left_circular_r8" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .B = 0x7F });
 
@@ -555,7 +556,7 @@ test "bitShift.rotate_left_circular_r8" {
     try expectEqual(0x00, processor.C.value);
 }
 
-test "bitShift.rotate_right_circular_r8" {
+test "rotate_right_circular_r8" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .B = 0xFE });
 
@@ -589,37 +590,37 @@ test "bitShift.rotate_right_circular_r8" {
     try expectEqual(0x00, processor.C.value);
 }
 
-test "bitShift.rotate_left_circular_hlMem" {
+test "rotate_left_circular_hl_indirect" {
     const HL: u16 = 0xAC13;
     const contents = 0x7F; // 0b0111_1111
     var memory = Memory.init();
     memory.write(HL, contents);
 
     var processor = Processor.init(&memory, .{});
-    processor.setHL(HL);
+    processor.HL.value = HL;
 
-    bitShift.rotate_left_circular_hlMem(&processor);
+    bitShift.rotate_left_circular_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0b1111_1110, processor.memory.read(HL));
 
-    bitShift.rotate_left_circular_hlMem(&processor);
+    bitShift.rotate_left_circular_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b1111_1101, processor.memory.read(HL));
 
-    bitShift.rotate_left_circular_hlMem(&processor);
+    bitShift.rotate_left_circular_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b1111_1011, processor.memory.read(HL));
 
-    bitShift.rotate_left_circular_hlMem(&processor);
+    bitShift.rotate_left_circular_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -627,7 +628,7 @@ test "bitShift.rotate_left_circular_hlMem" {
     try expectEqual(0b1111_0111, processor.memory.read(HL));
 
     memory.write(HL, 0x00);
-    bitShift.rotate_left_circular_hlMem(&processor);
+    bitShift.rotate_left_circular_hl_indirect(&processor);
     try expectEqual(1, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -635,37 +636,37 @@ test "bitShift.rotate_left_circular_hlMem" {
     try expectEqual(0x00, processor.memory.read(HL));
 }
 
-test "bitShift.rotate_right_circular_hlMem" {
+test "rotate_right_circular_hl_indirect" {
     const HL: u16 = 0xAC13;
     const contents = 0xFE; // 0b1111_1110
     var memory = Memory.init();
     memory.write(HL, contents);
 
     var processor = Processor.init(&memory, .{});
-    processor.setHL(HL);
+    processor.HL.value = HL;
 
-    bitShift.rotate_right_circular_hlMem(&processor);
+    bitShift.rotate_right_circular_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0b0111_1111, processor.memory.read(HL));
 
-    bitShift.rotate_right_circular_hlMem(&processor);
+    bitShift.rotate_right_circular_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b1011_1111, processor.memory.read(HL));
 
-    bitShift.rotate_right_circular_hlMem(&processor);
+    bitShift.rotate_right_circular_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b1101_1111, processor.memory.read(HL));
 
-    bitShift.rotate_right_circular_hlMem(&processor);
+    bitShift.rotate_right_circular_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -673,7 +674,7 @@ test "bitShift.rotate_right_circular_hlMem" {
     try expectEqual(0b1110_1111, processor.memory.read(HL));
 
     memory.write(HL, 0x00);
-    bitShift.rotate_right_circular_hlMem(&processor);
+    bitShift.rotate_right_circular_hl_indirect(&processor);
     try expectEqual(1, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -681,7 +682,7 @@ test "bitShift.rotate_right_circular_hlMem" {
     try expectEqual(0x00, processor.memory.read(HL));
 }
 
-test "bitShift.rotate_left_arithmetic_r8" {
+test "rotate_left_arithmetic_r8" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .B = 0x7F });
 
@@ -731,7 +732,7 @@ test "bitShift.rotate_left_arithmetic_r8" {
     try expectEqual(0b0000_0001, processor.H.value);
 }
 
-test "bitShift.rotate_left_hlMem" {
+test "rotate_left_hl_indirect" {
     var HL: u16 = 0x17C2;
     var memory = Memory.init();
     memory.address[HL] = 0x7F;
@@ -740,27 +741,27 @@ test "bitShift.rotate_left_hlMem" {
         .L = 0xC2,
     });
 
-    bitShift.rotate_left_hlMem(&processor);
+    bitShift.rotate_left_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0b1111_1110, processor.memory.address[HL]);
 
-    bitShift.rotate_left_hlMem(&processor);
+    bitShift.rotate_left_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b1111_1100, processor.memory.address[HL]);
-    bitShift.rotate_left_hlMem(&processor);
+    bitShift.rotate_left_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b1111_1001, processor.memory.address[HL]);
 
-    bitShift.rotate_left_hlMem(&processor);
+    bitShift.rotate_left_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -769,9 +770,9 @@ test "bitShift.rotate_left_hlMem" {
 
     HL = 0x0100;
     processor.memory.address[HL] = 0;
-    processor.setHL(HL);
+    processor.HL.value = HL;
     processor.unsetFlag(.C);
-    bitShift.rotate_left_hlMem(&processor);
+    bitShift.rotate_left_hl_indirect(&processor);
     try expectEqual(1, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -779,7 +780,7 @@ test "bitShift.rotate_left_hlMem" {
     try expectEqual(0x00, processor.memory.address[HL]);
 
     processor.setFlag(.C);
-    bitShift.rotate_left_hlMem(&processor);
+    bitShift.rotate_left_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -787,7 +788,7 @@ test "bitShift.rotate_left_hlMem" {
     try expectEqual(0b0000_0001, processor.memory.address[HL]);
 }
 
-test "bitShift.rotate_right_r8" {
+test "rotate_right_r8" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .B = 0xFE });
 
@@ -837,7 +838,7 @@ test "bitShift.rotate_right_r8" {
     try expectEqual(0b1000_0000, processor.H.value);
 }
 
-test "bitShift.rotate_right_hlMem" {
+test "rotate_right_hl_indirect" {
     var HL: u16 = 0x80C3;
     var memory = Memory.init();
     memory.address[HL] = 0xFE;
@@ -846,28 +847,28 @@ test "bitShift.rotate_right_hlMem" {
         .L = 0xC3,
     });
 
-    bitShift.rotate_right_hlMem(&processor);
+    bitShift.rotate_right_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0b0111_1111, processor.memory.address[HL]);
 
-    bitShift.rotate_right_hlMem(&processor);
+    bitShift.rotate_right_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b0011_1111, processor.memory.address[HL]);
 
-    bitShift.rotate_right_hlMem(&processor);
+    bitShift.rotate_right_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b1001_1111, processor.memory.address[HL]);
 
-    bitShift.rotate_right_hlMem(&processor);
+    bitShift.rotate_right_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -875,10 +876,10 @@ test "bitShift.rotate_right_hlMem" {
     try expectEqual(0b1100_1111, processor.memory.address[HL]);
 
     HL = 0x0100;
-    processor.setHL(HL);
+    processor.HL.value = HL;
     processor.memory.address[HL] = 0;
     processor.unsetFlag(.C);
-    bitShift.rotate_right_hlMem(&processor);
+    bitShift.rotate_right_hl_indirect(&processor);
     try expectEqual(1, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -886,7 +887,7 @@ test "bitShift.rotate_right_hlMem" {
     try expectEqual(0x00, processor.memory.address[HL]);
 
     processor.setFlag(.C);
-    bitShift.rotate_right_hlMem(&processor);
+    bitShift.rotate_right_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -894,7 +895,7 @@ test "bitShift.rotate_right_hlMem" {
     try expectEqual(0b1000_0000, processor.memory.address[HL]);
 }
 
-test "bitShift.shift_left_arithmetic_r8" {
+test "shift_left_arithmetic_r8" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .B = 0x7F });
 
@@ -942,7 +943,7 @@ test "bitShift.shift_left_arithmetic_r8" {
     try expectEqual(0x0, processor.B().*);
 }
 
-test "bitShift.shift_left_arithmetic_hlMem" {
+test "shift_left_arithmetic_hl_indirect" {
     const HL = 0x01B2;
     var memory = Memory.init();
     memory.address[HL] = 0x7F;
@@ -951,35 +952,35 @@ test "bitShift.shift_left_arithmetic_hlMem" {
         .L = 0xB2,
     });
 
-    bitShift.shift_left_arithmetic_hlMem(&processor);
+    bitShift.shift_left_arithmetic_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0b1111_1110, processor.memory.address[HL]);
 
-    bitShift.shift_left_arithmetic_hlMem(&processor);
+    bitShift.shift_left_arithmetic_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b1111_1100, processor.memory.address[HL]);
 
-    bitShift.shift_left_arithmetic_hlMem(&processor);
+    bitShift.shift_left_arithmetic_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b1111_1000, processor.memory.address[HL]);
 
-    bitShift.shift_left_arithmetic_hlMem(&processor);
+    bitShift.shift_left_arithmetic_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b1111_0000, processor.memory.address[HL]);
 
-    bitShift.shift_left_arithmetic_hlMem(&processor);
+    bitShift.shift_left_arithmetic_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -987,7 +988,7 @@ test "bitShift.shift_left_arithmetic_hlMem" {
     try expectEqual(0b1110_0000, processor.memory.address[HL]);
 
     processor.memory.address[HL] = 0;
-    bitShift.shift_left_arithmetic_hlMem(&processor);
+    bitShift.shift_left_arithmetic_hl_indirect(&processor);
     try expectEqual(1, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -995,7 +996,7 @@ test "bitShift.shift_left_arithmetic_hlMem" {
     try expectEqual(0x0, processor.memory.address[HL]);
 }
 
-test "bitShift.shift_right_arithmetic_r8" {
+test "shift_right_arithmetic_r8" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .B = 0xF7 }); // 0b1111_0111
 
@@ -1050,57 +1051,57 @@ test "bitShift.shift_right_arithmetic_r8" {
     try expectEqual(0x0, processor.B().*);
 }
 
-test "bitShift.shift_right_arithmetic_hlMem" {
+test "shift_right_arithmetic_hl_indirect" {
     const HL: u16 = 0x74F0;
     var memory = Memory.init();
     memory.address[HL] = 0xF7;
     var processor = Processor.init(&memory, .{});
-    processor.setHL(HL);
+    processor.HL.value = HL;
 
-    bitShift.shift_right_arithmetic_hlMem(&processor);
+    bitShift.shift_right_arithmetic_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
-    try expectEqual(0b1111_1011, processor.memory.address[HL]);
+    try expectEqual(0b0111_1011, processor.memory.address[HL]);
 
-    bitShift.shift_right_arithmetic_hlMem(&processor);
+    bitShift.shift_right_arithmetic_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
-    try expectEqual(0b1111_1101, processor.memory.address[HL]);
+    try expectEqual(0b0011_1101, processor.memory.address[HL]);
 
-    bitShift.shift_right_arithmetic_hlMem(&processor);
+    bitShift.shift_right_arithmetic_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
-    try expectEqual(0b1111_1110, processor.memory.address[HL]);
+    try expectEqual(0b0001_1110, processor.memory.address[HL]);
 
-    bitShift.shift_right_arithmetic_hlMem(&processor);
+    bitShift.shift_right_arithmetic_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
-    try expectEqual(0b1111_1111, processor.memory.address[HL]);
+    try expectEqual(0b0000_1111, processor.memory.address[HL]);
 
-    bitShift.shift_right_arithmetic_hlMem(&processor);
+    bitShift.shift_right_arithmetic_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
-    try expectEqual(0b1111_1111, processor.memory.address[HL]);
+    try expectEqual(0b0000_0111, processor.memory.address[HL]);
 
     processor.memory.address[HL] = 0x0;
-    bitShift.shift_right_arithmetic_hlMem(&processor);
+    bitShift.shift_right_arithmetic_hl_indirect(&processor);
     try expectEqual(1, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0x0, processor.memory.address[HL]);
 
-    bitShift.shift_right_arithmetic_hlMem(&processor);
+    bitShift.shift_right_arithmetic_hl_indirect(&processor);
     try expectEqual(1, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -1108,7 +1109,7 @@ test "bitShift.shift_right_arithmetic_hlMem" {
     try expectEqual(0x0, processor.memory.address[HL]);
 }
 
-test "bitShift.swap_r8" {
+test "swap_r8" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{
         .B = 0x93,
@@ -1130,14 +1131,14 @@ test "bitShift.swap_r8" {
     try expectEqual(0x00, processor.C.value);
 }
 
-test "bitShift.swap_hlMem" {
+test "swap_hl_indirect" {
     const HL: u16 = 0x95A2;
     var memory = Memory.init();
     memory.address[HL] = 0xA2;
     var processor = Processor.init(&memory, .{});
-    processor.setHL(HL);
+    processor.HL.value = HL;
 
-    bitShift.swap_hlMem(&processor);
+    bitShift.swap_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -1145,10 +1146,123 @@ test "bitShift.swap_hlMem" {
     try expectEqual(0x2A, processor.memory.address[HL]);
 
     memory.address[HL] = 0x00;
-    bitShift.swap_hlMem(&processor);
+    bitShift.swap_hl_indirect(&processor);
     try expectEqual(1, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0x00, processor.memory.address[HL]);
+}
+
+test "shift_right_logical_r8" {
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{ .B = 0xF7 }); // 0b1111_0111
+
+    bitShift.shift_right_logical_r8(&processor, processor.B());
+    try expectEqual(0, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(0, processor.flags.half_carry);
+    try expectEqual(1, processor.flags.carry);
+    try expectEqual(0b0111_1011, processor.B().*);
+
+    bitShift.shift_right_logical_r8(&processor, processor.B());
+    try expectEqual(0, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(0, processor.flags.half_carry);
+    try expectEqual(1, processor.flags.carry);
+    try expectEqual(0b0011_1101, processor.B().*);
+
+    bitShift.shift_right_logical_r8(&processor, processor.B());
+    try expectEqual(0, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(0, processor.flags.half_carry);
+    try expectEqual(1, processor.flags.carry);
+    try expectEqual(0b0001_1110, processor.B().*);
+
+    bitShift.shift_right_logical_r8(&processor, processor.B());
+    try expectEqual(0, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(0, processor.flags.half_carry);
+    try expectEqual(0, processor.flags.carry);
+    try expectEqual(0b0000_1111, processor.B().*);
+
+    bitShift.shift_right_logical_r8(&processor, processor.B());
+    try expectEqual(0, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(0, processor.flags.half_carry);
+    try expectEqual(1, processor.flags.carry);
+    try expectEqual(0b0000_0111, processor.B().*);
+
+    processor.B().* = 0x0;
+    bitShift.shift_right_logical_r8(&processor, processor.B());
+    try expectEqual(1, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(0, processor.flags.half_carry);
+    try expectEqual(0, processor.flags.carry);
+    try expectEqual(0x0, processor.B().*);
+
+    bitShift.shift_right_logical_r8(&processor, processor.B());
+    try expectEqual(1, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(0, processor.flags.half_carry);
+    try expectEqual(0, processor.flags.carry);
+    try expectEqual(0x0, processor.B().*);
+}
+
+test "shift_right_logical_hl_indirect" {
+    const HL: u16 = 0x74F0;
+    var memory = Memory.init();
+    memory.address[HL] = 0xF7;
+    var processor = Processor.init(&memory, .{});
+    processor.HL.value = HL;
+
+    bitShift.shift_right_logical_hl_indirect(&processor);
+    try expectEqual(0, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(0, processor.flags.half_carry);
+    try expectEqual(1, processor.flags.carry);
+    try expectEqual(0b1111_1011, processor.memory.address[HL]);
+
+    bitShift.shift_right_logical_hl_indirect(&processor);
+    try expectEqual(0, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(0, processor.flags.half_carry);
+    try expectEqual(1, processor.flags.carry);
+    try expectEqual(0b1111_1101, processor.memory.address[HL]);
+
+    bitShift.shift_right_logical_hl_indirect(&processor);
+    try expectEqual(0, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(0, processor.flags.half_carry);
+    try expectEqual(1, processor.flags.carry);
+    try expectEqual(0b1111_1110, processor.memory.address[HL]);
+
+    bitShift.shift_right_logical_hl_indirect(&processor);
+    try expectEqual(0, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(0, processor.flags.half_carry);
+    try expectEqual(0, processor.flags.carry);
+    try expectEqual(0b1111_1111, processor.memory.address[HL]);
+
+    bitShift.shift_right_logical_hl_indirect(&processor);
+    try expectEqual(0, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(0, processor.flags.half_carry);
+    try expectEqual(1, processor.flags.carry);
+    try expectEqual(0b1111_1111, processor.memory.address[HL]);
+
+    processor.memory.address[HL] = 0x0;
+    bitShift.shift_right_logical_hl_indirect(&processor);
+    try expectEqual(1, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(0, processor.flags.half_carry);
+    try expectEqual(0, processor.flags.carry);
+    try expectEqual(0x0, processor.memory.address[HL]);
+
+    bitShift.shift_right_logical_hl_indirect(&processor);
+    try expectEqual(1, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(0, processor.flags.half_carry);
+    try expectEqual(0, processor.flags.carry);
+    try expectEqual(0x0, processor.memory.address[HL]);
 }
