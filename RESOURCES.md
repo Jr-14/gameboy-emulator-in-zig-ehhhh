@@ -31,6 +31,7 @@ idea to catalogue them.
 - [Function Parameter Type Inference](https://ziglang.org/documentation/0.15.2/#Function-Parameter-Type-Inference)
 - [Zig Build System](https://ziglang.org/learn/build-system/)
 - [Recommendations for structuring project with library and unit tests](https://ziggit.dev/t/recommendations-for-structuring-project-with-library-and-unit-tests/5745/2)
+- [What is anytype?](https://ziggit.dev/t/generic-programming-and-anytype/3228)
 
 
 # Emulator Design
