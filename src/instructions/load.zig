@@ -5,18 +5,35 @@ const PackedRegister = @import("../register_packed.zig");
 const Memory = @import("../memory.zig");
 const utils = @import("../utils.zig");
 
+const expectEqual = std.testing.expectEqual;
+
 pub const load = struct {
     /// Load the 8-bit immediate operand d8 into register reg.
     /// Example: 0x06 -> LD B, d8
-    pub fn reg_imm8(proc: *Processor, registerValue: *u8) void {
+    pub fn reg8_imm8(proc: *Processor, registerValue: *u8) void {
         registerValue.* = proc.fetch();
+    }
+
+    test "reg8_imm8" {
+        const PC: u16 = 0x0100;
+        const value: u8 = 0x80;
+
+        var memory = Memory.init();
+        memory.address[PC] = value;
+        var processor = Processor.init(&memory, .{});
+        processor.PC = PC;
+
+        reg8_imm8(&processor, processor.B());
+
+        try expectEqual(value, processor.BC.bytes.high);
+        try expectEqual(value, processor.B().*);
     }
 
     /// Load to the 8-bit register reg, data from the address specified by the 8-bit immediate data a8. The full
     /// 16-bit absolute address is obtained by setting the most significant byte to 0xff and the least
     /// significant byte to the value of a8, so the possible range is 0xff0-0xffff.
     /// Example: 0xF0 -> LD A, (a8)
-    pub fn reg_imm8_indirect(proc: *Processor, registerValue: *u8) void {
+    pub fn reg8_imm8_indirect(proc: *Processor, registerValue: *u8) void {
         const imm = proc.fetch();
         const addr: u16 = 0xFF00 | imm;
         registerValue.* = proc.memory.read(addr);
@@ -177,8 +194,6 @@ pub const load = struct {
         proc.flags.carry = result.carry;
     }
 };
-
-const expectEqual = std.testing.expectEqual;
 
 test "load.reg16_imm16" {
     const PC: u16 = 0x0100;
