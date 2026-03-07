@@ -18,7 +18,8 @@ idea to catalogue them.
 - [Game Boy carry & half-carry flags](https://gist.github.com/meganesu/9e228b6b587decc783aa9be34ae27841)
 - [GameBoy - Help With DAA instruction](https://forums.nesdev.org/viewtopic.php?t=15944)
 - [Emulating The Core, Part 3: Interrupt Processing](https://realboyemulator.wordpress.com/2013/07/01/interrupt-processing-a-real-world-example/)
-
+- [zigboy](https://github.com/otaleghani/zigboy)
+- [The Cycle-Accurate Game Boy Docs](https://github.com/geaz/emu-gameboy/blob/master/docs/The%20Cycle-Accurate%20Game%20Boy%20Docs.pdf)
 
 # Zig
 - [Payload Captures](https://zig.guide/language-basics/payload-captures/)
@@ -32,7 +33,6 @@ idea to catalogue them.
 - [Zig Build System](https://ziglang.org/learn/build-system/)
 - [Recommendations for structuring project with library and unit tests](https://ziggit.dev/t/recommendations-for-structuring-project-with-library-and-unit-tests/5745/2)
 - [What is anytype?](https://ziggit.dev/t/generic-programming-and-anytype/3228)
-
 
 # Emulator Design
 - [How Do Emulators Work? A Deep Dive into Emulator Design](https://www.retroreversing.com/how-emulators-work)
@@ -61,3 +61,6 @@ idea to catalogue them.
 
 # Misc?
 - [DAA and Binary Coded Decimals (BCD)](https://blog.ollien.com/posts/gb-daa/)
+
+# Books
+- [Computer Organization and Design 5e: The Hardware/Software Interface](https://www.amazon.com.au/Computer-Organization-Design-MIPS-Interface/dp/0124077269?dchild=1&keywords=computer+organization+and+design&qid=1626332042&sr=8-6)
