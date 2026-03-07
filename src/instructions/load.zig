@@ -20,7 +20,6 @@ test "reg8_imm8" {
     var memory = Memory.init();
     memory.address[PC] = value;
     var processor = Processor.init(&memory, .{ .PC = PC });
-    processor.PC = PC;
 
     reg8_imm8(&processor, processor.B());
 
@@ -208,4 +207,3 @@ pub fn hl_sp_imm8(proc: *Processor) void {
     proc.flags.half_carry = result.half_carry;
     proc.flags.carry = result.carry;
 }
-
