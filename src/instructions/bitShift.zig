@@ -281,7 +281,7 @@ pub fn rotate_left_circular_reg8(proc: *Processor, registerValue: *u8) void {
     registerValue.* <<= 1;
     registerValue.* |= bit_7;
 
-    proc.flags.zero = if (registerValue.* == 0) 1 else 0;
+    proc.flags.zero = @intFromBool(registerValue.* == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = 0;
     proc.flags.carry = bit_7;
@@ -382,7 +382,7 @@ pub fn rotate_left_circular_hl_indirect(proc: *Processor) void {
     contents.* <<= 1;
     contents.* |= bit_7;
 
-    proc.flags.zero = if (contents.* == 0) 1 else 0;
+    proc.flags.zero = @intFromBool(contents.* == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = 0;
     proc.flags.carry = bit_7;
@@ -447,7 +447,7 @@ pub fn rotate_right_circular_hl_indirect(proc: *Processor) void {
         contents.* |= 0x80;
     }
 
-    proc.flags.zero = if (contents.* == 0) 1 else 0;
+    proc.flags.zero = @intFromBool(contents.* == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = 0;
     proc.flags.carry = bit_0;
@@ -508,7 +508,7 @@ pub fn rotate_left_arithmetic_reg8(proc: *Processor, registerValue: *u8) void {
     registerValue.* <<= 1;
     registerValue.* |= proc.flags.carry;
 
-    proc.flags.zero = if (registerValue.* == 0) 1 else 0;
+    proc.flags.zero = @intFromBool(registerValue.* == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = 0;
     proc.flags.carry = bit_7;
@@ -575,7 +575,7 @@ pub fn rotate_left_hl_indirect(proc: *Processor) void {
     contents.* <<= 1;
     contents.* |= proc.flags.carry;
 
-    proc.flags.zero = if (contents.* == 0) 1 else 0;
+    proc.flags.zero = @intFromBool(contents.* == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = 0;
     proc.flags.carry = bit_7;
@@ -645,11 +645,11 @@ pub fn rotate_right_reg8(proc: *Processor, registerValue: *u8) void {
     const bit_0: u1 = @truncate(registerValue.*);
 
     registerValue.* >>= 1;
-    if (proc.flags.carry == 1) {
+    if (proc.isFlagSet(.carry)) {
         registerValue.* |= 0x80;
     }
 
-    proc.flags.zero = if (registerValue.* == 0) 1 else 0;
+    proc.flags.zero = @intFromBool(registerValue.* == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = 0;
     proc.flags.carry = bit_0;
@@ -1133,7 +1133,7 @@ pub fn shift_right_logical_reg8(proc: *Processor, registerValue: *u8) void {
 
     registerValue.* >>= 1;
 
-    proc.flags.zero = if (registerValue.* == 0) 1 else 0;
+    proc.flags.zero = @intFromBool(registerValue.* == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = 0;
     proc.flags.carry = bit_0;

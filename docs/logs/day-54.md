@@ -7,5 +7,5 @@ Docs](https://github.com/geaz/emu-gameboy/blob/master/docs/The%20Cycle-Accurate%
 As a result, I think I'll also be reading this book cover-to-cover where I can. I wish there was a better pdf reader for
 text books in my android device. Perhaps this is an app idea that will span years maybe.
 
-Total time:
+Total time: 130 minutes
 

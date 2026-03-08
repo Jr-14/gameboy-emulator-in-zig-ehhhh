@@ -19,8 +19,8 @@ pub fn inc_reg8(
 
     registerValue.* = sum.value;
 
-    proc.flags.negative = 0;
     proc.flags.zero = @intFromBool(sum.value == 0);
+    proc.flags.negative = 0;
     proc.flags.half_carry = sum.half_carry;
 }
 
@@ -72,9 +72,11 @@ pub fn dec_reg8(
         .a = registerValue.*,
         .b = 1
     });
+
     registerValue.* = remainder.value;
-    proc.flags.negative = 1;
+
     proc.flags.zero = @intFromBool(remainder.value == 0);
+    proc.flags.negative = 1;
     proc.flags.half_carry = remainder.half_carry;
 }
 
@@ -204,10 +206,10 @@ fn add_aux(proc: *Processor, values: struct {
 
     proc.accumulator = sum.value;
 
-    proc.flags.negative = 0;
     proc.flags.zero = @intFromBool(sum.value == 0);
-    proc.flags.carry = sum.carry;
+    proc.flags.negative = 0;
     proc.flags.half_carry = sum.half_carry;
+    proc.flags.carry = sum.carry;
 }
 
 /// Add the contents of register reg to the contents of accumulator (A) register,
@@ -405,7 +407,7 @@ pub fn subc_hl_indirect(proc: *Processor) void {
 fn and_aux(proc: *Processor, value: u8) void {
     proc.accumulator &= value;
 
-    if (proc.accumulator == 0) proc.flags.zero = 1 else proc.flags.zero = 0;
+    proc.flags.zero = @intFromBool(proc.accumulator == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = 1;
     proc.flags.carry = 0;
@@ -432,7 +434,7 @@ pub fn and_hl_indirect(proc: *Processor) void {
 fn or_aux(proc: *Processor, value: u8) void {
     proc.accumulator |= value;
 
-    if (proc.accumulator == 0) proc.flags.zero = 1 else proc.flags.zero = 0;
+    proc.flags.zero = @intFromBool(proc.accumulator == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = 0;
     proc.flags.carry = 0;
@@ -456,7 +458,7 @@ pub fn or_hl_indirect(proc: *Processor) void {
 fn xor_aux(proc: *Processor, value: u8) void {
     proc.accumulator ^= value;
 
-    if (proc.accumulator == 0) proc.flags.zero = 1 else proc.flags.zero = 0;
+    proc.flags.zero = @intFromBool(proc.accumulator == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = 0;
     proc.flags.carry = 0;
@@ -480,7 +482,7 @@ pub fn xor_hl_indirect(proc: *Processor) void {
 fn compare_aux(proc: *Processor, value: u8) void {
     const remainder = utils.Arithmetic(u8).add(proc.A.value, value);
 
-    if (remainder.value == 0) proc.flags.zero = 1 else proc.flags.zero = 0;
+    proc.flags.zero = @intFromBool(remainder.value == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = remainder.half_carry;
     proc.flags.carry = remainder.carry;
