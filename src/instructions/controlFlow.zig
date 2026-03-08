@@ -7,11 +7,28 @@ const utils = @import("../utils.zig");
 
 const FlagCondition = Processor.FlagCondition;
 
+const expectEqual = std.testing.expectEqual;
+
 /// Jump s8 steps relative from the current address in the program counter (PC).
 /// Example: 0x18 -> JR s8
 pub fn jump_rel_imm8(proc: *Processor) void {
     const offset = proc.fetch();
     proc.PC = utils.addOffset(proc.PC, offset);
+}
+
+test "jump_rel_imm8" {
+    const PC: u16 = 0x0100;
+    const offset: u8 = 0x10;
+
+    var memory = Memory.init();
+    memory.address[PC] = offset;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+    });
+
+    jump_rel_imm8(&processor);
+
+    try expectEqual(0x0111, processor.PC);
 }
 
 /// If the flag condition is met, jump s8 steps from the current address stored in the program counter (PC). If not, the
@@ -22,6 +39,22 @@ pub fn jump_rel_cc_imm8(proc: *Processor, flag: *u1, condition: FlagCondition) v
     if (flag.* == @intFromEnum(condition)) {
         proc.PC = utils.addOffset(proc.PC, offset);
     }
+}
+
+test "jump_rel_cc_imm8" {
+    const PC: u16 = 0x0100;
+    const offset: u8 = 0x30;
+
+    var memory = Memory.init();
+    memory.address[PC] = offset;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .carryFlag = 1,
+    });
+
+    jump_rel_cc_imm8(&processor, &processor.flags.carry, .is_set);
+    try expectEqual(0x0131, processor.PC);
+    processor.PC = PC;
 }
 
 /// Load the 16-bit immediate operand a16 into the program counter (PC). a16 specifies the address of the

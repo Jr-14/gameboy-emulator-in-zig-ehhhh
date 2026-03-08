@@ -6,12 +6,6 @@ pub const controlFlow = @import("controlFlow.zig");
 pub const load = @import("load.zig");
 pub const misc = @import("misc.zig");
 
-test "all instructions" {
-    // _ = @import("controlFlow.zig");
-    // _ = @import("load.zig");
-    // _ = @import("misc.zig");
-}
-
 test "arithmetic instructions" {
     _ = @import("arithmetic.zig");
 }
@@ -27,3 +21,15 @@ test  "bitShift instructions" {
 test "bit instructions" {
     _ = @import("bits.zig");
 }
+
+test "controlFlow instructions" {
+    _ = @import("controlFlow.zig");
+}
+
+// test "load instructions" {
+//     _ = @import("load.zig");
+// }
+
+// test "misc instructions" {
+//     _ = @import("misc.zig");
+// }
