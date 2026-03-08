@@ -17,36 +17,36 @@ test "reset_bit_reg8" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .D = 0xFF });
 
-    reset_bit_reg8(.zero, &processor.D);
-    try expectEqual(0b1111_1110, processor.D.value);
-    processor.D.value = 0xFF;
+    reset_bit_reg8(.zero, processor.D());
+    try expectEqual(0b1111_1110, processor.D().*);
+    processor.D().* = 0xFF;
 
-    reset_bit_reg8(.one, &processor.D);
-    try expectEqual(0b1111_1101, processor.D.value);
-    processor.D.value = 0xFF;
+    reset_bit_reg8(.one, processor.D());
+    try expectEqual(0b1111_1101, processor.D().*);
+    processor.D().* = 0xFF;
 
-    reset_bit_reg8(.two, &processor.D);
-    try expectEqual(0b1111_1011, processor.D.value);
-    processor.D.value = 0xFF;
+    reset_bit_reg8(.two, processor.D());
+    try expectEqual(0b1111_1011, processor.D().*);
+    processor.D().* = 0xFF;
 
-    reset_bit_reg8(.three, &processor.D);
-    try expectEqual(0b1111_0111, processor.D.value);
-    processor.D.value = 0xFF;
+    reset_bit_reg8(.three, processor.D());
+    try expectEqual(0b1111_0111, processor.D().*);
+    processor.D().* = 0xFF;
 
-    reset_bit_reg8(.four, &processor.D);
-    try expectEqual(0b1110_1111, processor.D.value);
-    processor.D.value = 0xFF;
+    reset_bit_reg8(.four, processor.D());
+    try expectEqual(0b1110_1111, processor.D().*);
+    processor.D().* = 0xFF;
 
-    reset_bit_reg8(.five, &processor.D);
-    try expectEqual(0b1101_1111, processor.D.value);
-    processor.D.value = 0xFF;
+    reset_bit_reg8(.five, processor.D());
+    try expectEqual(0b1101_1111, processor.D().*);
+    processor.D().* = 0xFF;
 
-    reset_bit_reg8(.six, &processor.D);
-    try expectEqual(0b1011_1111, processor.D.value);
-    processor.D.value = 0xFF;
+    reset_bit_reg8(.six, processor.D());
+    try expectEqual(0b1011_1111, processor.D().*);
+    processor.D().* = 0xFF;
 
-    reset_bit_reg8(.seven, &processor.D);
-    try expectEqual(0b0111_1111, processor.D.value);
+    reset_bit_reg8(.seven, processor.D());
+    try expectEqual(0b0111_1111, processor.D().*);
 }
 
 /// Resets the bit b of the 8-bit data at the absolute address specified by the 16-bit register HL, to 0.
@@ -62,7 +62,7 @@ test "reset_bit_hl_indirect" {
     var memory = Memory.init();
     memory.address[HL] = 0xFF;
     var processor = Processor.init(&memory, .{});
-    processor.setHL(HL);
+    processor.HL.value = HL;
 
     reset_bit_hl_indirect(&processor, .zero);
     try expectEqual(0b1111_1110, memory.address[HL]);
@@ -106,36 +106,36 @@ test "set_bit_reg8" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .D = 0x00 });
 
-    set_bit_reg8(.zero, &processor.D);
-    try expectEqual(0b0000_0001, processor.D.value);
-    processor.D.value = 0x00;
+    set_bit_reg8(.zero, processor.D());
+    try expectEqual(0b0000_0001, processor.D().*);
+    processor.D().* = 0x00;
 
-    set_bit_reg8(.one, &processor.D);
-    try expectEqual(0b0000_0010, processor.D.value);
-    processor.D.value = 0x00;
+    set_bit_reg8(.one, processor.D());
+    try expectEqual(0b0000_0010, processor.D().*);
+    processor.D().* = 0x00;
 
-    set_bit_reg8(.two, &processor.D);
-    try expectEqual(0b0000_0100, processor.D.value);
-    processor.D.value = 0x00;
+    set_bit_reg8(.two, processor.D());
+    try expectEqual(0b0000_0100, processor.D().*);
+    processor.D().* = 0x00;
 
-    set_bit_reg8(.three, &processor.D);
-    try expectEqual(0b0000_1000, processor.D.value);
-    processor.D.value = 0x00;
+    set_bit_reg8(.three, processor.D());
+    try expectEqual(0b0000_1000, processor.D().*);
+    processor.D().* = 0x00;
 
-    set_bit_reg8(.four, &processor.D);
-    try expectEqual(0b0001_0000, processor.D.value);
-    processor.D.value = 0x00;
+    set_bit_reg8(.four, processor.D());
+    try expectEqual(0b0001_0000, processor.D().*);
+    processor.D().* = 0x00;
 
-    set_bit_reg8(.five, &processor.D);
-    try expectEqual(0b0010_0000, processor.D.value);
-    processor.D.value = 0x00;
+    set_bit_reg8(.five, processor.D());
+    try expectEqual(0b0010_0000, processor.D().*);
+    processor.D().* = 0x00;
 
-    set_bit_reg8(.six, &processor.D);
-    try expectEqual(0b0100_0000, processor.D.value);
-    processor.D.value = 0x00;
+    set_bit_reg8(.six, processor.D());
+    try expectEqual(0b0100_0000, processor.D().*);
+    processor.D().* = 0x00;
 
-    set_bit_reg8(.seven, &processor.D);
-    try expectEqual(0b1000_0000, processor.D.value);
+    set_bit_reg8(.seven, processor.D());
+    try expectEqual(0b1000_0000, processor.D().*);
 }
 
 /// Sets the bit b of the 8-bit data at the absolute address specified by the 16-bit register HL, to 1.
@@ -150,7 +150,7 @@ test "set_bit_hl_indirect" {
     var memory = Memory.init();
     memory.address[HL] = 0x00;
     var processor = Processor.init(&memory, .{});
-    processor.setHL(HL);
+    processor.HL.value = HL;
 
     set_bit_hl_indirect(&processor, .zero);
     try expectEqual(0b0000_0001, processor.memory.address[HL]);
