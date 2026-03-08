@@ -180,4 +180,3 @@ pub fn rst(proc: *Processor, index: u3) void {
     proc.PC = 0xFF00 | (0x08 * @as(u8, index));
 }
 
-

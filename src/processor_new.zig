@@ -72,7 +72,7 @@ pub fn init(memory: *Memory, initialValues: ProcessorValues) Processor {
             .zero = initialValues.zeroFlag,
             .negative = initialValues.negativeFlag,
             .half_carry = initialValues.halfCarryFlag,
-            .carry = initialValues.carry_flag,
+            .carry = initialValues.carryFlag,
         },
         .BC = .{
             .bytes = .{
@@ -1682,42 +1682,42 @@ const expectEqual = std.testing.expectEqual;
 
 test "isFlagSet, Z" {
     var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .F = FlagMasks.get(.zero) });
+    var processor = Processor.init(&memory, .{ .zeroFlag = 1 });
 
-    try expectEqual(true, processor.isFlagSet(.Z));
-    try expectEqual(false, processor.isFlagSet(.N));
-    try expectEqual(false, processor.isFlagSet(.H));
-    try expectEqual(false, processor.isFlagSet(.C));
+    try expectEqual(true, processor.isFlagSet(.zero));
+    try expectEqual(false, processor.isFlagSet(.negative));
+    try expectEqual(false, processor.isFlagSet(.half_carry));
+    try expectEqual(false, processor.isFlagSet(.carry));
 }
 
 test "isFlagSet, N" {
     var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .F = FlagMasks.get(.negative) });
+    var processor = Processor.init(&memory, .{ .negativeFlag = 1 });
 
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(true, processor.isFlagSet(.N));
-    try expectEqual(false, processor.isFlagSet(.H));
-    try expectEqual(false, processor.isFlagSet(.C));
+    try expectEqual(false, processor.isFlagSet(.zero));
+    try expectEqual(true, processor.isFlagSet(.negative));
+    try expectEqual(false, processor.isFlagSet(.half_carry));
+    try expectEqual(false, processor.isFlagSet(.carry));
 }
 
 test "isFlagSet, H" {
     var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .F = FlagMasks.get(.half_carry) });
+    var processor = Processor.init(&memory, .{ .halfCarryFlag = 1 });
 
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(false, processor.isFlagSet(.N));
-    try expectEqual(true, processor.isFlagSet(.H));
-    try expectEqual(false, processor.isFlagSet(.C));
+    try expectEqual(false, processor.isFlagSet(.zero));
+    try expectEqual(false, processor.isFlagSet(.negative));
+    try expectEqual(true, processor.isFlagSet(.half_carry));
+    try expectEqual(false, processor.isFlagSet(.carry));
 }
 
 test "isFlagSet, C" {
     var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .F = FlagMasks.get(.carry) });
+    var processor = Processor.init(&memory, .{ .carryFlag = 1 });
 
-    try expectEqual(false, processor.isFlagSet(.Z));
-    try expectEqual(false, processor.isFlagSet(.N));
-    try expectEqual(false, processor.isFlagSet(.H));
-    try expectEqual(true, processor.isFlagSet(.C));
+    try expectEqual(false, processor.isFlagSet(.zero));
+    try expectEqual(false, processor.isFlagSet(.negative));
+    try expectEqual(false, processor.isFlagSet(.half_carry));
+    try expectEqual(true, processor.isFlagSet(.carry));
 }
 
 test "popStack" {
@@ -1742,4 +1742,8 @@ test "pushStack" {
 
     try expectEqual(content, processor.memory.read(SP - 1));
     try expectEqual(SP - 1, processor.SP);
+}
+
+test "test instructions" {
+    _ = @import("./instructions/root.zig");
 }
