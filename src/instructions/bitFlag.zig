@@ -14,7 +14,7 @@ const expectEqual = std.testing.expectEqual;
 pub fn test_bit_reg8(proc: *Processor, bit: Bit, registerValue: *u8) void {
     const b: u1 = @truncate(registerValue.* >> @intFromEnum(bit));
 
-    proc.flags.zero = b;
+    proc.flags.zero = ~b;
     proc.flags.negative = 0;
     proc.flags.half_carry = 1;
 }
@@ -70,7 +70,7 @@ pub fn test_bit_hl_indirect(proc: *Processor, bit: Bit) void {
     const contents: *u8 = &proc.memory.address[proc.HL.value];
     const b: u1 = @truncate(contents.* >> @intFromEnum(bit));
 
-    proc.flags.zero = if (b == 0) 1 else 0;
+    proc.flags.zero = ~b;
     proc.flags.negative = 0;
     proc.flags.half_carry = 1;
 }

@@ -20,7 +20,7 @@ pub fn inc_reg8(
     registerValue.* = sum.value;
 
     proc.flags.negative = 0;
-    proc.flags.zero = if (sum.value == 0) 1 else 0;
+    proc.flags.zero = @intFromBool(sum.value == 0);
     proc.flags.half_carry = sum.half_carry;
 }
 
@@ -74,7 +74,7 @@ pub fn dec_reg8(
     });
     registerValue.* = remainder.value;
     proc.flags.negative = 1;
-    proc.flags.zero = if (remainder.value == 0) 1 else 0;
+    proc.flags.zero = @intFromBool(remainder.value == 0);
     proc.flags.half_carry = remainder.half_carry;
 }
 
@@ -205,7 +205,7 @@ fn add_aux(proc: *Processor, values: struct {
     proc.accumulator = sum.value;
 
     proc.flags.negative = 0;
-    proc.flags.zero = if (sum.value == 0) 1 else 0;
+    proc.flags.zero = @intFromBool(sum.value == 0);
     proc.flags.carry = sum.carry;
     proc.flags.half_carry = sum.half_carry;
 }
@@ -335,6 +335,7 @@ pub fn addc_imm8(proc: *Processor) void {
     });
 }
 
+/// TODO: Add test for subtraction
 fn sub_aux(proc: *Processor, values: struct{
     b: u8,
     carry: u1 = 0,
@@ -344,11 +345,13 @@ fn sub_aux(proc: *Processor, values: struct{
         .b = values.b,
         .carry = values.carry,
     });
+
     proc.accumulator = remainder.value;
+
     proc.flags.negative = 1;
-    proc.flags.zero = remainder.value;
+    proc.flags.zero = @intFromBool(remainder.value);
     proc.flags.half_carry = remainder.half_carry;
-    proc.flags.car = remainder.carry;
+    proc.flags.carry = remainder.carry;
 }
 
 /// Subtract the contents of register reg to the contents of accumulator (A) register,
@@ -398,6 +401,7 @@ pub fn subc_hl_indirect(proc: *Processor) void {
     });
 }
 
+/// TODO: Add tests
 fn and_aux(proc: *Processor, value: u8) void {
     proc.accumulator &= value;
 
@@ -424,6 +428,7 @@ pub fn and_hl_indirect(proc: *Processor) void {
     and_aux(proc, val);
 }
 
+/// TODO: Add tests
 fn or_aux(proc: *Processor, value: u8) void {
     proc.accumulator |= value;
 
@@ -447,6 +452,7 @@ pub fn or_hl_indirect(proc: *Processor) void {
     or_aux(proc, val);
 }
 
+/// TODO: Add tests
 fn xor_aux(proc: *Processor, value: u8) void {
     proc.accumulator ^= value;
 
@@ -470,6 +476,7 @@ pub fn xor_hl_indirect(proc: *Processor) void {
     xor_aux(proc, val);
 }
 
+/// TODO: Add tests
 fn compare_aux(proc: *Processor, value: u8) void {
     const remainder = utils.Arithmetic(u8).add(proc.A.value, value);
 

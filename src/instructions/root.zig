@@ -7,14 +7,22 @@ pub const load = @import("load.zig");
 pub const misc = @import("misc.zig");
 
 test "all instructions" {
-    // _ = @import("bitFlag.zig");
-    // _ = @import("bitShift.zig");
     // _ = @import("bits.zig");
     // _ = @import("controlFlow.zig");
     // _ = @import("load.zig");
     // _ = @import("misc.zig");
 }
 
-test "run arithmetic instructions" {
+test "arithmetic instructions" {
     _ = @import("arithmetic.zig");
 }
+
+test "bitFlag instructions" {
+    _ = @import("bitFlag.zig");
+}
+
+test  "bitShift instructions" {
+    _ = @import("bitShift.zig");
+}
+
+// test "bit instructions" {}
