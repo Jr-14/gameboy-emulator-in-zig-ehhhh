@@ -23,7 +23,7 @@ pub fn rotate_left_accumulator(proc: *Processor) void {
 
 test "rotate_left_accumulator" {
     var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .A = 0xFF });
+    var processor = Processor.init(&memory, .{ .accumulator = 0xFF });
 
     rotate_left_accumulator(&processor);
     try expectEqual(0, processor.flags.zero);
@@ -66,7 +66,7 @@ pub fn rotate_left_circular_accumulator(proc: *Processor) void {
 
 test "rotate_left_circular_accumulator" {
     var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .A = 0xF0 });
+    var processor = Processor.init(&memory, .{ .accumulator = 0xF0 });
 
     rotate_left_circular_accumulator(&processor);
     try expectEqual(0, processor.flags.zero);
@@ -145,7 +145,7 @@ pub fn rotate_right_accumulator(proc: *Processor) void {
 
 test "rotate_right_accumulator" {
     var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .A = 0xFE }); // 0b1111_1110
+    var processor = Processor.init(&memory, .{ .accumulator = 0xFE }); // 0b1111_1110
 
     rotate_right_accumulator(&processor);
     try expectEqual(0, processor.flags.zero);
@@ -211,7 +211,7 @@ pub fn rotate_right_circular_accumulator(proc: *Processor) void {
 
 test "rotate_right_circular_accumulator" {
     var memory = Memory.init();
-    var processor = Processor.init(&memory, .{ .A = 0xFE }); // 0b1111_1110
+    var processor = Processor.init(&memory, .{ .accumulator = 0xFE }); // 0b1111_1110
 
     rotate_right_circular_accumulator(&processor);
     try expectEqual(0, processor.flags.zero);
@@ -318,21 +318,21 @@ test "rotate_left_circular_reg8" {
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
-    try expectEqual(0x00, processor.C.value);
+    try expectEqual(0x00, processor.C().*);
 }
 
 /// Rotates the 8-bit register r value right in a circular manner (carry flag is updated but not used).
 /// Every bit is shifted to the right (e.g. bit 1 value is copied to bit 0). Bit 0 is copied both to bit 7
 /// and the carry flag.
 pub fn rotate_right_circular_reg8(proc: *Processor, registerValue: *u8) void {
-    const bit_0: u1 = @truncate(registerValue.* >> 7);
+    const bit_0: u1 = @truncate(registerValue.*);
 
     registerValue.* >>= 1;
     if (bit_0 == 1) {
-        registerValue |= 0x80;
+        registerValue.* |= 0x80;
     }
 
-    proc.flags.zero = if (registerValue.* == 0) 1 else 0;
+    proc.flags.zero = @intFromBool(registerValue.* == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = 0;
     proc.flags.carry = bit_0;
@@ -369,7 +369,7 @@ test "rotate_right_circular_reg8" {
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
-    try expectEqual(0x00, processor.C.value);
+    try expectEqual(0x00, processor.C().*);
 }
 
 /// Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, left in a
@@ -444,7 +444,7 @@ pub fn rotate_right_circular_hl_indirect(proc: *Processor) void {
 
     contents.* >>= 1;
     if (bit_0 == 1) {
-        contents |= 0x80;
+        contents.* |= 0x80;
     }
 
     proc.flags.zero = if (contents.* == 0) 1 else 0;
@@ -546,22 +546,22 @@ test "rotate_left_arithmetic_reg8" {
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b1111_0011, processor.B().*);
 
-    processor.unsetFlag(.C);
-    processor.H.value = 0x00;
-    rotate_left_arithmetic_reg8(&processor, &processor.H);
+    processor.flags.carry = 0;
+    processor.H().* = 0x00;
+    rotate_left_arithmetic_reg8(&processor, processor.H());
     try expectEqual(1, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
-    try expectEqual(0x00, processor.H.value);
+    try expectEqual(0x00, processor.H().*);
 
-    processor.setFlag(.C);
-    rotate_left_arithmetic_reg8(&processor, &processor.H);
+    processor.flags.carry = 1;
+    rotate_left_arithmetic_reg8(&processor, processor.H());
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
-    try expectEqual(0b0000_0001, processor.H.value);
+    try expectEqual(0b0000_0001, processor.H().*);
 }
 
 /// Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, left through
@@ -620,7 +620,8 @@ test "rotate_left_hl_indirect" {
     HL = 0x0100;
     processor.memory.address[HL] = 0;
     processor.HL.value = HL;
-    processor.unsetFlag(.C);
+
+    processor.flags.carry = 0;
     rotate_left_hl_indirect(&processor);
     try expectEqual(1, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
@@ -628,7 +629,7 @@ test "rotate_left_hl_indirect" {
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0x00, processor.memory.address[HL]);
 
-    processor.setFlag(.C);
+    processor.flags.carry = 1;
     rotate_left_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
@@ -686,22 +687,22 @@ test "rotate_right_reg8" {
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b1100_1111, processor.B().*);
 
-    processor.unsetFlag(.C);
-    processor.H.value = 0x00;
-    rotate_right_reg8(&processor, &processor.H);
+    processor.flags.carry = 0;
+    processor.H().* = 0x00;
+    rotate_right_reg8(&processor, processor.H());
     try expectEqual(1, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
-    try expectEqual(0x00, processor.H.value);
+    try expectEqual(0x00, processor.H().*);
 
-    processor.setFlag(.C);
-    rotate_right_reg8(&processor, &processor.H);
+    processor.flags.carry = 1;
+    rotate_right_reg8(&processor, processor.H());
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
-    try expectEqual(0b1000_0000, processor.H.value);
+    try expectEqual(0b1000_0000, processor.H().*);
 }
 
 /// Rotates, the 8-bit data at the absolute address specified by the 16-bit register HL, right through
@@ -713,11 +714,11 @@ pub fn rotate_right_hl_indirect(proc: *Processor) void {
     const bit_0: u1 = @truncate(contents.*);
 
     contents.* >>= 1;
-    if (proc.flags.carry == 1) {
+    if (proc.isFlagSet(.carry)) {
         contents.* |= 0x80;
     }
 
-    proc.flags.zero = if (contents.* == 0) 1 else 0;
+    proc.flags.zero = @intFromBool(contents.* == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = 0;
     proc.flags.carry = bit_0;
@@ -763,7 +764,7 @@ test "rotate_right_hl_indirect" {
     HL = 0x0100;
     processor.HL.value = HL;
     processor.memory.address[HL] = 0;
-    processor.unsetFlag(.C);
+    processor.flags.carry = 0;
     rotate_right_hl_indirect(&processor);
     try expectEqual(1, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
@@ -771,7 +772,7 @@ test "rotate_right_hl_indirect" {
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0x00, processor.memory.address[HL]);
 
-    processor.setFlag(.C);
+    processor.flags.carry = 1;
     rotate_right_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
@@ -913,12 +914,12 @@ test "shift_left_arithmetic_hl_indirect" {
 /// Bit 7 retains its value, and bit 0 is shifted to the carry flag.
 pub fn shift_right_arithmetic_reg8(proc: *Processor, registerValue: *u8) void {
     const bit_0: u1 = @truncate(registerValue.*);
-    const bit_7: u1 = @truncate(registerValue.* >> 7);
+    const bit_7: u8 = registerValue.* & 0x80;
 
     registerValue.* >>= 1;
     registerValue.* |= bit_7;
 
-    proc.flags.zero = if (registerValue.* == 0) 1 else 0;
+    proc.flags.zero = @intFromBool(registerValue.* == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = 0;
     proc.flags.carry = bit_0;
@@ -1085,7 +1086,7 @@ test "swap_reg8" {
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
-    try expectEqual(0x00, processor.C.value);
+    try expectEqual(0x00, processor.C().*);
 }
 
 /// Swaps the high and low 4-bit nibbles of the 8-bit data at the absolute address specified by the
@@ -1196,14 +1197,13 @@ test "shift_right_logical_reg8" {
 /// Shifts, the 8-bit value at the address specified by the HL register, right by one bit using a logical
 /// shift.
 /// Bit 7 is set to a fixed value of 0, and bit 0 is shifted to the carry flag.
-// pub fn shift_right_logical_hlMem(proc: *Processor) void {
 pub fn shift_right_logical_hl_indirect(proc: *Processor) void {
     const contents: *u8 = &proc.memory.address[proc.HL.value];
     const bit_0: u1 = @truncate(contents.*);
 
     contents.* >>= 1;
 
-    proc.flags.zero = if (contents.* == 0) 1 else 0;
+    proc.flags.zero = @intFromBool(contents.* == 0);
     proc.flags.negative = 0;
     proc.flags.half_carry = 0;
     proc.flags.carry = bit_0;
@@ -1221,35 +1221,35 @@ test "shift_right_logical_hl_indirect" {
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
-    try expectEqual(0b1111_1011, processor.memory.address[HL]);
+    try expectEqual(0b0111_1011, processor.memory.address[HL]);
 
     shift_right_logical_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
-    try expectEqual(0b1111_1101, processor.memory.address[HL]);
+    try expectEqual(0b0011_1101, processor.memory.address[HL]);
 
     shift_right_logical_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
-    try expectEqual(0b1111_1110, processor.memory.address[HL]);
+    try expectEqual(0b0001_1110, processor.memory.address[HL]);
 
     shift_right_logical_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
-    try expectEqual(0b1111_1111, processor.memory.address[HL]);
+    try expectEqual(0b0000_1111, processor.memory.address[HL]);
 
     shift_right_logical_hl_indirect(&processor);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
-    try expectEqual(0b1111_1111, processor.memory.address[HL]);
+    try expectEqual(0b0000_0111, processor.memory.address[HL]);
 
     processor.memory.address[HL] = 0x0;
     shift_right_logical_hl_indirect(&processor);
