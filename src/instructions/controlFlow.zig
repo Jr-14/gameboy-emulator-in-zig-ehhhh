@@ -34,9 +34,9 @@ test "jump_rel_imm8" {
 /// If the flag condition is met, jump s8 steps from the current address stored in the program counter (PC). If not, the
 /// instruction following the current JP instruction is executed (as usual).
 /// Example: 0x20 -> JR NZ, s8
-pub fn jump_rel_cc_imm8(proc: *Processor, flag: *u1, condition: FlagCondition) void {
+pub fn jump_rel_cc_imm8(proc: *Processor, flag: u1, condition: FlagCondition) void {
     const offset = proc.fetch();
-    if (flag.* == @intFromEnum(condition)) {
+    if (flag == @intFromEnum(condition)) {
         proc.PC = utils.addOffset(proc.PC, offset);
     }
 }
@@ -52,9 +52,27 @@ test "jump_rel_cc_imm8" {
         .carryFlag = 1,
     });
 
-    jump_rel_cc_imm8(&processor, &processor.flags.carry, .is_set);
+    jump_rel_cc_imm8(&processor, processor.flags.carry, .is_set);
     try expectEqual(0x0131, processor.PC);
     processor.PC = PC;
+
+    jump_rel_cc_imm8(&processor, processor.flags.carry, .is_not_set);
+    try expectEqual(0x0101, processor.PC);
+
+    processor.PC = PC;
+    processor.flags.carry = 0;
+    jump_rel_cc_imm8(&processor, processor.flags.carry, .is_not_set);
+    try expectEqual(0x0131, processor.PC);
+
+    processor.PC = PC;
+    processor.flags.zero = 0;
+    jump_rel_cc_imm8(&processor, processor.flags.zero, .is_set);
+    try expectEqual(0x0101, processor.PC);
+
+    processor.PC = PC;
+    processor.flags.zero = 0;
+    jump_rel_cc_imm8(&processor, processor.flags.zero, .is_not_set);
+    try expectEqual(0x0131, processor.PC);
 }
 
 /// Load the 16-bit immediate operand a16 into the program counter (PC). a16 specifies the address of the
@@ -65,9 +83,24 @@ test "jump_rel_cc_imm8" {
 /// Example: 0xC3 -> JP a16
 pub fn jump_imm16(proc: *Processor) void {
     const lo: u8 = proc.fetch();
-    const hi: u16 = proc.fetch() << 8;
+    const hi: u16 = @as(u16, proc.fetch()) << 8;
     const addr: u16 = hi | lo;
     proc.PC = addr;
+}
+
+test "jump_imm16" {
+    const PC: u16 = 0x0100;
+    const lo: u8 = 0x8A;
+    const hi: u8 = 0x13;
+    var memory = Memory.init();
+    memory.address[PC] = lo;
+    memory.address[PC + 1] = hi;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+    });
+
+    jump_imm16(&processor);
+    try expectEqual(0x138A, processor.PC);
 }
 
 
@@ -79,12 +112,29 @@ pub fn jump_imm16(proc: *Processor) void {
 /// byte of a16 (bits 0-7), and the third byte of the object code corresponds to the higher-order byte
 /// (bits 8-15).
 /// Example: 0xC2 -> JP NZ, a16
-pub fn jump_cc_imm16(proc: *Processor, flag: *u1, condition: FlagCondition) void {
+pub fn jump_cc_imm16(proc: *Processor, flag: u1, condition: FlagCondition) void {
     const lo = proc.fetch();
-    const hi: u16 = proc.fetch() << 8;
-    if (flag.* == @intFromEnum(condition)) {
+    const hi: u16 = @as(u16, proc.fetch()) << 8;
+    if (flag == @intFromEnum(condition)) {
         proc.PC = hi | lo;
     }
+}
+
+test "jump_cc_imm16" {
+    const PC: u16 = 0x0100;
+    const lo: u8 = 0x13;
+    const hi: u8 = 0xAF;
+
+    var memory = Memory.init();
+    memory.address[PC] = lo;
+    memory.address[PC + 1] = hi;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+    });
+
+    processor.flags.carry = 1;
+    jump_cc_imm16(&processor, processor.flags.carry, .is_set);
+    try expectEqual(0xAF13, processor.PC);
 }
 
 /// Load the contents of register pair HL into the program counter PC. The next instruction is fetched from
