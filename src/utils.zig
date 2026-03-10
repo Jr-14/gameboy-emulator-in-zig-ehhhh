@@ -32,7 +32,7 @@ pub inline fn fromTwoBytes(lo: u8, hi: u8) u16 {
 }
 
 pub fn getHiByte(val: u16) u8 {
-    return @truncate((val & masks.HI_MASK) >> 8);
+    return @truncate(val >> 8);
 }
 
 pub fn getLoByte(val: u16) u8 {
