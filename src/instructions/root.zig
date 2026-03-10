@@ -26,9 +26,9 @@ test "controlFlow instructions" {
     _ = @import("controlFlow.zig");
 }
 
-// test "load instructions" {
-//     _ = @import("load.zig");
-// }
+test "load instructions" {
+    _ = @import("load.zig");
+}
 
 // test "misc instructions" {
 //     _ = @import("misc.zig");

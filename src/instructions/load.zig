@@ -1,7 +1,7 @@
 const std = @import("std");
 
 const Processor = @import("../processor_new.zig");
-const PackedRegister = @import("../register_packed.zig");
+const PackedRegister = @import("../register_packed.zig").PackgedRegisterPair;
 const Memory = @import("../memory.zig");
 const utils = @import("../utils.zig");
 
@@ -23,6 +23,7 @@ test "reg8_imm8" {
 
     reg8_imm8(&processor, processor.B());
 
+    try expectEqual(PC + 1, processor.PC);
     try expectEqual(value, processor.BC.bytes.high);
     try expectEqual(value, processor.B().*);
 }
@@ -33,8 +34,25 @@ test "reg8_imm8" {
 /// Example: 0xF0 -> LD A, (a8)
 pub fn reg8_imm8_indirect(proc: *Processor, registerValue: *u8) void {
     const imm = proc.fetch();
-    const addr: u16 = 0xFF00 | imm;
+    const addr: u16 = @as(u16, 0xFF00) | imm;
     registerValue.* = proc.memory.read(addr);
+}
+
+test "reg8_imm8_indirect" {
+    const PC: u16 = 0x0100;
+    const imm: u8 = 0xAF;
+
+    var memory = Memory.init();
+    memory.address[PC] = imm;
+    memory.address[0xFFAF] = 0x14;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+    });
+
+    reg8_imm8_indirect(&processor, processor.D());
+
+    try expectEqual(PC + 1, processor.PC);
+    try expectEqual(0x14, processor.D().*);
 }
 
 /// Load the contents of the source register into the destination register.
@@ -42,9 +60,46 @@ pub fn reg8_reg8(dest: *u8, src: *u8) void {
     dest.* = src.*;
 }
 
+test "reg8_reg8" {
+    const PC: u16 = 0x0100;
+    const B: u8 = 0x10;
+    const D: u8 = 0xFF;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .B = B,
+        .D = D,
+    });
+
+    reg8_reg8(processor.B(), processor.D());
+    
+    try expectEqual(D, processor.B().*);
+    try expectEqual(D, processor.D().*);
+}
+
 pub fn reg8_indirect_reg8(proc: *Processor, dest: *u8, src: *u8) void {
-    const addr: u16 = 0xFF00 | dest.*;
+    const addr: u16 = @as(u16, 0xFF00) | dest.*;
     proc.memory.write(addr, src.*);
+}
+
+test "reg8_indirect_reg8" {
+    const PC: u16 = 0x0100;
+    const D: u8 = 0x13;
+    const E: u8 = 0x78;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .D = D,
+        .E = E,
+    });
+
+    reg8_indirect_reg8(&processor, processor.E(), processor.D());
+
+    try expectEqual(D, memory.address[0xFF78]);
+    try expectEqual(D, processor.D().*);
+    try expectEqual(E, processor.E().*);
 }
 
 /// Load to the 8-bit A register, data from the address specified by the 8-bit C register. The full 16-bit
@@ -52,8 +107,26 @@ pub fn reg8_indirect_reg8(proc: *Processor, dest: *u8, src: *u8) void {
 /// value of C, so the possible range is 0xff00-0xffff.
 /// Example: 0xF2 -> LD A, (C)
 pub fn reg8_reg8_indirect(proc: *Processor, dest: *u8, src: *u8) void {
-    const addr: u16 = 0xFF00 | src.*;
+    const addr: u16 = @as(u16, 0xFF00) | src.*;
     dest.* = proc.memory.read(addr);
+}
+
+test "reg8_reg8_indirect" {
+    const PC: u16 = 0x0100;
+    const B: u8 = 0x8A;
+    const C: u8 = 0x62;
+
+    var memory = Memory.init();
+    memory.address[0xFF62] = 0xC2;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .B = B,
+        .C = C,
+    });
+
+    reg8_reg8_indirect(&processor, processor.B(), processor.C());
+
+    try expectEqual(0xC2, processor.B().*);
 }
 
 /// Load to the 8-bit register reg, data from the absolute address specified by the 16-bit operand (a16).
@@ -87,8 +160,8 @@ test "reg16_imm16" {
     var processor = Processor.init(&memory, .{ .PC = PC });
 
     reg16_imm16(&processor, &processor.BC);
-    try expectEqual(immHi, processor.B.value);
-    try expectEqual(immLo, processor.C.value);
+    try expectEqual(immHi, processor.B().*);
+    try expectEqual(immLo, processor.C().*);
 }
 
 /// Load to the address specified by the 8-bit immediate data, data from the 8-bit register. The full
