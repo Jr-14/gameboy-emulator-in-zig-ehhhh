@@ -133,10 +133,29 @@ test "reg8_reg8_indirect" {
 /// Example: 0xFA -> LD A, (a16)
 pub fn reg8_imm16_indirect(proc: *Processor, dest: *u8) void {
     const lo = proc.fetch();
-    const hi: u16 = proc.fetch() << 8;
+    const hi: u16 = @as(u16, proc.fetch()) << 8;
     const addr: u16 = hi | lo;
 
     dest.* = proc.memory.read(addr);
+}
+
+test "reg8_imm16_indirect" {
+    const PC: u16 = 0x0100;
+    const immLo: u8 = 0x93;
+    const immHi: u8 = 0x12;
+
+    var memory = Memory.init();
+    memory.address[PC] = immLo;
+    memory.address[PC + 1] = immHi;
+    memory.address[0x1293] = 0xAA;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+    });
+
+    reg8_imm16_indirect(&processor, processor.E());
+
+    try expectEqual(0xAA, processor.E().*);
+    try expectEqual(PC + 2, processor.PC);
 }
 
 /// Load the 2 bytes of immediate data into register pair rr
@@ -169,14 +188,51 @@ test "reg16_imm16" {
 /// byte to the value of a8, so the possible range is 0xff00-0xffff.
 pub fn imm8_indirect_reg8(proc: *Processor, registerValue: *u8) void {
     const imm = proc.fetch();
-    const addr: u16 = 0xFF00 | imm;
+    const addr = @as(u16, 0xFF00) | imm;
     proc.memory.write(addr, registerValue.*);
+}
+
+test "imm8_indirect_reg8" {
+    const imm: u8 = 0x4C;
+    const PC: u16 = 0x0100;
+    const H: u8 = 0x88;
+
+    var memory = Memory.init();
+    memory.address[PC] = imm;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .H = H,
+    });
+
+    imm8_indirect_reg8(&processor, processor.H());
+
+    try expectEqual(H, memory.address[0xFF4C]);
+    try expectEqual(PC + 1, processor.PC);
 }
 
 /// Store the contents of a register reg into the memory location specified by the register pair rr.
 /// Example: 0x12 -> LD (DE), A
 pub fn hl_indirect_reg8(proc: *Processor, registerValue: *u8) void {
     proc.memory.write(proc.HL.value, registerValue.*);
+}
+
+test "hl_indirect_reg8" {
+    const H: u8 = 0x81;
+    const L: u8 = 0xE2;
+    const PC: u16 = 0x0100;
+    const B: u8 = 0x7B;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .B = B,
+        .H = H,
+        .L = L,
+    });
+
+    hl_indirect_reg8(&processor, processor.B());
+
+    try expectEqual(B, memory.address[0x81E2]);
 }
 
 /// Store the contents of 8-bit immediate operand d8 in the memory location
@@ -187,6 +243,26 @@ pub fn reg16_indirect_imm8(proc: *Processor, regPair: *PackedRegister) void {
     proc.memory.write(regPair.value, value);
 }
 
+test "reg16_indirect_imm8" {
+    const PC: u16 = 0x0100;
+    const H: u8 = 0xA7;
+    const L: u8 = 0x3F;
+    const imm: u8 = 0x05;
+
+    var memory = Memory.init();
+    memory.address[PC] = imm;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .H = H,
+        .L = L,
+    });
+
+    reg16_indirect_imm8(&processor, &processor.HL);
+
+    try expectEqual(imm, memory.address[0xA73F]);
+    try expectEqual(PC + 1, processor.PC);
+}
+
 /// Store the contents of the accumulator register in the memory location specified by
 /// register pair rr
 /// Example: 0x02 -> LD (BC), A
@@ -194,25 +270,85 @@ pub fn reg16_indirect_acc8(proc: *Processor, regPair: *PackedRegister) void {
     proc.memory.write(regPair.value, proc.accumulator);
 }
 
+test "reg16_indirect_acc8" {
+    const PC: u16 = 0x0100;
+    const accumulator = 0xFF;
+    const B: u8 = 0x03;
+    const C: u8 = 0x49;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .accumulator = accumulator,
+        .B = B,
+        .C = C,
+    });
+
+    reg16_indirect_acc8(&processor, &processor.BC);
+
+    try expectEqual(accumulator, memory.address[0x0349]);
+}
+
 /// Store the contents of register A in the internal RAM or register specified by the 16-bit immediate
 /// operand a16.
 /// Example: 0xEA -> LD (a16), A
-pub fn imm16Mem_reg(proc: *Processor, registerValue: *u8) void {
-    const lo: u8 = proc.fetch();
-    const hi: u16 = proc.fetch() << 8;
+pub fn imm16_indirect_reg8(proc: *Processor, registerValue: *u8) void {
+    const lo = proc.fetch();
+    const hi = @as(u16, proc.fetch()) << 8;
     const addr: u16 = hi | lo;
     proc.memory.write(addr, registerValue.*);
+}
+
+test "imm16_indirect_reg8" {
+    const PC: u16 = 0x0100;
+    const immLo: u8 = 0x08;
+    const immHi: u8 = 0x2A;
+    const accumulator = 0x99;
+
+    var memory = Memory.init();
+    memory.address[PC] = immLo;
+    memory.address[PC + 1] = immHi;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .accumulator = accumulator,
+    });
+
+    imm16_indirect_reg8(&processor, &processor.accumulator);
+
+    try expectEqual(accumulator, memory.address[0x2A08]);
+    try expectEqual(PC + 2, processor.PC);
 }
 
 /// Store the lower byte of Special Purpose Register (SPR) at the address specified by the 16-bit
 /// immediate operand a16, and store the upper byte of SPR at address a16 + 1.
 /// Example: 0x08 -> LD (a16), SP
-pub fn imm16Mem_spr(proc: *Processor, val: u16) void {
+pub fn imm16_indirect_spr(proc: *Processor, val: u16) void {
     const lo: u8 = proc.fetch();
-    const hi: u16 = proc.fetch() << 8;
+    const hi: u16 = @as(u16, proc.fetch()) << 8;
     const addr: u16 = hi | lo;
     proc.memory.write(addr, utils.getLoByte(val));
     proc.memory.write(addr + 1, utils.getHiByte(val));
+}
+
+test "imm16_indirect_spr" {
+    const SP: u16 = 0x9876;
+    const PC: u16 = 0x0100;
+    const immLo: u8 = 0xAF;
+    const immHi: u8 = 0x84;
+
+    var memory = Memory.init();
+    memory.address[PC] = immLo;
+    memory.address[PC + 1] = immHi;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .SP = SP,
+    });
+
+    imm16_indirect_spr(&processor, processor.SP);
+
+    try expectEqual(0x76, memory.address[0x84AF]);
+    try expectEqual(0x98, memory.address[0x84B0]);
+    try expectEqual(PC + 2, processor.PC);
 }
 
 /// Load the 2 bytes of immediate data into special purpose register (SPR).
