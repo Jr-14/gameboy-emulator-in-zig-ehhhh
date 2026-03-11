@@ -78,7 +78,7 @@ pub fn decimal_adjust_accumulator(proc: *Processor) void {
     switch (proc.flags.negative) {
         0 => {
             if (proc.isFlagSet(.half_carry) or proc.accumulator & 0x0F > 0x09) adjustment += 0x06;
-            if (proc.isFlagSet(.carry) or proc.A.value > 0x99) {
+            if (proc.isFlagSet(.carry) or proc.accumulator > 0x99) {
                 adjustment += 0x60;
                 proc.flags.carry = 1;
             } else {
@@ -100,15 +100,15 @@ test "decimal_adjust_accumulator" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .accumulator = 0x1F });
 
-    processor.unsetFlag(.N);
+    processor.flags.negative = 0;
     decimal_adjust_accumulator(&processor);
     try expectEqual(0x25, processor.accumulator);
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0, processor.flags.half_carry);
 
-    processor.unsetFlag(.C);
-    processor.unsetFlag(.N);
+    processor.flags.carry = 0;
+    processor.flags.negative = 0;
     processor.accumulator = 0x60;
     decimal_adjust_accumulator(&processor);
     try expectEqual(0x60, processor.accumulator);
@@ -116,8 +116,8 @@ test "decimal_adjust_accumulator" {
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0, processor.flags.half_carry);
 
-    processor.unsetFlag(.C);
-    processor.unsetFlag(.N);
+    processor.flags.carry = 0;
+    processor.flags.negative = 0;
     processor.accumulator = 0xC3;
     decimal_adjust_accumulator(&processor);
     try expectEqual(0x23, processor.accumulator);
@@ -125,8 +125,8 @@ test "decimal_adjust_accumulator" {
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0, processor.flags.half_carry);
 
-    processor.unsetFlag(.C);
-    processor.setFlag(.N);
+    processor.flags.carry = 0;
+    processor.flags.negative = 0;
     processor.accumulator = 0x60;
     decimal_adjust_accumulator(&processor);
     try expectEqual(0x60, processor.accumulator);
@@ -134,9 +134,9 @@ test "decimal_adjust_accumulator" {
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0, processor.flags.half_carry);
 
-    processor.unsetFlag(.C);
-    processor.setFlag(.H);
-    processor.setFlag(.N);
+    processor.flags.carry = 0;
+    processor.flags.half_carry = 1;
+    processor.flags.negative = 1;
     processor.accumulator = 0x6A;
     decimal_adjust_accumulator(&processor);
     try expectEqual(0x64, processor.accumulator);
@@ -144,8 +144,8 @@ test "decimal_adjust_accumulator" {
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0, processor.flags.half_carry);
 
-    processor.unsetFlag(.H);
-    processor.unsetFlag(.N);
+    processor.flags.half_carry = 0;
+    processor.flags.negative = 0;
     processor.accumulator = 0x00;
     decimal_adjust_accumulator(&processor);
     try expectEqual(0x00, processor.accumulator);
