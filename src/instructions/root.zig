@@ -30,6 +30,6 @@ test "load instructions" {
     _ = @import("load.zig");
 }
 
-// test "misc instructions" {
-//     _ = @import("misc.zig");
-// }
+test "misc instructions" {
+    _ = @import("misc.zig");
+}
