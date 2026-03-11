@@ -171,7 +171,7 @@ pub fn dec_sp(proc: *Processor) void {
 /// Add to HL the value of SP
 pub fn add_hl_sp(proc: *Processor) void {
     const result = utils.Arithmetic(u16).add(.{
-        .a = proc.getHL(),
+        .a = proc.HL.value,
         .b = proc.SP,
     });
 
@@ -180,6 +180,28 @@ pub fn add_hl_sp(proc: *Processor) void {
     proc.flags.negative = 1;
     proc.flags.carry = result.carry;
     proc.flags.half_carry = result.half_carry;
+}
+
+test "add_hl_sp" {
+    const SP: u16 = 0x9000;
+    const H: u8 = 0x10;
+    const L: u8 = 0x77;
+    const PC: u16 = 0x0100;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .SP = SP,
+        .H = H,
+        .L = L,
+    });
+
+    add_hl_sp(&processor);
+
+    try expectEqual(0xA077, processor.HL.value);
+    try expectEqual(1, processor.flags.negative);
+    try expectEqual(0, processor.flags.carry);
+    try expectEqual(0, processor.flags.half_carry);
 }
 
 pub fn add_sp_offset(proc: *Processor) void {
@@ -192,6 +214,23 @@ pub fn add_sp_offset(proc: *Processor) void {
     proc.flags.negative = 0;
     proc.flags.carry =  result.carry;
     proc.flags.half_carry = result.half_carry;
+}
+
+test "add_sp_offset" {
+    const imm: u8 = 0x80; // -127
+    const SP: u16 = 0xFFFF;
+    const PC: u16 = 0x0100;
+
+    var memory = Memory.init();
+    memory.address[PC] = imm;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .SP = SP,
+    }); 
+
+    add_sp_offset(&processor);
+
+    try expectEqual(0xFF7F, processor.SP);
 }
 
 fn add_aux(proc: *Processor, values: struct {
@@ -210,6 +249,30 @@ fn add_aux(proc: *Processor, values: struct {
     proc.flags.negative = 0;
     proc.flags.half_carry = sum.half_carry;
     proc.flags.carry = sum.carry;
+}
+
+test "add_aux" {
+    const PC: u16 = 0x0100;
+    const accumulator: u8 = 0x7F;
+    const B: u8 = 0x19;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .accumulator = accumulator,
+        .B = B,
+    });
+
+    add_aux(&processor, .{
+        .b = B,
+        .carry = 0,
+    });
+
+    try expectEqual(0x98, processor.accumulator);
+    try expectEqual(0, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(1, processor.flags.half_carry);
+    try expectEqual(0, processor.flags.negative);
 }
 
 /// Add the contents of register reg to the contents of accumulator (A) register,
