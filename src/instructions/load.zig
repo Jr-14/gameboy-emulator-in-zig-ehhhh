@@ -356,20 +356,79 @@ test "imm16_indirect_spr" {
 /// immediate data is the higher byte (i.e., bits 8-15).
 pub fn spr_imm16(proc: *Processor, spr: *u16) void {
     const lo: u8 = proc.fetch();
-    const hi: u16 = proc.fetch() << 8;
+    const hi: u16 = @as(u16, proc.fetch()) << 8;
     spr.* = hi | lo;
+}
+
+test "spr_imm16" {
+    const PC: u16 = 0x0100;
+    const SP: u16 = 0xFFFA;
+    const immLo: u8 = 0x55;
+    const immHi: u8 = 0x8A;
+
+    var memory = Memory.init();
+    memory.address[PC] = immLo;
+    memory.address[PC + 1] = immHi;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .SP = SP,
+    });
+
+    spr_imm16(&processor, &processor.SP);
+
+    try expectEqual(0x8A55, processor.SP);
+    try expectEqual(PC + 2, processor.PC);
 }
 
 /// Load the contents of register pair rr into the Special Purpose Register.
 /// Example: 0xF9 -> LD SP, HL
-pub fn spr_rr(spr: *u16, regPair: *PackedRegister) void {
+pub fn spr_reg16(spr: *u16, regPair: *PackedRegister) void {
     spr.* = regPair.value;
+}
+
+test "spr_reg16" {
+    const SP: u16 = 0xFFFE;
+    const PC: u16 = 0x0100;
+    const D: u8 = 0x94;
+    const E: u8 = 0x4E;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .SP = SP,
+        .D = D,
+        .E = E,
+    });
+
+    spr_reg16(&processor.SP, &processor.DE);
+
+    try expectEqual(0x944E, processor.SP);
 }
 
 /// Load the 8-bit contents of memory specified by register pair rr into register reg
 /// Example: 0x0A -> LD A, (BC)
 pub fn reg8_reg16_indirect(proc: *Processor, reg: *u8, regPair: *PackedRegister) void {
     reg.* = proc.memory.read(regPair.value);
+}
+
+test "reg8_reg16_indirect" {
+    const PC: u16 = 0x0100;
+    const B: u8 = 0x7B;
+    const C: u8 = 0x34;
+    const accumulator: u8 = 0x10;
+
+    var memory = Memory.init();
+    memory.address[0x7B34] = 0xEE;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .accumulator = accumulator,
+        .B = B,
+        .C = C,
+    });
+
+    reg8_reg16_indirect(&processor, &processor.accumulator, &processor.BC);
+
+    try expectEqual(0xEE, processor.accumulator);
 }
 
 /// Store the contents of register reg into the memory location specified by register pair
@@ -380,6 +439,26 @@ pub fn hl_indirect_inc_reg8(proc: *Processor, registerValue: *u8) void {
     proc.HL.value +%= 1;
 }
 
+test "hl_indirect_inc_reg8" {
+    const PC: u16 = 0x0100;
+    const accumulator: u8 = 0x93;
+    const H: u8 = 0x10;
+    const L: u8 = 0xAF;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .accumulator = accumulator,
+        .H = H,
+        .L = L,
+    });
+
+    hl_indirect_inc_reg8(&processor, &processor.accumulator);
+
+    try expectEqual(accumulator, memory.address[0x10AF]);
+    try expectEqual(0x10B0, processor.HL.value);
+}
+
 /// Store the contents of register reg into the memory location specified by register pair
 /// HL, and simultaneously decrement the contents of HL.
 pub fn hl_indirect_dec_reg8(proc: *Processor, registerValue: *u8) void {
@@ -387,12 +466,53 @@ pub fn hl_indirect_dec_reg8(proc: *Processor, registerValue: *u8) void {
     proc.HL.value -%= 1;
 }
 
+test "hl_indirect_dec_reg8" {
+    const PC: u16 = 0x0100;
+    const accumulator: u8 = 0x93;
+    const H: u8 = 0x10;
+    const L: u8 = 0xAF;
+
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .accumulator = accumulator,
+        .H = H,
+        .L = L,
+    });
+
+    hl_indirect_dec_reg8(&processor, &processor.accumulator);
+
+    try expectEqual(accumulator, memory.address[0x10AF]);
+    try expectEqual(0x10AE, processor.HL.value);
+}
+
 /// Load the contents of memory specified by register pair rr into register reg, and simultaneously
 /// increment the contents of HL.
 /// Example: 0x2A -> LD A, (HL+)
 pub fn reg8_hl_indirect_inc(proc: *Processor, registerValue: *u8) void {
     registerValue.* = proc.memory.read(proc.HL.value);
-    proc.HL.vaue +%= 1;
+    proc.HL.value +%= 1;
+}
+
+test "reg8_hl_indirect_inc" {
+    const PC: u16 = 0x0100;
+    const H: u8 = 0x09;
+    const L: u8 = 0x5A;
+    const accumulator: u8 = 0xEE;
+
+    var memory = Memory.init();
+    memory.address[0x095A] = 0xAA;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .accumulator = accumulator,
+        .H = H,
+        .L = L,
+    });
+
+    reg8_hl_indirect_inc(&processor, &processor.accumulator);
+
+    try expectEqual(0xAA, processor.accumulator);
+    try expectEqual(0x095B, processor.HL.value);
 }
 
 /// Load the contents of memory specified by register pair HL into register reg, and
@@ -401,6 +521,27 @@ pub fn reg8_hl_indirect_inc(proc: *Processor, registerValue: *u8) void {
 pub fn reg8_hl_indirect_dec(proc: *Processor, registerValue: *u8) void {
     registerValue.* = proc.memory.read(proc.HL.value);
     proc.HL.value -%= 1;
+}
+
+test "reg8_hl_indirect_dec" {
+    const PC: u16 = 0x0100;
+    const H: u8 = 0x09;
+    const L: u8 = 0x5A;
+    const accumulator: u8 = 0xEE;
+
+    var memory = Memory.init();
+    memory.address[0x095A] = 0xAA;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .accumulator = accumulator,
+        .H = H,
+        .L = L,
+    });
+
+    reg8_hl_indirect_dec(&processor, &processor.accumulator);
+
+    try expectEqual(0xAA, processor.accumulator);
+    try expectEqual(0x0959, processor.HL.value);
 }
 
 // Add the 8-bit signed operand s8 (values -128 to +127) to the stack pointer SP, and store the result in
@@ -415,4 +556,21 @@ pub fn hl_sp_imm8(proc: *Processor) void {
     proc.flags.negative = 0;
     proc.flags.half_carry = result.half_carry;
     proc.flags.carry = result.carry;
+}
+
+test "hl_sp_imm8" {
+    const PC: u16 = 0x0100;
+    const SP: u16 = 0xFF;
+    const imm: u8 = 0x80; // -127
+
+    var memory = Memory.init();
+    memory.address[PC] = imm;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .SP = SP,
+    });
+
+    hl_sp_imm8(&processor);
+
+    try expectEqual(0x7F, processor.SP);
 }
