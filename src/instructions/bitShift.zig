@@ -502,7 +502,7 @@ test "rotate_right_circular_hl_indirect" {
 /// Rotates the 8-bit register r value left through the carry flag.
 /// Every bit is shifted to the left (e.g. bit 1 value is copied from bit 0). The carry flag is copied to bit
 /// 0, and bit 7 is copied to the carry flag.{
-pub fn rotate_left_arithmetic_reg8(proc: *Processor, registerValue: *u8) void {
+pub fn rotate_left_reg8(proc: *Processor, registerValue: *u8) void {
     const bit_7: u1 = @truncate(registerValue.* >> 7);
 
     registerValue.* <<= 1;
@@ -514,32 +514,32 @@ pub fn rotate_left_arithmetic_reg8(proc: *Processor, registerValue: *u8) void {
     proc.flags.carry = bit_7;
 }
 
-test "rotate_left_arithmetic_reg8" {
+test "rotate_left_reg8" {
     var memory = Memory.init();
     var processor = Processor.init(&memory, .{ .B = 0x7F });
 
-    rotate_left_arithmetic_reg8(&processor, processor.B());
+    rotate_left_reg8(&processor, processor.B());
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0b1111_1110, processor.B().*);
 
-    rotate_left_arithmetic_reg8(&processor, processor.B());
+    rotate_left_reg8(&processor, processor.B());
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b1111_1100, processor.B().*);
 
-    rotate_left_arithmetic_reg8(&processor, processor.B());
+    rotate_left_reg8(&processor, processor.B());
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
     try expectEqual(1, processor.flags.carry);
     try expectEqual(0b1111_1001, processor.B().*);
 
-    rotate_left_arithmetic_reg8(&processor, processor.B());
+    rotate_left_reg8(&processor, processor.B());
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -548,7 +548,7 @@ test "rotate_left_arithmetic_reg8" {
 
     processor.flags.carry = 0;
     processor.H().* = 0x00;
-    rotate_left_arithmetic_reg8(&processor, processor.H());
+    rotate_left_reg8(&processor, processor.H());
     try expectEqual(1, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);
@@ -556,7 +556,7 @@ test "rotate_left_arithmetic_reg8" {
     try expectEqual(0x00, processor.H().*);
 
     processor.flags.carry = 1;
-    rotate_left_arithmetic_reg8(&processor, processor.H());
+    rotate_left_reg8(&processor, processor.H());
     try expectEqual(0, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(0, processor.flags.half_carry);

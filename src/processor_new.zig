@@ -3,7 +3,7 @@ const utils = @import("utils.zig");
 
 const PackedRegisterPair = @import("register_packed.zig").PackgedRegisterPair;
 const Memory = @import("memory.zig");
-const instructions = @import("instruction_new.zig");
+// const instructions = @import("instruction_new.zig");
 const instructionsNew = @import("instructions/root.zig");
 
 const masks = @import("masks.zig");
@@ -164,580 +164,580 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
     const op_code = proc.fetch();
     switch (op_code) {
         // RLC B
-        0x00 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.B),
+        0x00 => instructionsNew.bitShift.rotate_left_circular_reg8(proc, proc.B()),
 
         // RLC C
-        0x01 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.C),
+        0x01 => instructionsNew.bitShift.rotate_left_circular_reg8(proc, proc.C()),
 
         // RLC D
-        0x02 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.D),
+        0x02 => instructionsNew.bitShift.rotate_left_circular_reg8(proc, proc.D()),
 
         // RLC E
-        0x03 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.E),
+        0x03 => instructionsNew.bitShift.rotate_left_circular_reg8(proc, proc.E()),
 
         // RLC H
-        0x04 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.H),
+        0x04 => instructionsNew.bitShift.rotate_left_circular_reg8(proc, proc.H()),
 
         // RLC L
-        0x05 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.L),
+        0x05 => instructionsNew.bitShift.rotate_left_circular_reg8(proc, proc.L()),
 
         // RLC (HL)
-        0x06 => instructions.bitShift.rotate_left_circular_hlMem(proc),
+        0x06 => instructionsNew.bitShift.rotate_left_circular_hl_indirect(proc),
 
         // RLC A
-        0x07 => instructions.bitShift.rotate_left_circular_r8(proc, &proc.A),
+        0x07 => instructionsNew.bitShift.rotate_left_circular_reg8(proc, &proc.accumulator),
 
         // RRC B
-        0x08 => instructions.bitShift.rotate_right_circular_r8(proc, &proc.B),
+        0x08 => instructionsNew.bitShift.rotate_right_circular_reg8(proc, proc.B()),
 
         // RRC C
-        0x09 => instructions.bitShift.rotate_right_circular_r8(proc, &proc.C),
+        0x09 => instructionsNew.bitShift.rotate_right_circular_reg8(proc, proc.C()),
 
         // RRC D
-        0x0A => instructions.bitShift.rotate_right_circular_r8(proc, &proc.D),
+        0x0A => instructionsNew.bitShift.rotate_right_circular_reg8(proc, proc.D()),
 
         // RRC E
-        0x0B => instructions.bitShift.rotate_right_circular_r8(proc, &proc.E),
+        0x0B => instructionsNew.bitShift.rotate_right_circular_reg8(proc, proc.E()),
 
         // RRC H
-        0x0C => instructions.bitShift.rotate_right_circular_r8(proc, &proc.H),
+        0x0C => instructionsNew.bitShift.rotate_right_circular_reg8(proc, proc.H()),
 
         // RRC L
-        0x0D => instructions.bitShift.rotate_right_circular_r8(proc, &proc.L),
+        0x0D => instructionsNew.bitShift.rotate_right_circular_reg8(proc, proc.L()),
 
         // RRC (HL)
-        0x0E => instructions.bitShift.rotate_right_circular_hlMem(proc),
+        0x0E => instructionsNew.bitShift.rotate_right_circular_hl_indirect(proc),
 
         // RRC
-        0x0F => instructions.bitShift.rotate_right_circular_r8(proc, &proc.A),
+        0x0F => instructionsNew.bitShift.rotate_right_circular_reg8(proc, &proc.A),
 
         // RL B
-        0x10 => instructions.bitShift.rotate_left_r8(proc, &proc.B),
+        0x10 => instructionsNew.bitShift.rotate_left_reg8(proc, proc.B()),
 
         // RL C
-        0x11 => instructions.bitShift.rotate_left_r8(proc, &proc.C),
+        0x11 => instructionsNew.bitShift.rotate_left_reg8(proc, proc.C()),
 
         // RL D
-        0x12 => instructions.bitShift.rotate_left_r8(proc, &proc.D),
+        0x12 => instructionsNew.bitShift.rotate_left_reg8(proc, proc.D()),
 
         // RL E
-        0x13 => instructions.bitShift.rotate_left_r8(proc, &proc.E),
+        0x13 => instructionsNew.bitShift.rotate_left_reg8(proc, proc.E()),
 
         // RL H
-        0x14 => instructions.bitShift.rotate_left_r8(proc, &proc.H),
+        0x14 => instructionsNew.bitShift.rotate_left_reg8(proc, proc.H()),
 
         // RL L
-        0x15 => instructions.bitShift.rotate_left_r8(proc, &proc.L),
+        0x15 => instructionsNew.bitShift.rotate_left_reg8(proc, proc.L()),
 
         // RL (HL)
-        0x16 => instructions.bitShift.rotate_left_hlMem(&proc),
+        0x16 => instructionsNew.bitShift.rotate_left_hl_indirect(&proc),
 
         // RL A
-        0x17 => instructions.bitShift.rotate_left_r8(proc, &proc.A),
+        0x17 => instructionsNew.bitShift.rotate_left_reg8(proc, &proc.accumulator),
 
         // RR B
-        0x18 => instructions.bitShift.rotate_right_r8(proc, &proc.B),
+        0x18 => instructionsNew.bitShift.rotate_right_reg8(proc, proc.B()),
 
         // RR C
-        0x19 => instructions.bitShift.rotate_right_r8(proc, &proc.C),
+        0x19 => instructionsNew.bitShift.rotate_right_reg8(proc, proc.C()),
 
         // RR D
-        0x1A => instructions.bitShift.rotate_right_r8(proc, &proc.D),
+        0x1A => instructionsNew.bitShift.rotate_right_reg8(proc, proc.D()),
 
         // RR E
-        0x1B => instructions.bitShift.rotate_right_r8(proc, &proc.E),
+        0x1B => instructionsNew.bitShift.rotate_right_reg8(proc, proc.E()),
 
         // RR H
-        0x1C => instructions.bitShift.rotate_right_r8(proc, &proc.H),
+        0x1C => instructionsNew.bitShift.rotate_right_reg8(proc, proc.H()),
 
         // RR L
-        0x1D => instructions.bitShift.rotate_right_r8(proc, &proc.L),
+        0x1D => instructionsNew.bitShift.rotate_right_reg8(proc, proc.L()),
 
         // RR (HL)
-        0x1E => instructions.bitShift.rotate_right_hlMem(&proc),
+        0x1E => instructionsNew.bitShift.rotate_right_hl_indirect(&proc),
 
         // RR A
-        0x1F => instructions.bitShift.rotate_right_r8(proc, &proc.A),
+        0x1F => instructionsNew.bitShift.rotate_right_reg8(proc, &proc.accumulator),
 
         // SLA B
-        0x20 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.B),
+        0x20 => instructionsNew.bitShift.shift_left_arithmetic_reg8(proc, proc.B()),
 
         // SLA C
-        0x21 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.C),
+        0x21 => instructionsNew.bitShift.shift_left_arithmetic_reg8(proc, proc.C()),
 
         // SLA D
-        0x22 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.D),
+        0x22 => instructionsNew.bitShift.shift_left_arithmetic_reg8(proc, proc.D()),
 
         // SLA E
-        0x23 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.E),
+        0x23 => instructionsNew.bitShift.shift_left_arithmetic_reg8(proc, proc.E()),
 
         // SLA H
-        0x24 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.H),
+        0x24 => instructionsNew.bitShift.shift_left_arithmetic_reg8(proc, proc.H()),
 
         // SLA L
-        0x25 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.L),
+        0x25 => instructionsNew.bitShift.shift_left_arithmetic_reg8(proc, proc.L()),
 
         // SLA (HL)
-        0x26 => instructions.bitShift.shift_left_arithmetic_hlMem(&proc),
+        0x26 => instructionsNew.bitShift.shift_left_arithmetic_hl_indirect(&proc),
 
         // SLA A
-        0x27 => instructions.bitShift.shift_left_arithmetic_r8(proc, &proc.A),
+        0x27 => instructionsNew.bitShift.shift_left_arithmetic_reg8(proc, &proc.accumulator),
 
         // SRA B
-        0x28 => instructions.bitShift.shift_right_arithmetic_r8(proc, &proc.B),
+        0x28 => instructionsNew.bitShift.shift_right_arithmetic_reg8(proc, proc.B()),
 
         // SRA C
-        0x29 => instructions.bitShift.shift_right_arithmetic_r8(proc, &proc.C),
+        0x29 => instructionsNew.bitShift.shift_right_arithmetic_reg8(proc, proc.C()),
 
         // SRA D
-        0x2A => instructions.bitShift.shift_right_arithmetic_r8(proc, &proc.D),
+        0x2A => instructionsNew.bitShift.shift_right_arithmetic_reg8(proc, proc.D()),
 
         // SRA E
-        0x2B => instructions.bitShift.shift_right_arithmetic_r8(proc, &proc.E),
+        0x2B => instructionsNew.bitShift.shift_right_arithmetic_reg8(proc, proc.E()),
 
         // SRA H
-        0x2C => instructions.bitShift.shift_right_arithmetic_r8(proc, &proc.H),
+        0x2C => instructionsNew.bitShift.shift_right_arithmetic_reg8(proc, proc.H()),
 
         // SRA L
-        0x2D => instructions.bitShift.shift_right_arithmetic_r8(proc, &proc.L),
+        0x2D => instructionsNew.bitShift.shift_right_arithmetic_reg8(proc, proc.L()),
 
         // SRA (HL)
-        0x2E => instructions.bitShift.shift_right_arithmetic_hlMem(&proc),
+        0x2E => instructionsNew.bitShift.shift_right_arithmetic_hl_indirect(&proc),
 
         // SRA A
-        0x2F => instructions.bitShift.shift_right_arithmetic_r8(proc, &proc.A),
+        0x2F => instructionsNew.bitShift.shift_right_arithmetic_reg8(proc, &proc.accumulator),
 
         // SWAP B
-        0x30 => instructions.bitShift.swap_r8(proc, &proc.B),
+        0x30 => instructionsNew.bitShift.swap_reg8(proc, proc.B()),
 
         // SWAP C
-        0x31 => instructions.bitShift.swap_r8(proc, &proc.C),
+        0x31 => instructionsNew.bitShift.swap_reg8(proc, proc.C()),
 
         // SWAP D
-        0x32 => instructions.bitShift.swap_r8(proc, &proc.D),
+        0x32 => instructionsNew.bitShift.swap_reg8(proc, proc.D()),
 
         // SWAP E
-        0x33 => instructions.bitShift.swap_r8(proc, &proc.E),
+        0x33 => instructionsNew.bitShift.swap_reg8(proc, proc.E()),
 
         // SWAP H
-        0x34 => instructions.bitShift.swap_r8(proc, &proc.H),
+        0x34 => instructionsNew.bitShift.swap_reg8(proc, proc.H()),
 
         // SWAP L
-        0x35 => instructions.bitShift.swap_r8(proc, &proc.L),
+        0x35 => instructionsNew.bitShift.swap_reg8(proc, proc.L()),
 
         // SWAP (HL)
-        0x36 => instructions.bitShift.swap_hlMem(&proc),
+        0x36 => instructionsNew.bitShift.swap_hl_indirect(&proc),
 
         // SWAP A
-        0x37 => instructions.bitShift.swap_r8(proc, &proc.A),
+        0x37 => instructionsNew.bitShift.swap_reg8(proc, &proc.accumulator),
 
         // SRL B
-        0x38 => instructions.bitShift.shift_right_logical_r8(proc, &proc.B),
+        0x38 => instructionsNew.bitShift.shift_right_logical_reg8(proc, proc.B()),
 
         // SRL C
-        0x39 => instructions.bitShift.shift_right_logical_r8(proc, &proc.C),
+        0x39 => instructionsNew.bitShift.shift_right_logical_reg8(proc, proc.D()),
 
         // SRL D
-        0x3A => instructions.bitShift.shift_right_logical_r8(proc, &proc.D),
+        0x3A => instructionsNew.bitShift.shift_right_logical_reg8(proc, proc.D()),
 
         // SRL E
-        0x3B => instructions.bitShift.shift_right_logical_r8(proc, &proc.E),
+        0x3B => instructionsNew.bitShift.shift_right_logical_reg8(proc, proc.E()),
 
         // SRL H
-        0x3C => instructions.bitShift.shift_right_logical_r8(proc, &proc.H),
+        0x3C => instructionsNew.bitShift.shift_right_logical_reg8(proc, proc.H()),
 
         // SRL L
-        0x3D => instructions.bitShift.shift_right_logical_r8(proc, &proc.L),
+        0x3D => instructionsNew.bitShift.shift_right_logical_reg8(proc, proc.L()),
 
         // SRL (HL)
-        0x3E => instructions.bitShift.shift_right_logical_hlMem(&proc),
+        0x3E => instructionsNew.bitShift.shift_right_logical_hl_indirect(&proc),
 
         // SRL A
-        0x3F => instructions.bitShift.shift_right_logical_r8(proc, &proc.A),
+        0x3F => instructionsNew.bitShift.shift_right_logical_reg8(proc, &proc.accumulator),
 
         // BIT 0, B
-        0x40 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.B),
+        0x40 => instructionsNew.bitFlag.test_bit_reg8(proc, .zero, proc.B()),
 
         // BIT 0, C
-        0x41 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.C),
+        0x41 => instructionsNew.bitFlag.test_bit_reg8(proc, .zero, proc.C()),
 
         // BIT 0, D
-        0x42 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.D),
+        0x42 => instructionsNew.bitFlag.test_bit_reg8(proc, .zero, proc.D()),
 
         // BIT 0, E
-        0x43 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.D),
+        0x43 => instructionsNew.bitFlag.test_bit_reg8(proc, .zero, proc.E()),
 
         // BIT 0, H
-        0x44 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.H),
+        0x44 => instructionsNew.bitFlag.test_bit_reg8(proc, .zero, proc.H()),
 
         // BIT 0, L
-        0x45 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.L),
+        0x45 => instructionsNew.bitFlag.test_bit_reg8(proc, .zero, proc.L()),
 
         // BIT 0, (HL)
-        0x46 => instructions.bitFlag.test_bit_hlMem(proc, Bit.zero),
+        0x46 => instructionsNew.bitFlag.test_bit_hl_indirect(proc, .zero),
 
         // BIT 0, A
-        0x47 => instructions.bitFlag.test_bit_r8(proc, Bit.zero, &proc.A),
+        0x47 => instructionsNew.bitFlag.test_bit_reg8(proc, .zero, &proc.accumulator),
 
         // BIT 1, B
-        0x48 => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.B),
+        0x48 => instructionsNew.bitFlag.test_bit_reg8(proc, .one, proc.B()),
 
         // BIT 1, C
-        0x49 => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.C),
+        0x49 => instructionsNew.bitFlag.test_bit_reg8(proc, .one, proc.C()),
 
         // BIT 1, D
-        0x4A => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.D),
+        0x4A => instructionsNew.bitFlag.test_bit_reg8(proc, .one, proc.D()),
 
         // BIT 1, E
-        0x4B => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.E),
+        0x4B => instructionsNew.bitFlag.test_bit_reg8(proc, .one, proc.E()),
 
         // BIT 1, H
-        0x4C => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.H),
+        0x4C => instructionsNew.bitFlag.test_bit_reg8(proc, .one, proc.H()),
 
         // BIT 1, L
-        0x4D => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.L),
+        0x4D => instructionsNew.bitFlag.test_bit_reg8(proc, .one, proc.L()),
 
         // BIT 1, (HL)
-        0x4E => instructions.bitFlag.test_bit_hlMem(proc, Bit.one),
+        0x4E => instructionsNew.bitFlag.test_bit_hl_indirect(proc, .one),
 
         // BIT 1, A
-        0x4F => instructions.bitFlag.test_bit_r8(proc, Bit.one, &proc.A),
+        0x4F => instructionsNew.bitFlag.test_bit_reg8(proc, .one, &proc.accumulator),
 
         // BIT 2, B
-        0x50 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.B),
+        0x50 => instructionsNew.bitFlag.test_bit_reg8(proc, .two, proc.B()),
 
         // BIT 2, C
-        0x51 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.C),
+        0x51 => instructionsNew.bitFlag.test_bit_reg8(proc, .two, proc.C()),
 
         // BIT 2, D
-        0x52 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.D),
+        0x52 => instructionsNew.bitFlag.test_bit_reg8(proc, .two, proc.D()),
 
         // BIT 2, E
-        0x53 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.E),
+        0x53 => instructionsNew.bitFlag.test_bit_reg8(proc, .two, proc.E()),
 
         // BIT 2, H
-        0x54 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.H),
+        0x54 => instructionsNew.bitFlag.test_bit_reg8(proc, .two, proc.H()),
 
         // BIT 2, L
-        0x55 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.L),
+        0x55 => instructionsNew.bitFlag.test_bit_reg8(proc, .two, proc.L()),
 
         // BIT 2, (HL)
-        0x56 => instructions.bitFlag.test_bit_hlMem(proc, Bit.two),
+        0x56 => instructionsNew.bitFlag.test_bit_hl_indirect(proc, .two),
 
         // BIT 2, A
-        0x57 => instructions.bitFlag.test_bit_r8(proc, Bit.two, &proc.A),
+        0x57 => instructionsNew.bitFlag.test_bit_reg8(proc, .two, &proc.accumulator),
 
         // BIT 3, B
-        0x58 => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.B),
+        0x58 => instructionsNew.bitFlag.test_bit_reg8(proc, .three, proc.B()),
 
         // BIT 3, C
-        0x59 => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.C),
+        0x59 => instructionsNew.bitFlag.test_bit_reg8(proc, .three, proc.C()),
 
         // BIT 3, D
-        0x5A => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.D),
+        0x5A => instructionsNew.bitFlag.test_bit_reg8(proc, .three, proc.D()),
 
         // BIT 3, E
-        0x5B => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.E),
+        0x5B => instructionsNew.bitFlag.test_bit_reg8(proc, .three, proc.E()),
 
         // BIT 3, H
-        0x5C => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.H),
+        0x5C => instructionsNew.bitFlag.test_bit_reg8(proc, .three, proc.H()),
 
         // BIT 3, L
-        0x5D => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.L),
+        0x5D => instructionsNew.bitFlag.test_bit_reg8(proc, .three, proc.L()),
 
         // BIT 3, (HL)
-        0x5E => instructions.bitFlag.test_bit_hlMem(proc, Bit.three),
+        0x5E => instructionsNew.bitFlag.test_bit_hl_indirect(proc, .three),
 
         // BIT 3, A
-        0x5F => instructions.bitFlag.test_bit_r8(proc, Bit.three, &proc.A),
+        0x5F => instructionsNew.bitFlag.test_bit_reg8(proc, .three, &proc.accumulator),
 
         // BIT 4, B
-        0x60 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.B),
+        0x60 => instructionsNew.bitFlag.test_bit_reg8(proc, .four, proc.B()),
 
         // BIT 4, C
-        0x61 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.C),
+        0x61 => instructionsNew.bitFlag.test_bit_reg8(proc, .four, proc.C()),
 
         // BIT 4, D
-        0x62 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.D),
+        0x62 => instructionsNew.bitFlag.test_bit_reg8(proc, .four, proc.D()),
 
         // BIT 4, E
-        0x63 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.E),
+        0x63 => instructionsNew.bitFlag.test_bit_reg8(proc, .four, proc.E()),
 
         // BIT 4, H
-        0x64 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.H),
+        0x64 => instructionsNew.bitFlag.test_bit_reg8(proc, .four, proc.H()),
 
         // BIT 4, L
-        0x65 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.L),
+        0x65 => instructionsNew.bitFlag.test_bit_reg8(proc, .four, proc.L()),
 
         // BIT 4, (HL)
-        0x66 => instructions.bitFlag.test_bit_hlMem(proc, Bit.four),
+        0x66 => instructionsNew.bitFlag.test_bit_hl_indirect(proc, .four),
 
         // BIT 4, A
-        0x67 => instructions.bitFlag.test_bit_r8(proc, Bit.four, &proc.A),
+        0x67 => instructionsNew.bitFlag.test_bit_reg8(proc, .four, &proc.accumulator),
 
         // BIT 5, B
-        0x68 => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.B),
+        0x68 => instructionsNew.bitFlag.test_bit_reg8(proc, .five, proc.B()),
 
         // BIT 5, C
-        0x69 => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.C),
+        0x69 => instructionsNew.bitFlag.test_bit_reg8(proc, .five, proc.C()),
 
         // BIT 5, D
-        0x6A => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.D),
+        0x6A => instructionsNew.bitFlag.test_bit_reg8(proc, .five, proc.D()),
 
         // BIT 5, E
-        0x6B => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.E),
+        0x6B => instructionsNew.bitFlag.test_bit_reg8(proc, .five, proc.E()),
 
         // BIT 5, H
-        0x6C => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.H),
+        0x6C => instructionsNew.bitFlag.test_bit_reg8(proc, .five, proc.H()),
 
         // BIT 5, L
-        0x6D => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.L),
+        0x6D => instructionsNew.bitFlag.test_bit_reg8(proc, .five, proc.L()),
 
         // BIT 5, (HL)
-        0x6E => instructions.bitFlag.test_bit_hlMem(proc, Bit.five),
+        0x6E => instructionsNew.bitFlag.test_bit_hl_indirect(proc, .five),
 
         // BIT 5, A
-        0x6F => instructions.bitFlag.test_bit_r8(proc, Bit.five, &proc.A),
+        0x6F => instructionsNew.bitFlag.test_bit_reg8(proc, .five, &proc.accumulator),
 
         // BIT 6, B
-        0x70 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.B),
+        0x70 => instructionsNew.bitFlag.test_bit_reg8(proc, .six, proc.B()),
 
         // BIT 6, C
-        0x71 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.C),
+        0x71 => instructionsNew.bitFlag.test_bit_reg8(proc, .six, proc.C()),
 
         // BIT 6, D
-        0x72 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.D),
+        0x72 => instructionsNew.bitFlag.test_bit_reg8(proc, .six, proc.D()),
 
         // BIT 6, E
-        0x73 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.E),
+        0x73 => instructionsNew.bitFlag.test_bit_reg8(proc, .six, proc.E()),
 
         // BIT 6, H
-        0x74 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.H),
+        0x74 => instructionsNew.bitFlag.test_bit_reg8(proc, .six, proc.H()),
 
         // BIT 6, L
-        0x75 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.L),
+        0x75 => instructionsNew.bitFlag.test_bit_reg8(proc, .six, proc.L()),
 
         // BIT 6, (HL)
-        0x76 => instructions.bitFlag.test_bit_hlMem(proc, Bit.six),
+        0x76 => instructionsNew.bitFlag.test_bit_hl_indirect(proc, .six),
 
         // BIT 6, A
-        0x77 => instructions.bitFlag.test_bit_r8(proc, Bit.six, &proc.A),
+        0x77 => instructionsNew.bitFlag.test_bit_reg8(proc, .six, &proc.accumulator),
 
         // BIT 7, B
-        0x78 => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.B),
+        0x78 => instructionsNew.bitFlag.test_bit_reg8(proc, .seven, proc.B()),
 
         // BIT 7, C
-        0x79 => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.C),
+        0x79 => instructionsNew.bitFlag.test_bit_reg8(proc, .seven, proc.C()),
 
         // BIT 7, D
-        0x7A => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.D),
+        0x7A => instructionsNew.bitFlag.test_bit_reg8(proc, .seven, proc.D()),
 
         // BIT 7, E
-        0x7B => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.E),
+        0x7B => instructionsNew.bitFlag.test_bit_reg8(proc, .seven, proc.E()),
 
         // BIT 7, H
-        0x7C => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.H),
+        0x7C => instructionsNew.bitFlag.test_bit_reg8(proc, .seven, proc.H()),
 
         // BIT 7, L
-        0x7D => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.L),
+        0x7D => instructionsNew.bitFlag.test_bit_reg8(proc, .seven, proc.L()),
 
         // BIT 7, (HL)
-        0x7E => instructions.bitFlag.test_bit_hlMem(proc, Bit.seven),
+        0x7E => instructionsNew.bitFlag.test_bit_hl_indirect(proc, .seven),
 
         // BIT 7, A
-        0x7F => instructions.bitFlag.test_bit_r8(proc, Bit.seven, &proc.A),
+        0x7F => instructionsNew.bitFlag.test_bit_reg8(proc, .seven, &proc.accumulator),
 
         // RES 0, B
-        0x80 => instructions.bits.reset_bit_r8(.zero, &proc.B),
+        0x80 => instructionsNew.bits.reset_bit_reg8(.zero, &proc.B),
 
         // RES 0, C
-        0x81 => instructions.bits.reset_bit_r8(.zero, &proc.C),
+        0x81 => instructionsNew.bits.reset_bit_reg8(.zero, &proc.C),
 
         // RES 0, D
-        0x82 => instructions.bits.reset_bit_r8(.zero, &proc.D),
+        0x82 => instructionsNew.bits.reset_bit_reg8(.zero, &proc.D),
 
         // RES 0, E
-        0x83 => instructions.bits.reset_bit_r8(.zero, &proc.E),
+        0x83 => instructionsNew.bits.reset_bit_reg8(.zero, &proc.E),
 
         // RES 0, H
-        0x84 => instructions.bits.reset_bit_r8(.zero, &proc.H),
+        0x84 => instructionsNew.bits.reset_bit_reg8(.zero, &proc.H),
 
         // RES 0, L
-        0x85 => instructions.bits.reset_bit_r8(.zero, &proc.L),
+        0x85 => instructionsNew.bits.reset_bit_reg8(.zero, &proc.L),
 
         // RES 0, (HL)
-        0x86 => instructions.bits.reset_bit_hlMem(proc, .zero),
+        0x86 => instructionsNew.bits.reset_bit_hl_indirect(proc, .zero),
 
         // RES 0, A
-        0x87 => instructions.bits.reset_bit_r8(.zero, &proc.A),
+        0x87 => instructionsNew.bits.reset_bit_reg8(.zero, &proc.A),
 
         // RES 1, B
-        0x88 => instructions.bits.reset_bit_r8(.one, &proc.B),
+        0x88 => instructionsNew.bits.reset_bit_reg8(.one, &proc.B),
 
         // RES 1, C
-        0x89 => instructions.bits.reset_bit_r8(.one, &proc.C),
+        0x89 => instructionsNew.bits.reset_bit_reg8(.one, &proc.C),
 
         // RES 1, D
-        0x8A => instructions.bits.reset_bit_r8(.one, &proc.D),
+        0x8A => instructionsNew.bits.reset_bit_reg8(.one, &proc.D),
 
         // RES 1, E
-        0x8B => instructions.bits.reset_bit_r8(.one, &proc.E),
+        0x8B => instructionsNew.bits.reset_bit_reg8(.one, &proc.E),
 
         // RES 1, H
-        0x8C => instructions.bits.reset_bit_r8(.one, &proc.H),
+        0x8C => instructionsNew.bits.reset_bit_reg8(.one, &proc.H),
 
         // RES 1, L
-        0x8D => instructions.bits.reset_bit_r8(.one, &proc.L),
+        0x8D => instructionsNew.bits.reset_bit_reg8(.one, &proc.L),
 
         // RES 1, (HL)
-        0x8E => instructions.bits.reset_bit_hlMem(proc, .one),
+        0x8E => instructionsNew.bits.reset_bit_hl_indirect(proc, .one),
 
         // RES 1, A
-        0x8F => instructions.bits.reset_bit_r8(.two, &proc.A),
+        0x8F => instructionsNew.bits.reset_bit_reg8(.two, &proc.A),
 
         // RES 2, B
-        0x90 => instructions.bits.reset_bit_r8(.two, &proc.B),
+        0x90 => instructionsNew.bits.reset_bit_reg8(.two, &proc.B),
 
         // RES 2, C
-        0x91 => instructions.bits.reset_bit_r8(.two, &proc.C),
+        0x91 => instructionsNew.bits.reset_bit_reg8(.two, &proc.C),
 
         // RES 2, D
-        0x92 => instructions.bits.reset_bit_r8(.two, &proc.D),
+        0x92 => instructionsNew.bits.reset_bit_reg8(.two, &proc.D),
 
         // RES 2, E
-        0x93 => instructions.bits.reset_bit_r8(.two, &proc.E),
+        0x93 => instructionsNew.bits.reset_bit_reg8(.two, &proc.E),
 
         // RES 2, H
-        0x94 => instructions.bits.reset_bit_r8(.two, &proc.H),
+        0x94 => instructionsNew.bits.reset_bit_reg8(.two, &proc.H),
 
         // RES 2, L
-        0x95 => instructions.bits.reset_bit_r8(.two, &proc.L),
+        0x95 => instructionsNew.bits.reset_bit_reg8(.two, &proc.L),
 
         // RES 2, (HL)
-        0x96 => instructions.bits.reset_bit_hlMem(proc, .two),
+        0x96 => instructionsNew.bits.reset_bit_hl_indirect(proc, .two),
 
         // RES 2, A
-        0x97 => instructions.bits.reset_bit_r8(.two, &proc.A),
+        0x97 => instructionsNew.bits.reset_bit_reg8(.two, &proc.A),
 
         // RES 3, B
-        0x98 => instructions.bits.reset_bit_r8(.three, &proc.B),
+        0x98 => instructionsNew.bits.reset_bit_reg8(.three, &proc.B),
 
         // RES 3, C
-        0x99 => instructions.bits.reset_bit_r8(.three, &proc.C),
+        0x99 => instructionsNew.bits.reset_bit_reg8(.three, &proc.C),
 
         // RES 3, D
-        0x9A => instructions.bits.reset_bit_r8(.three, &proc.D),
+        0x9A => instructionsNew.bits.reset_bit_reg8(.three, &proc.D),
 
         // RES 3, E
-        0x9B => instructions.bits.reset_bit_r8(.three, &proc.E),
+        0x9B => instructionsNew.bits.reset_bit_reg8(.three, &proc.E),
 
         // RES 3, H
-        0x9C => instructions.bits.reset_bit_r8(.three, &proc.H),
+        0x9C => instructionsNew.bits.reset_bit_reg8(.three, &proc.H),
 
         // RES 3, L
-        0x9D => instructions.bits.reset_bit_r8(.three, &proc.L),
+        0x9D => instructionsNew.bits.reset_bit_reg8(.three, &proc.L),
 
         // RES 3, (HL)
-        0x9E => instructions.bits.reset_bit_hlMem(proc, .three),
+        0x9E => instructionsNew.bits.reset_bit_hl_indirect(proc, .three),
 
         // RES 3, A
-        0x9F => instructions.bits.reset_bit_r8(.three, &proc.A),
+        0x9F => instructionsNew.bits.reset_bit_reg8(.three, &proc.A),
 
         // RES 4, B
-        0xA0 => instructions.bits.reset_bit_r8(.four, &proc.B),
+        0xA0 => instructionsNew.bits.reset_bit_reg8(.four, &proc.B),
 
         // RES 4, C
-        0xA1 => instructions.bits.reset_bit_r8(.four, &proc.C),
+        0xA1 => instructionsNew.bits.reset_bit_reg8(.four, &proc.C),
 
         // RES 4, D
-        0xA2 => instructions.bits.reset_bit_r8(.four, &proc.D),
+        0xA2 => instructionsNew.bits.reset_bit_reg8(.four, &proc.D),
 
         // RES 4, E
-        0xA3 => instructions.bits.reset_bit_r8(.four, &proc.E),
+        0xA3 => instructionsNew.bits.reset_bit_reg8(.four, &proc.E),
 
         // RES 4, H
-        0xA4 => instructions.bits.reset_bit_r8(.four, &proc.H),
+        0xA4 => instructionsNew.bits.reset_bit_reg8(.four, &proc.H),
 
         // RES 4, L
-        0xA5 => instructions.bits.reset_bit_r8(.four, &proc.L),
+        0xA5 => instructionsNew.bits.reset_bit_reg8(.four, &proc.L),
 
         // RES 4, (HL)
-        0xA6 => instructions.bits.reset_bit_hlMem(proc, .four),
+        0xA6 => instructionsNew.bits.reset_bit_hl_indirect(proc, .four),
 
         // RES 4, A
-        0xA7 => instructions.bits.reset_bit_r8(.four, &proc.A),
+        0xA7 => instructionsNew.bits.reset_bit_reg8(.four, &proc.A),
 
         // RES 5, B
-        0xA8 => instructions.bits.reset_bit_r8(.five, &proc.B),
+        0xA8 => instructionsNew.bits.reset_bit_reg8(.five, &proc.B),
 
         // RES 5, C
-        0xA9 => instructions.bits.reset_bit_r8(.five, &proc.C),
+        0xA9 => instructionsNew.bits.reset_bit_reg8(.five, &proc.C),
 
         // RES 5, D
-        0xAA => instructions.bits.reset_bit_r8(.five, &proc.D),
+        0xAA => instructionsNew.bits.reset_bit_reg8(.five, &proc.D),
 
         // RES 5, E
-        0xAB => instructions.bits.reset_bit_r8(.five, &proc.E),
+        0xAB => instructionsNew.bits.reset_bit_reg8(.five, &proc.E),
 
         // RES 5, H
-        0xAC => instructions.bits.reset_bit_r8(.five, &proc.H),
+        0xAC => instructionsNew.bits.reset_bit_reg8(.five, &proc.H),
 
         // RES 5, L
-        0xAD => instructions.bits.reset_bit_r8(.five, &proc.L),
+        0xAD => instructionsNew.bits.reset_bit_reg8(.five, &proc.L),
 
         // RES 5, (HL)
-        0xAE => instructions.bits.reset_bit_hlMem(proc, .five),
+        0xAE => instructionsNew.bits.reset_bit_hl_indirect(proc, .five),
 
         // RES 5, A
-        0xAF => instructions.bits.reset_bit_r8(.five, &proc.A),
+        0xAF => instructionsNew.bits.reset_bit_reg8(.five, &proc.accumulator),
 
         // RES 6, B
-        0xB0 => instructions.bits.reset_bit_r8(.six, &proc.B),
+        0xB0 => instructionsNew.bits.reset_bit_reg8(.six, proc.B()),
 
         // RES 6, C
-        0xB1 => instructions.bits.reset_bit_r8(.six, &proc.C),
+        0xB1 => instructionsNew.bits.reset_bit_reg8(.six, proc.C()),
 
         // RES 6, D
-        0xB2 => instructions.bits.reset_bit_r8(.six, &proc.D),
+        0xB2 => instructionsNew.bits.reset_bit_reg8(.six, proc.D()),
 
         // RES 6, E
-        0xB3 => instructions.bits.reset_bit_r8(.six, &proc.E),
+        0xB3 => instructionsNew.bits.reset_bit_reg8(.six, proc.E()),
 
         // RES 6, H
-        0xB4 => instructions.bits.reset_bit_r8(.six, &proc.H),
+        0xB4 => instructionsNew.bits.reset_bit_reg8(.six, proc.H()),
 
         // RES 6, L
-        0xB5 => instructions.bits.reset_bit_r8(.six, &proc.L),
+        0xB5 => instructionsNew.bits.reset_bit_reg8(.six, proc.L()),
 
         // RES 6, (HL)
-        0xB6 => instructions.bits.reset_bit_hlMem(proc, .six),
+        0xB6 => instructionsNew.bits.reset_bit_hl_indirect(proc, .six),
 
         // RES 6, A
-        0xB7 => instructions.bits.reset_bit_r8(.six, &proc.A),
+        0xB7 => instructionsNew.bits.reset_bit_reg8(.six, &proc.accumulator),
 
         // RES 7, B
-        0xB8 => instructions.bits.reset_bit_r8(.seven, &proc.B),
+        0xB8 => instructionsNew.bits.reset_bit_reg8(.seven, proc.B()),
 
         // RES 7, C
-        0xB9 => instructions.bits.reset_bit_r8(.seven, &proc.C),
+        0xB9 => instructionsNew.bits.reset_bit_reg8(.seven, proc.C()),
 
         // RES 7, D
-        0xBA => instructions.bits.reset_bit_r8(.seven, &proc.D),
+        0xBA => instructionsNew.bits.reset_bit_reg8(.seven, proc.D()),
 
         // RES 7, E
-        0xBB => instructions.bits.reset_bit_r8(.seven, &proc.E),
+        0xBB => instructionsNew.bits.reset_bit_reg8(.seven, proc.E()),
 
         // RES 7, H
-        0xBC => instructions.bits.reset_bit_r8(.seven, &proc.H),
+        0xBC => instructionsNew.bits.reset_bit_reg8(.seven, proc.H()),
 
         // RES 7, L
-        0xBD => instructions.bits.reset_bit_r8(.seven, &proc.L),
+        0xBD => instructionsNew.bits.reset_bit_reg8(.seven, proc.L()),
 
         // RES 7, (HL)
-        0xBE => instructions.bits.reset_bit_hlMem(proc, .seven),
+        0xBE => instructionsNew.bits.reset_bit_hl_indirect(proc, .seven),
 
         // RES 7, A
-        0xBF => instructions.bits.reset_bit_r8(.seven, &proc.A),
+        0xBF => instructionsNew.bits.reset_bit_reg8(.seven, &proc.accumulator),
 
         // SET 0, B
         0xC0 => instructions.bits.set_bit_r8(.zero, &proc.B),
