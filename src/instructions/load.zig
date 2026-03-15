@@ -407,7 +407,7 @@ test "spr_reg16" {
 
 /// Load the 8-bit contents of memory specified by register pair rr into register reg
 /// Example: 0x0A -> LD A, (BC)
-pub fn reg8_reg16_indirect(proc: *Processor, reg: *u8, regPair: *PackedRegister) void {
+pub fn reg8_reg16_indirect(proc: *Processor, reg: *u8, regPair: *u16) void {
     reg.* = proc.memory.read(regPair.value);
 }
 
