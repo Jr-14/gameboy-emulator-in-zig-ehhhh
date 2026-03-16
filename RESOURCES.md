@@ -17,6 +17,7 @@ idea to catalogue them.
 - [game-boy-what-constitutes-a-half-carry](https://stackoverflow.com/questions/8868396/game-boy-what-constitutes-a-half-carry/8874607#8874607)
 - [Game Boy carry & half-carry flags](https://gist.github.com/meganesu/9e228b6b587decc783aa9be34ae27841)
 - [GameBoy - Help With DAA instruction](https://forums.nesdev.org/viewtopic.php?t=15944)
+- [Emulating The Core, Part 2: Interrupts and Timing](https://realboyemulator.wordpress.com/2013/01/18/emulating-the-core-2/)
 - [Emulating The Core, Part 3: Interrupt Processing](https://realboyemulator.wordpress.com/2013/07/01/interrupt-processing-a-real-world-example/)
 - [zigboy](https://github.com/otaleghani/zigboy)
 - [The Cycle-Accurate Game Boy Docs](https://github.com/geaz/emu-gameboy/blob/master/docs/The%20Cycle-Accurate%20Game%20Boy%20Docs.pdf)
