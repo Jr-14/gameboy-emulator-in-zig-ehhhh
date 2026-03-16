@@ -20,8 +20,8 @@ emulators, and a bit of systems programming.
 
 **Miscellaneous instructions**
 - [x] 0x00 - NOP
-- [ ] 0x10 - STOP
-- [ ] 0x27 - DAA
+- [x] 0x10 - STOP
+- [x] 0x27 - DAA
 - [x] 0x2F - CPL
 - [x] 0x37 - SCF
 - [x] 0x3F - CCF

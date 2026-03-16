@@ -40,6 +40,7 @@ IME: bool = false,
 
 // Can we use this as a halting mechanism?
 isHalted: bool = false,
+isStopped: bool = false,
 
 memory: *Memory = undefined,
 
@@ -986,6 +987,9 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
 
         // RRCA
         0x0F => instructionsNew.bitShift.rotate_right_circular_accumulator(proc),
+
+        // STOP
+        0x10 => { proc.isStopped = true; },
 
         // LD DE, d16
         0x11 => instructionsNew.load.reg16_imm16(proc, &proc.DE),
