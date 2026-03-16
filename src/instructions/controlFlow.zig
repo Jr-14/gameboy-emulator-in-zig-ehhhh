@@ -450,3 +450,38 @@ test "rst" {
     try expectEqual(0xAF, memory.address[SP - 1]);
     try expectEqual(0xBC, memory.address[SP - 2]);
 }
+
+pub fn pop_AF(proc: *Processor) void {
+    const lo = proc.popStack();
+    proc.flags.zero = @truncate(lo >> 7);
+    proc.flags.negative = @truncate(lo >> 6);
+    proc.flags.half_carry = @truncate(lo >> 5);
+    proc.flags.carry = @truncate(lo >> 4);
+
+    proc.accumulator = proc.popStack();
+}
+
+test "pop_AF" {
+    const SP: u16 = 0xFFFA;
+    const PC: u16 = 0x0100;
+    
+    var memory = Memory.init();
+    memory.address[SP] = 0xA0;
+    memory.address[SP + 1] = 0x11;
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .SP = SP,
+    });
+
+    pop_AF(&processor);
+
+    try expectEqual(1, processor.flags.zero);
+    try expectEqual(0, processor.flags.negative);
+    try expectEqual(1, processor.flags.half_carry);
+    try expectEqual(0, processor.flags.carry);
+    try expectEqual(0x11, processor.accumulator);
+    try expectEqual(SP + 2, processor.SP);
+}
+
+pub fn push_AF() void {}
+

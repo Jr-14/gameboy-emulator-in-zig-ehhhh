@@ -857,7 +857,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0xE6 => instructionsNew.bits.set_bit_hl_indirect(proc, .four),
 
         // SET 4 A
-        0xE7 => instructionsNew.bits.set_bit_reg8(.four, proc.A()),
+        0xE7 => instructionsNew.bits.set_bit_reg8(.four, &proc.accumulator),
 
         // SET 5, B
         0xE8 => instructionsNew.bits.set_bit_reg8(.five, proc.B()),
@@ -905,7 +905,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0xF6 => instructionsNew.bits.set_bit_hl_indirect(proc, .six),
 
         // SET 6 A
-        0xF7 => instructionsNew.bits.set_bit_reg8(.six, proc.A()),
+        0xF7 => instructionsNew.bits.set_bit_reg8(.six, &proc.accumulator),
 
         // SET 7, B
         0xF8 => instructionsNew.bits.set_bit_reg8(.seven, proc.B()),
@@ -971,7 +971,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x09 => instructionsNew.arithmetic.add_reg16_reg16(proc, &proc.HL.value, &proc.BC.value),
 
         // LD A, (BC)
-        0x0A => instructionsNew.load.reg8_reg16_indirect(proc, &proc.accumulator, &proc.BC.value),
+        0x0A => instructionsNew.load.reg8_reg16_indirect(proc, &proc.accumulator, &proc.BC),
 
         // DEC BC
         0x0B => instructionsNew.arithmetic.dec_reg16(proc, &proc.BC.value),
@@ -1088,16 +1088,16 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x3B => instructionsNew.arithmetic.dec_sp(proc),
 
         // INC A
-        0x3C => instructionsNew.arithmetic.inc_reg8(proc, proc.A()),
+        0x3C => instructionsNew.arithmetic.inc_reg8(proc, &proc.accumulator),
 
         // DEC A
-        0x3D => instructionsNew.arithmetic.dec_reg8(proc, proc.A()),
+        0x3D => instructionsNew.arithmetic.dec_reg8(proc, &proc.accumulator),
 
         // CCF
         0x3F => instructionsNew.misc.complement_carry_flag(proc),
 
         // LD A, (DE)
-        0x1A => instructionsNew.load.reg8_reg16_indirect(proc, &proc.accumulator, &proc.DE.value),
+        0x1A => instructionsNew.load.reg8_reg16_indirect(proc, &proc.accumulator, &proc.DE),
 
         // LD E, d8
         0x1E => instructionsNew.load.reg8_imm8(proc, proc.E()),
@@ -1148,7 +1148,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x45 => instructionsNew.load.reg8_reg8(proc.B(), proc.L()),
 
         // LD B, (HL)
-        0x46 => instructionsNew.load.reg8_reg16_indirect(proc, proc.B(), &proc.HL.value),
+        0x46 => instructionsNew.load.reg8_reg16_indirect(proc, proc.B(), &proc.HL),
 
         // LD B, A
         0x47 => instructionsNew.load.reg8_reg8(proc.B(), &proc.accumulator),
@@ -1172,7 +1172,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x4D => instructionsNew.load.reg8_reg8(proc.C(), proc.L()),
 
         // LD C, (HL)
-        0x4E => instructionsNew.load.reg8_reg16_indirect(proc, proc.C(), &proc.HL.value),
+        0x4E => instructionsNew.load.reg8_reg16_indirect(proc, proc.C(), &proc.HL),
 
         // LD C, A
         0x4F => instructionsNew.load.reg8_reg8(proc.C(), &proc.accumulator),
@@ -1196,7 +1196,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x55 => instructionsNew.load.reg8_reg8(proc.D(), proc.L()),
 
         // LD D, (HL)
-        0x56 => instructionsNew.load.reg8_reg16_indirect(proc, proc.D(), &proc.HL.value),
+        0x56 => instructionsNew.load.reg8_reg16_indirect(proc, proc.D(), &proc.HL),
 
         // LD D, A
         0x57 => instructionsNew.load.reg8_reg8(proc.D(), &proc.accumulator),
@@ -1220,7 +1220,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x5D => instructionsNew.load.reg8_reg8(proc.E(), proc.L()),
 
         // LD E, (HL)
-        0x5E => instructionsNew.load.reg8_reg16_indirect(proc, proc.E(), &proc.HL.value),
+        0x5E => instructionsNew.load.reg8_reg16_indirect(proc, proc.E(), &proc.HL),
 
         // LD E, A
         0x5F => instructionsNew.load.reg8_reg8(proc.E(), &proc.accumulator),
@@ -1244,7 +1244,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x65 => instructionsNew.load.reg8_reg8(proc.H(), proc.L()),
 
         // LD H, (HL)
-        0x66 => instructionsNew.load.reg8_reg16_indirect(proc, proc.H(), &proc.HL.value),
+        0x66 => instructionsNew.load.reg8_reg16_indirect(proc, proc.H(), &proc.HL),
 
         // LD H, A
         0x67 => instructionsNew.load.reg8_reg8(proc.H(), &proc.A),
@@ -1268,7 +1268,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x6D => instructionsNew.load.reg8_reg8(proc.L(), proc.L()),
 
         // LD L, (HL)
-        0x6E => instructionsNew.load.reg8_reg16_indirect(proc, proc.L(), &proc.HL.value),
+        0x6E => instructionsNew.load.reg8_reg16_indirect(proc, proc.L(), &proc.HL),
 
         // LD L, A
         0x6F => instructionsNew.load.reg8_reg8(proc.LI(), &proc.accumulator),
@@ -1317,7 +1317,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x7D => instructionsNew.load.reg8_reg8(&proc.accumulator, proc.L()),
 
         // LD A, (HL)
-        0x7E => instructionsNew.load.reg8_reg16_indirect(proc, &proc.accumulator, &proc.HL.value),
+        0x7E => instructionsNew.load.reg8_reg16_indirect(proc, &proc.accumulator, &proc.HL),
 
         // LD A, A
         0x7F => instructionsNew.load.reg8_reg8(&proc.accumulator, &proc.accumulator),
@@ -1368,7 +1368,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x8E => instructionsNew.arithmetic.addc_hl_indirect(proc),
 
         // ADC A
-        0x8F => instructionsNew.arithmetic.addc_reg8(proc, proc.A()),
+        0x8F => instructionsNew.arithmetic.addc_reg8(proc, &proc.accumulator),
 
         // SUB B
         0x90 => instructionsNew.arithmetic.sub_reg8(proc, proc.B()),
@@ -1392,7 +1392,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x96 => instructionsNew.arithmetic.sub_hl_indirect(proc),
 
         // SUB A, A
-        0x97 => instructionsNew.arithmetic.sub_reg8(proc, proc.A()),
+        0x97 => instructionsNew.arithmetic.sub_reg8(proc, &proc.accumulator),
 
         // SBC B
         0x98 => instructionsNew.arithmetic.subc_reg8(proc, proc.B()),
@@ -1416,7 +1416,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x9E => instructionsNew.arithmetic.subc_hl_indirect(proc),
 
         // SBC A, A
-        0x9F => instructionsNew.arithmetic.subc_reg8(proc, proc.A()),
+        0x9F => instructionsNew.arithmetic.subc_reg8(proc, &proc.accumulator),
 
         // AND B
         0xA0 => instructionsNew.arithmetic.and_reg8(proc, proc.B()),
@@ -1515,130 +1515,131 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xBF => instructionsNew.arithmetic.compare_reg8(proc, &proc.accumulator),
 
         // RET NZ
-        0xC0 => instructions.controlFlow.ret_cc(proc, .NZ),
+        0xC0 => instructionsNew.controlFlow.ret_cc(proc, proc.flags.zero, .is_set),
 
         // POP BC
-        0xC1 => instructions.controlFlow.pop_rr(proc, .BC),
+        0xC1 => instructionsNew.controlFlow.pop_reg16(proc, &proc.BC),
 
         // JP NZ, a16
-        0xC2 => instructions.controlFlow.jump_cc_imm16(proc, .NZ),
+        0xC2 => instructionsNew.controlFlow.jump_cc_imm16(proc, proc.flags.zero, .is_not_set),
 
         // JP a16
-        0xC3 => instructions.controlFlow.jump_imm16(proc),
+        0xC3 => instructionsNew.controlFlow.jump_imm16(proc),
 
         // CALL NZ, a16
-        0xC4 => instructions.controlFlow.call_cc_imm16(proc, .NZ),
+        0xC4 => instructionsNew.controlFlow.call_cc_imm16(proc, proc.flags.zero, .is_not_set),
 
         // PUSH BC
-        0xC5 => instructions.controlFlow.push_rr(proc, .BC),
+        0xC5 => instructionsNew.controlFlow.push_reg16(proc, &proc.BC),
 
         // ADD A, d8
         0xC6 => instructionsNew.arithmetic.add_imm8(proc),
 
         // RST 0
-        0xC7 => instructions.controlFlow.rst(proc, 0),
+        0xC7 => instructionsNew.controlFlow.rst(proc, 0),
 
         // RET Z
-        0xC8 => instructions.controlFlow.ret_cc(proc, .Z),
+        0xC8 => instructionsNew.controlFlow.ret_cc(proc, proc.flags.zero, .is_set),
 
         // RET
-        0xC9 => instructions.controlFlow.ret(proc),
+        0xC9 => instructionsNew.controlFlow.ret(proc),
 
         // JP Z, a16
-        0xCA => instructions.controlFlow.jump_cc_imm16(proc, .Z),
+        0xCA => instructionsNew.controlFlow.jump_cc_imm16(proc, proc.flags.zero, .is_set),
 
         // CB Prefix
         0xCB => proc.decodeAndExecuteCBPrefix(),
 
         // CALL Z, a16
-        0xCC => instructions.controlFlow.call_cc_imm16(proc, .Z),
+        0xCC => instructionsNew.controlFlow.call_cc_imm16(proc, proc.flags.zero, .is_set),
 
         // CALL a16
-        0xCD => instructions.controlFlow.call_imm16(proc),
+        0xCD => instructionsNew.controlFlow.call_imm16(proc),
 
         // ADC A, d8
         0xCE => instructionsNew.arithmetic.addc_imm8(proc),
 
         // RST 1
-        0xCF => instructions.controlFlow.rst(proc, 1),
+        0xCF => instructionsNew.controlFlow.rst(proc, 1),
 
         // RET NC
-        0xD0 => instructions.controlFlow.ret_cc(proc, .NC),
+        0xD0 => instructionsNew.controlFlow.ret_cc(proc, proc.flags.carry, .is_not_set),
 
         // POP DE
-        0xD1 => instructions.controlFlow.pop_rr(proc, .DE),
+        0xD1 => instructionsNew.controlFlow.pop_reg16(proc, &proc.DE),
 
         // JP NC, a16
-        0xD2 => instructions.controlFlow.jump_cc_imm16(proc, .NC),
+        0xD2 => instructionsNew.controlFlow.jump_cc_imm16(proc, proc.flags.carry, .is_not_set),
 
         // CALL NC, a16
-        0xD4 => instructions.controlFlow.call_cc_imm16(proc, .N),
+        0xD4 => instructionsNew.controlFlow.call_cc_imm16(proc, proc.flags.carry, .is_not_set),
 
         // PUSH DE
-        0xD5 => instructions.controlFlow.push_rr(proc, .DE),
+        0xD5 => instructionsNew.controlFlow.push_reg16(proc, &proc.DE),
 
         // 0xD6
         0xD6 => instructionsNew.arithmetic.sub_imm8(proc),
 
         // RST 2
-        0xD7 => instructions.controlFlow.rst(proc, 2),
+        0xD7 => instructionsNew.controlFlow.rst(proc, 2),
 
         // RET C
-        0xD8 => instructions.controlFlow.ret_cc(proc, .C),
+        0xD8 => instructionsNew.controlFlow.ret_cc(proc, proc.flags.carry, .is_set),
 
         // RETI
-        0xD9 => instructions.controlFlow.reti(proc),
+        0xD9 => instructionsNew.controlFlow.reti(proc),
 
         // JP C, a16
-        0xDA => instructions.controlFlow.jump_cc_imm16(proc, .C),
+        0xDA => instructionsNew.controlFlow.jump_cc_imm16(proc, proc.flags.carry, .is_set),
 
         // CALL C, a16
-        0xDC => instructions.controlFlow.call_cc_imm16(proc, .C),
+        0xDC => instructionsNew.controlFlow.call_cc_imm16(proc, proc.flags.carry, .is_set),
 
         // RST 3
-        0xDF => instructions.controlFlow.rst(proc, 3),
+        0xDF => instructionsNew.controlFlow.rst(proc, 3),
 
         // SBC A, d8
         0xDE => instructionsNew.arithmetic.subc_imm8(proc),
 
         // LD (a8), A
-        0xE0 => instructions.load.imm8_indirect_reg8(proc, &proc.A),
+        0xE0 => instructionsNew.load.imm8_indirect_reg8(proc, &proc.accumulator),
 
         // POP HL
-        0xE1 => instructions.controlFlow.pop_rr(proc, .HL),
+        0xE1 => instructionsNew.controlFlow.pop_reg16(proc, &proc.HL),
 
         // LD (C), A
-        0xE2 => instructions.load.reg8_indirect_reg8(proc, &proc.C, &proc.A),
+        0xE2 => instructionsNew.load.reg8_indirect_reg8(proc, proc.C(), &proc.accumulator),
 
         // PUSH HL
-        0xE5 => instructions.controlFlow.push_rr(proc, .HL),
+        0xE5 => instructionsNew.controlFlow.push_reg16(proc, &proc.HL),
 
         // AND d8
         0xE6 => instructionsNew.arithmetic.and_imm8(proc),
 
         // RST 4
-        0xE7 => instructions.controlFlow.rst(proc, 4),
+        0xE7 => instructionsNew.controlFlow.rst(proc, 4),
 
         // ADD SP s8
         0xE8 => instructionsNew.arithmetic.add_sp_offset(proc),
 
         // JP HL
-        0xE9 => instructions.controlFlow.jump_hl(proc, .HL),
+        0xE9 => instructionsNew.controlFlow.jump_hl(proc, &proc.HL),
 
         // LD (a16), A
-        0xEA => instructions.load.imm16Mem_reg(proc, &proc.A),
+        0xEA => instructionsNew.load.imm16_indirect_reg8(proc, &proc.accumulator),
 
         // XOR d8
         0xEE => instructionsNew.arithmetic.xor_imm8(proc),
 
         // RST 5
-        0xEF => instructions.controlFlow.rst(proc, 5),
+        0xEF => instructionsNew.controlFlow.rst(proc, 5),
 
         // LD A, (a8)
-        0xF0 => instructions.load.reg_imm8_indirect(proc, &proc.A),
+        0xF0 => instructionsNew.load.reg8_imm8_indirect(proc, &proc.accumulator),
 
         // POP AF
-        0xF1 => instructions.controlFlow.pop_rr(proc, .AF),
+        // 0xF1 => instructions.controlFlow.pop_rr(proc, .AF),
+        0xF1 => instructionsNew.controlFlow.pop_AF(proc),
 
         // LD A, (C)
         0xF2 => instructionsNew.load.reg8_reg8_indirect(proc, &proc.A, &proc.C),
@@ -1647,22 +1648,24 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xF3 => { proc.IME = false; },
 
         // PUSH AF
-        0xF5 => instructions.controlFlow.push_rr(proc, .AF),
+        // 0xF5 => instructions.controlFlow.push_rr(proc, .AF),
+        0xF5 => instructionsNew.controlFlow.push_AF(),
 
         // OR d8
         0xF6 => instructionsNew.arithmetic.or_imm8(proc),
 
         // RST 6
-        0xF7 => instructions.controlFlow.rst(proc, 6),
+        0xF7 => instructionsNew.controlFlow.rst(proc, 6),
 
         // LD HL, SP+s8
-        0xF8 => instructions.load.hl_sp_imm8(proc),
+        // 0xF8 => instructions.load.hl_sp_imm8(proc),
+        0xF8 => instructionsNew.load.hl_sp_imm8(proc),
 
         // LD SP, HL
-        0xF9 => instructions.load.spr_rr(proc, &proc.SP, .HL),
+        0xF9 => instructionsNew.load.spr_reg16(proc, &proc.SP, &proc.HL),
 
         // LD A, (a16)
-        0xFA => instructions.load.reg8_imm16_indirect(proc, &proc.A),
+        0xFA => instructionsNew.load.reg8_imm16_indirect(proc, &proc.accumulator),
 
         // EI
         0xFB => { proc.IME = true; },
@@ -1671,7 +1674,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xFE => instructionsNew.arithmetic.compare_imm8(proc),
 
         // RST 7
-        0xFF => instructions.controlFlow.rst(proc, 7),
+        0xFF => instructionsNew.controlFlow.rst(proc, 7),
 
         else => {
             std.debug.print("op_code: {any} not implemented!", .{op_code});
