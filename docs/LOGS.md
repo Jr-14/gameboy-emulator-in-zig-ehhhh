@@ -791,3 +791,7 @@ Some more refactoring still.
 
 Total time: 30 minutes
 
+# Day 59 - 2026 March 16th 8.45PM
+I think I've finished the refactor yay!
+
+Total time: 60 minutes

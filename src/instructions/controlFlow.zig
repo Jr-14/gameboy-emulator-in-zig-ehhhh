@@ -1,7 +1,7 @@
 const std = @import("std");
 
-const Processor = @import("../processor_new.zig");
-const PackedRegister = @import("../register_packed.zig").PackgedRegisterPair;
+const Processor = @import("../processor.zig");
+const PackedRegister = @import("../register.zig").PackgedRegisterPair;
 const Memory = @import("../memory.zig");
 const utils = @import("../utils.zig");
 
@@ -475,13 +475,45 @@ test "pop_AF" {
 
     pop_AF(&processor);
 
+    try expectEqual(SP + 2, processor.SP);
     try expectEqual(1, processor.flags.zero);
     try expectEqual(0, processor.flags.negative);
     try expectEqual(1, processor.flags.half_carry);
     try expectEqual(0, processor.flags.carry);
     try expectEqual(0x11, processor.accumulator);
-    try expectEqual(SP + 2, processor.SP);
 }
 
-pub fn push_AF() void {}
+pub fn push_AF(proc: *Processor) void {
+    proc.pushStack(proc.accumulator);
 
+    var lo: u8 = 0x00;
+    lo = @as(u8, proc.flags.zero) << 7;
+    lo |= @as(u8, proc.flags.negative) << 6;
+    lo |= @as(u8, proc.flags.half_carry) << 5;
+    lo |= @as(u8, proc.flags.carry) << 4;
+
+    proc.pushStack(lo);
+}
+
+test "push_AF" {
+    const SP: u16 = 0xFFFA;
+    const PC: u16 = 0x0100;
+    const accumulator = 0x99;
+    
+    var memory = Memory.init();
+    var processor = Processor.init(&memory, .{
+        .PC = PC,
+        .SP = SP,
+        .accumulator = accumulator,
+        .zeroFlag = 1,
+        .negativeFlag = 1,
+        .halfCarryFlag = 1,
+        .carryFlag = 1,
+    });
+
+    push_AF(&processor);
+
+    try expectEqual(SP - 2, processor.SP);
+    try expectEqual(0x99, memory.address[SP - 1]);
+    try expectEqual(0xF0, memory.address[SP - 2]);
+}

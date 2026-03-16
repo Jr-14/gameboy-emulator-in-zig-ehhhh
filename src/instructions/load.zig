@@ -1,7 +1,7 @@
 const std = @import("std");
 
-const Processor = @import("../processor_new.zig");
-const PackedRegister = @import("../register_packed.zig").PackgedRegisterPair;
+const Processor = @import("../processor.zig");
+const PackedRegister = @import("../register.zig").PackgedRegisterPair;
 const Memory = @import("../memory.zig");
 const utils = @import("../utils.zig");
 

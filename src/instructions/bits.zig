@@ -1,6 +1,6 @@
 const std = @import("std");
 
-const Processor = @import("../processor_new.zig");
+const Processor = @import("../processor.zig");
 const Memory = @import("../memory.zig");
 const utils = @import("../utils.zig");
 const Bit = utils.Bit;

@@ -1,9 +1,9 @@
 const std = @import("std");
-const Processor = @import("processor_new.zig");
+const Processor = @import("processor.zig");
 
 pub fn main() !void {}
 
 test "all instructions" {
-    _ = @import("processor_new.zig");
+    _ = @import("processor.zig");
 }
 
