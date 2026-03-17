@@ -795,3 +795,10 @@ Total time: 30 minutes
 I think I've finished the refactor yay!
 
 Total time: 60 minutes
+
+# Day 60 - 2026 March 17th 9.08PM
+Reading through (Emulating The Core, Part 2: Interrupts and Timing)[https://realboyemulator.wordpress.com/2013/01/18/emulating-the-core-2/], it states
+*treat 'the cycle' as the basic unit for timing; indeed, instruction cycles is going to be our timing unit*. The main
+thing that matters is how many CPU cycles (T-states) an instruction has taken.
+
+Total time: 30 minutes
