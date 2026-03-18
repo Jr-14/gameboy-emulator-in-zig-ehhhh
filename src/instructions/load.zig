@@ -162,9 +162,10 @@ test "reg8_imm16_indirect" {
 /// The first byte of immediate data is the lower byte (i.e. bits 0-7), and
 /// the second byte of immediate data is the higher byte (i.e., bits 8-15)
 /// Example: 0x01 -> LD BC, d16
-pub fn reg16_imm16(proc: *Processor, regPair: *PackedRegister) void {
+pub fn reg16_imm16(proc: *Processor, regPair: *PackedRegister) u8 {
     regPair.bytes.low = proc.fetch();
     regPair.bytes.high = proc.fetch();
+    return 12;
 }
 
 test "reg16_imm16" {
@@ -178,7 +179,8 @@ test "reg16_imm16" {
 
     var processor = Processor.init(&memory, .{ .PC = PC });
 
-    reg16_imm16(&processor, &processor.BC);
+    const cycles = reg16_imm16(&processor, &processor.BC);
+    try expectEqual(12, cycles);
     try expectEqual(immHi, processor.B().*);
     try expectEqual(immLo, processor.C().*);
 }
@@ -266,8 +268,9 @@ test "reg16_indirect_imm8" {
 /// Store the contents of the accumulator register in the memory location specified by
 /// register pair rr
 /// Example: 0x02 -> LD (BC), A
-pub fn reg16_indirect_acc8(proc: *Processor, regPair: *PackedRegister) void {
+pub fn reg16_indirect_acc8(proc: *Processor, regPair: *PackedRegister) u8 {
     proc.memory.write(regPair.value, proc.accumulator);
+    return 8;
 }
 
 test "reg16_indirect_acc8" {
@@ -284,9 +287,10 @@ test "reg16_indirect_acc8" {
         .C = C,
     });
 
-    reg16_indirect_acc8(&processor, &processor.BC);
+    const cycles = reg16_indirect_acc8(&processor, &processor.BC);
 
     try expectEqual(accumulator, memory.address[0x0349]);
+    try expectEqual(8, cycles);
 }
 
 /// Store the contents of register A in the internal RAM or register specified by the 16-bit immediate

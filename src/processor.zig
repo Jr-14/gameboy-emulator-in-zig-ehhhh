@@ -939,15 +939,12 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         return;
     }
 
-    const cycle: u8 = switch (op_code) {
+    _ = switch (op_code) {
         // NOP (No operation) Only advances the program counter by 1.
         0x00 => { return 4; },
 
         // LD BC, d16
-        0x01 => {
-            instructionsNew.load.reg16_imm16(proc, &proc.BC);
-            return 12;
-        },
+        0x01 => instructionsNew.load.reg16_imm16(proc, &proc.BC),
 
         // LD (BC), A
         0x02 => instructionsNew.load.reg16_indirect_acc8(proc, &proc.BC),
@@ -1682,7 +1679,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         else => {
             std.debug.print("op_code: {any} not implemented!", .{op_code});
         },
-    }
+    };
 }
 
 const expectEqual = std.testing.expectEqual;
