@@ -802,3 +802,8 @@ Reading through (Emulating The Core, Part 2: Interrupts and Timing)[https://real
 thing that matters is how many CPU cycles (T-states) an instruction has taken.
 
 Total time: 30 minutes
+
+Day 61 - 2026 March 18th 8.30AM
+I started to add the number of cycles for instructions.
+
+Total time: 30 minutes
