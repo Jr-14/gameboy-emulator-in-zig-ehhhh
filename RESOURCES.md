@@ -21,6 +21,9 @@ idea to catalogue them.
 - [Emulating The Core, Part 3: Interrupt Processing](https://realboyemulator.wordpress.com/2013/07/01/interrupt-processing-a-real-world-example/)
 - [zigboy](https://github.com/otaleghani/zigboy)
 - [The Cycle-Accurate Game Boy Docs](https://github.com/geaz/emu-gameboy/blob/master/docs/The%20Cycle-Accurate%20Game%20Boy%20Docs.pdf)
+- [Nitty Gritty Gameboy Cycle Timing](http://blog.kevtris.org/blogfiles/Nitty%20Gritty%20Gameboy%20VRAM%20Timing.txt)
+- [How do GPU/PPU timings work on the Gameboy?](https://forums.nesdev.org/viewtopic.php?t=17754)
+- [NES System Timing (CPU + PPU + APU](https://www.emulationonline.com/systems/nes/nes-system-timing/)
 
 # Zig
 - [Payload Captures](https://zig.guide/language-basics/payload-captures/)

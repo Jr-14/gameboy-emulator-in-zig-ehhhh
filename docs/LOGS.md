@@ -814,3 +814,9 @@ memory, as well as the datapath works. I also need to understand timings a bit m
 implement the PPU for the time being and fill in the gaps as I go
 
 Total time: 15 minutes
+
+Ive been researching how to do cycle accurate timing for the Gameboy as well. Found some nice docs to read through at
+some point in time :)
+
+Total time: 45 minutes
+
