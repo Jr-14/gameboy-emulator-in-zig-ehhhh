@@ -807,3 +807,10 @@ Total time: 30 minutes
 I started to add the number of cycles for instructions.
 
 Total time: 30 minutes
+
+# Day 62 - 2026 March 25th 1.41PM
+Small refactoring, but mainly been reading Computer Organization to get a more theoretical understanding on how the CPU,
+memory, as well as the datapath works. I also need to understand timings a bit more. Perhaps I should just try to
+implement the PPU for the time being and fill in the gaps as I go
+
+Total time: 15 minutes

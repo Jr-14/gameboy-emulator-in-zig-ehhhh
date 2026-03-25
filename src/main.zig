@@ -3,7 +3,7 @@ const Processor = @import("processor.zig");
 
 pub fn main() !void {}
 
-test "all instructions" {
-    _ = @import("processor.zig");
+test {
+    _ = Processor;
 }
 
