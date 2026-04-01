@@ -820,3 +820,8 @@ some point in time :)
 
 Total time: 45 minutes
 
+# Day 63 - 2026 April 1st 9.52PM
+After a few days of not working on the gameboy emulator, It was important I got back on track. Reading a few more notes
+as well as looking at existing implementation, it looks like some emulators use a memory map rather than a plain []u8.
+
+Total time: 30 minutes
