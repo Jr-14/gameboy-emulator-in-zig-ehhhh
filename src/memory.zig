@@ -1,4 +1,5 @@
 const Memory = @This();
+const GameboyState = @import("gameboy.zig");
 
 // 65,536 positions inlcuding 0x00 and 0xffff
 pub const ARRAY_SIZE: u32 = 0xFFFF + 1;
@@ -17,6 +18,44 @@ pub inline fn read(m: *Memory, index: u32) u8 {
 
 pub inline fn write(m: *Memory, index: u32, value: u8) void {
     m.address[index] = value;
+}
+
+pub fn readByte(gameboy: *GameboyState, address: u16) void {
+    switch (address) {
+        // ROM Bank 00
+        0x0000...0x3FFF => {
+            // TODO
+            @panic("ROM Bank 00 address not implemented (0x0000...0x3FFF)");
+        },
+        // ROM Bank 01-NN
+        0x4000...0x7FFF => {
+            // TODO
+            @panic("ROM Bank 01-NN address not implemented (0x4000...0x7FFF)");
+        },
+        // VRAM
+        0x8000...0x9FFF => {
+            // TODO
+            @panic("VRAM address not implemented (0x4000...0x7FFF)");
+        },
+        // External RAM
+        0xA000...0xBFFF => {
+            @panic("External RAM address not implemented (0xA000...0xBFFF)");
+        },
+        // WRAM
+        0xC000...0xCFFF => {
+            @panic("WRAM address not implemented (0xC000...0xCFFF)");
+        },
+        // WRAM
+        0xD000...0xDFFF => {
+            @panic("WRAM address not implemented (0xC000...0xCFFF)");
+        },
+        // Echo RAM - unused
+        0xE000...0xFDFF => unreachable,
+
+    }
+}
+
+pub fn writeByte(gameboy: *GameboyState, address: u16, byte: u8) void {
 }
 
 const std = @import("std");
