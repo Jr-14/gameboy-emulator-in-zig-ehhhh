@@ -51,6 +51,15 @@ pub fn readByte(gameboy: *GameboyState, address: u16) void {
         },
         // Echo RAM - unused
         0xE000...0xFDFF => unreachable,
+        // Object attribute memory
+        0xFE00...0xFE9F => {
+        },
+        // Not Usable - Nintendo says use of this area is prohibited
+        0xFEA0...0xFEFF => unreachable,
+        // I/O Registers
+        0xFF00...0xFF7F => {},
+        // High RAM (HRAM)
+        0xFF80...0xFFFE => {},
 
     }
 }
