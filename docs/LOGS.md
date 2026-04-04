@@ -830,3 +830,25 @@ Total time: 30 minutes
 I will want to implement memory map with the Memory Bank Controllers and leave out the other stuff for memory map for
 now, since I want to actually test out the CPU with Blargg's test roms. Apparently here's a repository for not just
 Blargg's but a multitude of other test suites - [Game boy test roms](https://github.com/c-sp/game-boy-test-roms)
+
+Trying to understand [Pointer Alignment](https://ziglang.org/documentation/master/#Alignment) since it looks like zigboy
+implementation uses [@ptrCast](https://ziglang.org/documentation/master/#ptrCast) along side with
+[@aligncast](https://ziglang.org/documentation/master/#alignCast) in order to "stuff" the array of cartridge header into
+a struct. Here also is a good [zig.guide article on Alignment](https://zig.guide/working-with-c/alignment/)
+
+In my own words learning about Pointer alignment. Alignment tells us how a variable in memory can be referenced and its
+usually in terms of divisibility by a power of 2. This is important as there are hardware importance for these types of 
+memory accesses. It also tells us type information metadata. e.g. for a u32, it's 4 bytes aligned and most likely
+because it requries 32 bits (4 bytes) to stored a 32-bit unsigned integer. Therefore if a variable is 4 bytes aligned,
+it means that it can only be accessible by memory that is divisible by 4.
+
+0x0100  -  1001_1011       --|
+0x0101  -  0010_1111         | We know that this is 4 bytes
+0x0102  -  1101_1101         | required to store u32
+0x0103  -  1011_0110       --|
+
+Alignment makes it easy to read from memory since alignment makes sure that the memory address is divisible by its
+alignment. And thus, alignment is usually a power of 2.
+
+Total time: 120 minutes
+
