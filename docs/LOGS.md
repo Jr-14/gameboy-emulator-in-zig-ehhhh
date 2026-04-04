@@ -825,3 +825,8 @@ After a few days of not working on the gameboy emulator, It was important I got 
 as well as looking at existing implementation, it looks like some emulators use a memory map rather than a plain []u8.
 
 Total time: 30 minutes
+
+# Day 64 - 2026 April 4th 10.27PM
+I will want to implement memory map with the Memory Bank Controllers and leave out the other stuff for memory map for
+now, since I want to actually test out the CPU with Blargg's test roms. Apparently here's a repository for not just
+Blargg's but a multitude of other test suites - [Game boy test roms](https://github.com/c-sp/game-boy-test-roms)

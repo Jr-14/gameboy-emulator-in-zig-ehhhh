@@ -1,6 +1,8 @@
 # TODO
 
 - [ ] Read [Zig Build System](https://ziglang.org/learn/build-system/)
+- [ ] Cartridge Header [16. The Cartridge Header](https://gbdev.io/pandocs/The_Cartridge_Header.html)
+- [ ] MBCs - Memory Bank Controllers [17. MBCs](https://gbdev.io/pandocs/MBCs.html)
 - [ ] Read [Pandocs - 9. Interrupts](https://gbdev.io/pandocs/Interrupts.html#ffff--ie-interrupt-enable)
 - [ ] Read [Pandocs - 9.1 Interrupt Sources](https://gbdev.io/pandocs/Interrupt_Sources.html)
 - [ ] Read [Pandocs - 9.2 HALT](https://gbdev.io/pandocs/halt.html)

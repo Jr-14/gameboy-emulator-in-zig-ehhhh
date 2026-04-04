@@ -60,11 +60,54 @@ pub fn readByte(gameboy: *GameboyState, address: u16) void {
         0xFF00...0xFF7F => {},
         // High RAM (HRAM)
         0xFF80...0xFFFE => {},
-
+        // Interrupt Enable Register (IE)
+        0xFFFF...0xFFFF => {},
     }
 }
 
 pub fn writeByte(gameboy: *GameboyState, address: u16, byte: u8) void {
+    switch (address) {
+        // ROM Bank 00
+        0x0000...0x3FFF => {
+            // TODO
+            @panic("ROM Bank 00 address not implemented (0x0000...0x3FFF)");
+        },
+        // ROM Bank 01-NN
+        0x4000...0x7FFF => {
+            // TODO
+            @panic("ROM Bank 01-NN address not implemented (0x4000...0x7FFF)");
+        },
+        // VRAM
+        0x8000...0x9FFF => {
+            // TODO
+            @panic("VRAM address not implemented (0x4000...0x7FFF)");
+        },
+        // External RAM
+        0xA000...0xBFFF => {
+            @panic("External RAM address not implemented (0xA000...0xBFFF)");
+        },
+        // WRAM
+        0xC000...0xCFFF => {
+            @panic("WRAM address not implemented (0xC000...0xCFFF)");
+        },
+        // WRAM
+        0xD000...0xDFFF => {
+            @panic("WRAM address not implemented (0xC000...0xCFFF)");
+        },
+        // Echo RAM - unused
+        0xE000...0xFDFF => unreachable,
+        // Object attribute memory
+        0xFE00...0xFE9F => {
+        },
+        // Not Usable - Nintendo says use of this area is prohibited
+        0xFEA0...0xFEFF => unreachable,
+        // I/O Registers
+        0xFF00...0xFF7F => {},
+        // High RAM (HRAM)
+        0xFF80...0xFFFE => {},
+        // Interrupt Enable Register (IE)
+        0xFFFF...0xFFFF => {},
+    }
 }
 
 const std = @import("std");
