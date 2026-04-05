@@ -21,6 +21,7 @@ pub inline fn write(m: *Memory, index: u32, value: u8) void {
 }
 
 pub fn readByte(gameboy: *GameboyState, address: u16) void {
+    _ = gameboy;
     switch (address) {
         // ROM Bank 00
         0x0000...0x3FFF => {
@@ -66,6 +67,8 @@ pub fn readByte(gameboy: *GameboyState, address: u16) void {
 }
 
 pub fn writeByte(gameboy: *GameboyState, address: u16, byte: u8) void {
+    _ = gameboy;
+    _ = byte;
     switch (address) {
         // ROM Bank 00
         0x0000...0x3FFF => {
