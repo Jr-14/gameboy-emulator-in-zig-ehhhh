@@ -46,6 +46,25 @@ pub const CartridgeHeader = extern struct {
     global_checksum: u16,
 };
 
+pub fn printDebugCartridgeHeader(header: *CartridgeHeader) void {
+    std.debug.print("new_licensee_code: {any}\n", .{ header.new_licensee_code });
+    std.debug.print("sbg flag: {any}\n", .{ header.sgb_flag });
+    std.debug.print("cartridge type: {any}\n", .{ header.cartridge_type });
+    std.debug.print("rom size: {any}\n", .{ header.rom_size });
+    std.debug.print("ram size: {any}\n", .{ header.ram_size });
+    std.debug.print("destination code: {any}\n", .{ header.destination_code });
+    std.debug.print("old licensee code: {any}\n", .{ header.old_licensee_code });
+    std.debug.print("mask_rom_version_number: {any}\n", .{ header.mask_rom_version_number });
+    std.debug.print("header_checksum: {any}\n", .{ header.header_checksum });
+    std.debug.print("global_checksum: {any}\n", .{ header.global_checksum });
+}
+
+
+pub fn createCartridge(rom_data: []u8) !void {
+    const header: *CartridgeHeader = @ptrCast(@alignCast(rom_data[0x0100..].ptr));
+    printDebugCartridgeHeader(&header);
+}
+
 /// [Cartridge type](https://gbdev.io/pandocs/The_Cartridge_Header.html#0147--cartridge-type)
 pub const CartridgeType = enum(u8) {
     rom_only = 0x00,
@@ -77,3 +96,11 @@ pub const CartridgeType = enum(u8) {
     huc3 = 0xFE,
     huc1_ram_battery = 0xFF,
 };
+
+const expectEqual = std.testing.expectEqual;
+
+test "i need to read stuff" {
+    const dbga = std.heap.DebugAllocator(.{}){};
+    defer _ = dbga.deinit();
+    const allocator = dbga.allocator();
+}
