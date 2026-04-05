@@ -38,6 +38,7 @@ idea to catalogue them.
 - [Zig Build System](https://ziglang.org/learn/build-system/)
 - [Recommendations for structuring project with library and unit tests](https://ziggit.dev/t/recommendations-for-structuring-project-with-library-and-unit-tests/5745/2)
 - [What is anytype?](https://ziggit.dev/t/generic-programming-and-anytype/3228)
+- [Extern Structs zig guide](https://zig.guide/working-with-c/extern-structs/)
 
 # Emulator Design
 - [How Do Emulators Work? A Deep Dive into Emulator Design](https://www.retroreversing.com/how-emulators-work)
@@ -50,6 +51,7 @@ idea to catalogue them.
 - [Endianness](https://en.wikipedia.org/wiki/Endianness)
 
 # Memory
+- [Memory Mapped IO](https://en.wikipedia.org/wiki/Memory-mapped_I/O_and_port-mapped_I/O)
 - [What's a Memory Allocator Anyway? - Benjamin Feng](https://www.youtube.com/watch?v=vHWiDx_l4V0)
 - [Page Tables and Page Frames](https://www.baeldung.com/cs/virtual-pages-page-frames)
 - [How many bytes of data can be stored in a single memory address](https://stackoverflow.com/questions/62867683/how-many-bytes-of-data-can-be-stored-in-a-single-memory-address)

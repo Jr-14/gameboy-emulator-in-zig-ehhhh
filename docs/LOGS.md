@@ -852,3 +852,7 @@ alignment. And thus, alignment is usually a power of 2.
 
 Total time: 120 minutes
 
+# Day 65 - 2026 April 5th 9.34PM
+Looking at implementing MBC1. I may have something rudimentary - will need to read the file into memory now.
+
+Total time: 45 minutes

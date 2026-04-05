@@ -11,18 +11,39 @@ const title_size = 16; // Range from 0x0134- 0x0143
 pub const CartridgeHeader = extern struct {
     /// [Entry point](https://gbdev.io/pandocs/The_Cartridge_Header.html#0100-0103--entry-point)
     _entry_point: [entry_point_size]u8,
+
     /// [Nintendo Logo](https://gbdev.io/pandocs/The_Cartridge_Header.html#0104-0133--nintendo-logo)
     logo: [logo_size]u8,
+
     /// [New licensee code](https://gbdev.io/pandocs/The_Cartridge_Header.html#01440146--new-licensee-code)
     new_licensee_code: u16,
+
     /// [SGB flag](https://gbdev.io/pandocs/The_Cartridge_Header.html#0146--sgb-flag)
     sgb_flag: u8,
+
     /// [Cartridge type](https://gbdev.io/pandocs/The_Cartridge_Header.html#0147--cartridge-type)
     cartridge_type: CartridgeType,
+
     /// [ROM size](https://gbdev.io/pandocs/The_Cartridge_Header.html#0148--rom-size)
     rom_size: u8,
+
     /// [RAM size](https://gbdev.io/pandocs/The_Cartridge_Header.html#0149--ram-size)
     ram_size: u8,
+
+    /// [Destination code](https://gbdev.io/pandocs/The_Cartridge_Header.html#014a--destination-code)
+    destination_code: u8,
+
+    /// [Old licensee code](https://gbdev.io/pandocs/The_Cartridge_Header.html#014b--old-licensee-code)
+    old_licensee_code: u8,
+
+    /// [Mask ROM version number](https://gbdev.io/pandocs/The_Cartridge_Header.html#014c--mask-rom-version-number)
+    mask_rom_version_number: u8,
+
+    /// [Header checksum](https://gbdev.io/pandocs/The_Cartridge_Header.html#014d--header-checksum)
+    header_checksum: u8,
+
+    /// [Global checksum](https://gbdev.io/pandocs/The_Cartridge_Header.html#014e-014f--global-checksum)
+    global_checksum: u16,
 };
 
 /// [Cartridge type](https://gbdev.io/pandocs/The_Cartridge_Header.html#0147--cartridge-type)
