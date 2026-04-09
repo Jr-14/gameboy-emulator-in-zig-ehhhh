@@ -102,5 +102,5 @@ const expectEqual = std.testing.expectEqual;
 test "i need to read stuff" {
     const dbga = std.heap.DebugAllocator(.{}){};
     defer _ = dbga.deinit();
-    const allocator = dbga.allocator();
+    _ = dbga.allocator();
 }

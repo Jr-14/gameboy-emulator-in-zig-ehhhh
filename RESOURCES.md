@@ -39,6 +39,7 @@ idea to catalogue them.
 - [Recommendations for structuring project with library and unit tests](https://ziggit.dev/t/recommendations-for-structuring-project-with-library-and-unit-tests/5745/2)
 - [What is anytype?](https://ziggit.dev/t/generic-programming-and-anytype/3228)
 - [Extern Structs zig guide](https://zig.guide/working-with-c/extern-structs/)
+- [Input/Output basics](https://pedropark99.github.io/zig-book/Chapters/12-file-op.html)
 
 # Emulator Design
 - [How Do Emulators Work? A Deep Dive into Emulator Design](https://www.retroreversing.com/how-emulators-work)

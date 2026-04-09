@@ -1,5 +1,6 @@
 # TODO
 
+- [ ] Read [Zig Input/Output basics](https://pedropark99.github.io/zig-book/Chapters/12-file-op.html)
 - [ ] Read [Zig Build System](https://ziglang.org/learn/build-system/)
 - [ ] Cartridge Header [16. The Cartridge Header](https://gbdev.io/pandocs/The_Cartridge_Header.html)
 - [ ] MBCs - Memory Bank Controllers [17. MBCs](https://gbdev.io/pandocs/MBCs.html)

@@ -856,3 +856,8 @@ Total time: 120 minutes
 Looking at implementing MBC1. I may have something rudimentary - will need to read the file into memory now.
 
 Total time: 45 minutes
+
+# Day 66 - 2026 April 6th 3.45PM
+Reading through zig 0.16.x implementation on their new IO interface, and how it works.
+
+Total time: 90 minutes
