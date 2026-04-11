@@ -869,4 +869,7 @@ Learnt about [`@ptrCast`](https://ziglang.org/documentation/master/#ptrCast), bu
 and `@import("builtin");`. This was import as I needed to correctly return the reference to a pointer to a `u8` since
 the `u8` registers are in a packed struct. So their ABI is different per architecture?
 
+Might be good to write an interesting article about this view in the bitfield for packed union / struct, and perhaps how
+it will provide type safety? Very interesting stuff
+
 Total time: 90 minutes
