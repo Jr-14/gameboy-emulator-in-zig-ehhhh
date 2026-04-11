@@ -865,4 +865,8 @@ Total time: 90 minutes
 # Day 67 - 2026 April 11th 6.46PM
 Doing some more refactor, creating the GameboyState.
 
-Total time: 45 mintues
+Learnt about [`@ptrCast`](https://ziglang.org/documentation/master/#ptrCast), but not the difference between std.builtin
+and `@import("builtin");`. This was import as I needed to correctly return the reference to a pointer to a `u8` since
+the `u8` registers are in a packed struct. So their ABI is different per architecture?
+
+Total time: 90 minutes

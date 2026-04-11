@@ -1,4 +1,8 @@
 const std = @import("std");
+const builtin = @import("builtin");
+
+const low_byte_index: usize = if (builtin.target.cpu.arch.endian() == .little) 0 else 1;
+const high_byte_index: usize = if (builtin.target.cpu.arch.endian() == .little) 1 else 0;
 
 pub const PackgedRegisterPair = packed union {
     value: u16,
@@ -6,6 +10,16 @@ pub const PackgedRegisterPair = packed union {
         low: u8,
         high: u8,
     },
+
+    pub inline fn lowPtr(pair: *PackgedRegisterPair) *u8 {
+        const raw_bytes: *[2]u8 = @ptrCast(&pair.value);
+        return &raw_bytes[low_byte_index];
+    }
+
+    pub inline fn highPtr(pair: *PackgedRegisterPair) *u8 {
+        const raw_bytes: *[2]u8 = @ptrCast(&pair.value);
+        return &raw_bytes[high_byte_index];
+    }
 };
 
 const expectEqual = std.testing.expectEqual;

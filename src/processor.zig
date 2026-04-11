@@ -96,27 +96,27 @@ pub fn init(memory: *Memory, initialValues: ProcessorValues) Processor {
 }
 
 pub inline fn B(proc: *Processor) *u8 {
-    return &proc.BC.bytes.high;
+    return proc.BC.highPtr();
 }
 
 pub inline fn C(proc: *Processor) *u8 {
-    return &proc.BC.bytes.low;
+    return proc.BC.lowPtr();
 }
 
 pub inline fn D(proc: *Processor) *u8 {
-    return &proc.DE.bytes.high;
+    return proc.DE.highPtr();
 }
 
 pub inline fn E(proc: *Processor) *u8 {
-    return &proc.DE.bytes.low;
+    return proc.DE.lowPtr();
 }
 
 pub inline fn H(proc: *Processor) *u8 {
-    return &proc.HL.bytes.high;
+    return proc.HL.highPtr();
 }
 
 pub inline fn L(proc: *Processor) *u8 {
-    return &proc.HL.bytes.low;
+    return proc.HL.lowPtr();
 }
 
 /// Read from memory the value pointed to by PC
