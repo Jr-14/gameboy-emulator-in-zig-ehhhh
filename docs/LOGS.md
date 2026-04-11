@@ -861,3 +861,8 @@ Total time: 45 minutes
 Reading through zig 0.16.x implementation on their new IO interface, and how it works.
 
 Total time: 90 minutes
+
+# Day 67 - 2026 April 11th 6.46PM
+Doing some more refactor, creating the GameboyState.
+
+Total time: 45 mintues
