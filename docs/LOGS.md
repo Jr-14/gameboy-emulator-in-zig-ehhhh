@@ -873,3 +873,43 @@ Might be good to write an interesting article about this view in the bitfield fo
 it will provide type safety? Very interesting stuff
 
 Total time: 90 minutes
+
+# Day 68 - 2026 Aprial 12th 3.26PM
+Looking at how to architecture reading and writing ROM now. I've managed to load and read the tetris rom, but it looks a
+bit funky?
+
+Here's the tetris cartridge header debug print
+```bash
+zig run src/main.zig
+Rom size: 32768 bytes
+new_licensee_code: $0000
+title: TETRIS
+sbg flag: $00
+cartridge type: $00
+rom size: $00
+ram size: $00
+destination code: $00
+old licensee code: $01
+mask_rom_version_number: $01
+header_checksum: $0A
+global_checksum: $BF16
+```
+
+And here's the donkey kong cartridge header debug print
+```bash
+Rom size: 524288 bytes
+new_licensee_code: $3130
+title: DONKEY KONG
+sbg flag: $03
+cartridge type: $03
+rom size: $04
+ram size: $02
+destination code: $00
+old licensee code: $33
+mask_rom_version_number: $01
+header_checksum: $2D
+global_checksum: $8C4F
+```
+
+Looking at the tetris room, it looks pretty empty? I just expected more more and not really a lot of 0x00 codes. Hmmm
+

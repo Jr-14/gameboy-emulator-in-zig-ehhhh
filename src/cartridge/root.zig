@@ -15,6 +15,9 @@ pub const CartridgeHeader = extern struct {
     /// [Nintendo Logo](https://gbdev.io/pandocs/The_Cartridge_Header.html#0104-0133--nintendo-logo)
     logo: [logo_size]u8,
 
+    /// [Title](https://gbdev.io/pandocs/The_Cartridge_Header.html#0134-0143--title)
+    title: [title_size]u8,
+
     /// [New licensee code](https://gbdev.io/pandocs/The_Cartridge_Header.html#01440146--new-licensee-code)
     new_licensee_code: u16,
 
@@ -47,22 +50,23 @@ pub const CartridgeHeader = extern struct {
 };
 
 pub fn printDebugCartridgeHeader(header: *CartridgeHeader) void {
-    std.debug.print("new_licensee_code: {any}\n", .{ header.new_licensee_code });
-    std.debug.print("sbg flag: {any}\n", .{ header.sgb_flag });
-    std.debug.print("cartridge type: {any}\n", .{ header.cartridge_type });
-    std.debug.print("rom size: {any}\n", .{ header.rom_size });
-    std.debug.print("ram size: {any}\n", .{ header.ram_size });
-    std.debug.print("destination code: {any}\n", .{ header.destination_code });
-    std.debug.print("old licensee code: {any}\n", .{ header.old_licensee_code });
-    std.debug.print("mask_rom_version_number: {any}\n", .{ header.mask_rom_version_number });
-    std.debug.print("header_checksum: {any}\n", .{ header.header_checksum });
-    std.debug.print("global_checksum: {any}\n", .{ header.global_checksum });
+    std.debug.print("new_licensee_code: ${X:0>4}\n", .{ header.new_licensee_code });
+    std.debug.print("title: {s}\n", .{ header.title });
+    std.debug.print("sbg flag: ${X:0>2}\n", .{ header.sgb_flag });
+    std.debug.print("cartridge type: ${X:0>2}\n", .{ header.cartridge_type });
+    std.debug.print("rom size: ${X:0>2}\n", .{ header.rom_size });
+    std.debug.print("ram size: ${X:0>2}\n", .{ header.ram_size });
+    std.debug.print("destination code: ${X:0>2}\n", .{ header.destination_code });
+    std.debug.print("old licensee code: ${X:0>2}\n", .{ header.old_licensee_code });
+    std.debug.print("mask_rom_version_number: ${X:0>2}\n", .{ header.mask_rom_version_number });
+    std.debug.print("header_checksum: ${X:0>2}\n", .{ header.header_checksum });
+    std.debug.print("global_checksum: ${X:0>4}\n", .{ header.global_checksum });
 }
 
 
 pub fn createCartridge(rom_data: []u8) !void {
     const header: *CartridgeHeader = @ptrCast(@alignCast(rom_data[0x0100..].ptr));
-    printDebugCartridgeHeader(&header);
+    printDebugCartridgeHeader(header);
 }
 
 /// [Cartridge type](https://gbdev.io/pandocs/The_Cartridge_Header.html#0147--cartridge-type)
