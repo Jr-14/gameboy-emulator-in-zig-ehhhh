@@ -913,3 +913,71 @@ global_checksum: $8C4F
 
 Looking at the tetris room, it looks pretty empty? I just expected more more and not really a lot of 0x00 codes. Hmmm
 
+Learnt a lot in general with best practices. 
+
+1. No hidden allocations, (and io now I guess for zig 0.16), so we pass through the allocator
+```zig
+pub const Cartridge = struct {
+    allocator: std.mem.Allocator,
+    header: CartridgeHeader,
+    rom_data: []const u8,
+
+    pub fn init(io: std.Io, allocator: std.mem.Allocator, rom_file_path: []const u8) !Cartridge {
+        const cwd = std.Io.Dir.cwd();
+        const rom_file = cwd.openFile(io, rom_file_path, .{ .mode = .read_only }) catch |err| {
+            std.debug.print("error opening file {s}. {}", .{ rom_file_path, err });
+            return err;
+        };
+        defer rom_file.close(io);
+
+        const rom_size = try rom_file.length(io);
+        std.debug.print("Rom size: {} bytes\n", .{ rom_size });
+
+        const rom_file_buffer = try allocator.alloc(u8, rom_size);
+        defer allocator.free(rom_file_buffer);
+        var rom_file_reader = rom_file.reader(io, rom_file_buffer);
+
+        const rom_data = try allocator.alloc(u8, 4096);
+        rom_file_reader.interface.readSliceAll(rom_data) catch |err| {
+            std.debug.print("read failed: {}", .{ err });
+        };
+
+        const header: *CartridgeHeader = @ptrCast(@alignCast(rom_data[0x0100..0x0150].ptr));
+        printDebugCartridgeHeader(header);
+
+        return .{
+            .allocator = allocator,
+            .rom_data = rom_data,
+            .header = header.*,
+        };
+    }
+};
+```
+
+2. `errdefer` when you need to cleanup resources in case something else can fail down the line.
+
+```zig
+pub fn init(io: std.Io, allocator: std.mem.Allocator, rom_file: []const u8) !GameboyState {
+    const memory = try allocator.create(Memory);
+    errdefer allocator.destroy(memory);
+    memory.* = Memory.init();
+
+    const processor = try allocator.create(Processor);
+    errdefer allocator.destroy(processor);
+    processor.* = Processor.init(memory, .{});
+
+    var cartridge = try Cartridge.init(io, allocator, rom_file);
+    defer cartridge.deinit();
+    cartridge.printDebug();
+
+    return .{
+        .allocator = allocator,
+        .memory = memory,
+        .processor = processor,
+        .ram = try allocator.alloc(u8, RAM_SIZE),
+        .vram = try allocator.alloc(u8, VRAM_SIZE),
+    };
+}
+```
+
+Total time: 180 minutes

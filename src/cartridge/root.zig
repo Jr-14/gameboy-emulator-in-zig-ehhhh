@@ -63,9 +63,63 @@ pub fn printDebugCartridgeHeader(header: *CartridgeHeader) void {
     std.debug.print("global_checksum: ${X:0>4}\n", .{ header.global_checksum });
 }
 
+pub const Cartridge = struct {
+    allocator: std.mem.Allocator,
+    header: CartridgeHeader,
+    rom_data: []const u8,
+
+    pub fn init(io: std.Io, allocator: std.mem.Allocator, rom_file_path: []const u8) !Cartridge {
+        const cwd = std.Io.Dir.cwd();
+        const rom_file = cwd.openFile(io, rom_file_path, .{ .mode = .read_only }) catch |err| {
+            std.debug.print("error opening file {s}. {}", .{ rom_file_path, err });
+            return err;
+        };
+        defer rom_file.close(io);
+
+        const rom_size = try rom_file.length(io);
+        std.debug.print("Rom size: {} bytes\n", .{ rom_size });
+
+        const rom_file_buffer = try allocator.alloc(u8, rom_size);
+        defer allocator.free(rom_file_buffer);
+        var rom_file_reader = rom_file.reader(io, rom_file_buffer);
+
+        const rom_data = try allocator.alloc(u8, 4096);
+        rom_file_reader.interface.readSliceAll(rom_data) catch |err| {
+            std.debug.print("read failed: {}", .{ err });
+        };
+
+        const header: *CartridgeHeader = @ptrCast(@alignCast(rom_data[0x0100..0x0150].ptr));
+        printDebugCartridgeHeader(header);
+
+        return .{
+            .allocator = allocator,
+            .rom_data = rom_data,
+            .header = header.*,
+        };
+    }
+
+    pub fn deinit(self: *Cartridge) void {
+        self.allocator.free(self.rom_data);
+    }
+
+    pub fn printDebug(self: *const Cartridge) void {
+        std.debug.print("new_licensee_code: ${X:0>4}\n", .{ self.header.new_licensee_code });
+        std.debug.print("title: {s}\n", .{ self.header.title });
+        std.debug.print("sbg flag: ${X:0>2}\n", .{ self.header.sgb_flag });
+        std.debug.print("cartridge type: ${X:0>2}\n", .{ self.header.cartridge_type });
+        std.debug.print("rom size: ${X:0>2}\n", .{ self.header.rom_size });
+        std.debug.print("ram size: ${X:0>2}\n", .{ self.header.ram_size });
+        std.debug.print("destination code: ${X:0>2}\n", .{ self.header.destination_code });
+        std.debug.print("old licensee code: ${X:0>2}\n", .{ self.header.old_licensee_code });
+        std.debug.print("mask_rom_version_number: ${X:0>2}\n", .{ self.header.mask_rom_version_number });
+        std.debug.print("header_checksum: ${X:0>2}\n", .{ self.header.header_checksum });
+        std.debug.print("global_checksum: ${X:0>4}\n", .{ self.header.global_checksum });
+    }
+};
+
 
 pub fn createCartridge(rom_data: []u8) !void {
-    const header: *CartridgeHeader = @ptrCast(@alignCast(rom_data[0x0100..].ptr));
+    const header: *CartridgeHeader = @ptrCast(@alignCast(rom_data[0x0100..0x014F].ptr));
     printDebugCartridgeHeader(header);
 }
 
@@ -100,11 +154,3 @@ pub const CartridgeType = enum(u8) {
     huc3 = 0xFE,
     huc1_ram_battery = 0xFF,
 };
-
-const expectEqual = std.testing.expectEqual;
-
-test "i need to read stuff" {
-    const dbga = std.heap.DebugAllocator(.{}){};
-    defer _ = dbga.deinit();
-    _ = dbga.allocator();
-}
