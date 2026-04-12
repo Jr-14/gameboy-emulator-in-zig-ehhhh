@@ -1,13 +1,10 @@
 const std = @import("std");
 const Processor = @import("processor.zig");
 const Memory = @import("memory.zig");
-const cart = @import("cartridge/root.zig");
+const Cartridge = @import("cartridge/root.zig");
 
-const Cartridge = cart.Cartridge;
-const CartridgeHeader = cart.CartridgeHeader;
-
-pub const RAM_SIZE: u16 = 40;
-pub const VRAM_SIZE: u16 = 8192;
+pub const RAM_SIZE: u16 = 4096;
+pub const VRAM_SIZE: u16 = 4096;
 
 const GameboyState = @This();
 
