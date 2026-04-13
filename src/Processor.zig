@@ -2,7 +2,7 @@ const std = @import("std");
 const utils = @import("utils.zig");
 
 const PackedRegisterPair = @import("register.zig").PackgedRegisterPair;
-const Memory = @import("memory.zig");
+const Memory = @import("Memory.zig");
 const Instruction = @import("instructions/root.zig");
 
 const masks = @import("masks.zig");

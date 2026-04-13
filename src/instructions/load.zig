@@ -1,8 +1,8 @@
 const std = @import("std");
 
-const Processor = @import("../processor.zig");
+const Processor = @import("../Processor.zig");
 const PackedRegister = @import("../register.zig").PackgedRegisterPair;
-const Memory = @import("../memory.zig");
+const Memory = @import("../Memory.zig");
 const utils = @import("../utils.zig");
 
 const expectEqual = std.testing.expectEqual;

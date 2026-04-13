@@ -543,3 +543,5 @@ Day 35 - Completed All 8-bit Arithmetic instructions
 Day 39 - Completed All 16-bit Arithmetic instructions
 
 Day 44 - Completed All rotate, shift, and bit operations
+
+Day 68 - Read Cartridge Header

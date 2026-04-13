@@ -1,7 +1,7 @@
 const std = @import("std");
-const Processor = @import("processor.zig");
-const Memory = @import("memory.zig");
-const Cartridge = @import("cartridges/cartridge.zig");
+const Processor = @import("Processor.zig");
+const Memory = @import("Memory.zig");
+const Cartridge = @import("Cartridge.zig");
 
 pub const RAM_SIZE: u16 = 4096;
 pub const VRAM_SIZE: u16 = 4096;

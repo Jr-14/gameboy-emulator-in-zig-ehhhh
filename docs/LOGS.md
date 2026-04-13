@@ -981,3 +981,8 @@ pub fn init(io: std.Io, allocator: std.mem.Allocator, rom_file: []const u8) !Gam
 ```
 
 Total time: 180 minutes
+
+# Day 69 Nice - 2026 April 13th 9.02PM
+Some more refactoring trying to ensure that Cartridge architecture makes sense
+
+Total time: 30 minutes
