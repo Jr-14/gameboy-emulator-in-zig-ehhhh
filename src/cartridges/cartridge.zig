@@ -82,6 +82,11 @@ pub const CartridgeHeader = extern struct {
     /// [Global checksum](https://gbdev.io/pandocs/The_Cartridge_Header.html#014e-014f--global-checksum)
     global_checksum: u16,
 
+    pub fn init(rom_data: []u8) CartridgeHeader {
+        const header: *CartridgeHeader = @ptrCast(@alignCast(rom_data[0x0100..0x0150].ptr));
+        return header.*;
+    }
+
     pub fn printDebugCartridgeHeader(self: *const CartridgeHeader) void {
         std.debug.print("new_licensee_code: ${X:0>4}\n", .{ self.new_licensee_code });
         std.debug.print("title: {s}\n", .{ self.title });
@@ -103,10 +108,7 @@ rom_data: []const u8,
 
 pub fn init(io: std.Io, allocator: std.mem.Allocator, rom_file_path: []const u8) !Cartridge {
     const cwd = std.Io.Dir.cwd();
-    const rom_file = cwd.openFile(io, rom_file_path, .{ .mode = .read_only }) catch |err| {
-        std.debug.print("error opening file {s}. {}", .{ rom_file_path, err });
-        return err;
-    };
+    const rom_file = try cwd.openFile(io, rom_file_path, .{ .mode = .read_only });
     defer rom_file.close(io);
 
     const rom_size = try rom_file.length(io);
@@ -121,13 +123,12 @@ pub fn init(io: std.Io, allocator: std.mem.Allocator, rom_file_path: []const u8)
         std.debug.print("read failed: {}", .{ err });
     };
 
-    const header: *CartridgeHeader = @ptrCast(@alignCast(rom_data[0x0100..0x0150].ptr));
-    header.printDebugCartridgeHeader();
+    const header = CartridgeHeader.init(rom_data);
 
     return .{
         .allocator = allocator,
         .rom_data = rom_data,
-        .header = header.*,
+        .header = header,
     };
 }
 
