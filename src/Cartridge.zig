@@ -1,4 +1,6 @@
 const std = @import("std");
+const mbc = @import("cartridges/mbc.zig");
+const MBCType = mbc.MBCType;
 
 const Cartridge = @This();
 
@@ -135,24 +137,3 @@ pub fn init(io: std.Io, allocator: std.mem.Allocator, rom_file_path: []const u8)
 pub fn deinit(self: *Cartridge) void {
     self.allocator.free(self.rom_data);
 }
-
-pub fn printDebug(self: *const Cartridge) void {
-    std.debug.print("new_licensee_code: ${X:0>4}\n", .{ self.header.new_licensee_code });
-    std.debug.print("title: {s}\n", .{ self.header.title });
-    std.debug.print("sbg flag: ${X:0>2}\n", .{ self.header.sgb_flag });
-    std.debug.print("cartridge type: ${X:0>2}\n", .{ self.header.cartridge_type });
-    std.debug.print("rom size: ${X:0>2}\n", .{ self.header.rom_size });
-    std.debug.print("ram size: ${X:0>2}\n", .{ self.header.ram_size });
-    std.debug.print("destination code: ${X:0>2}\n", .{ self.header.destination_code });
-    std.debug.print("old licensee code: ${X:0>2}\n", .{ self.header.old_licensee_code });
-    std.debug.print("mask_rom_version_number: ${X:0>2}\n", .{ self.header.mask_rom_version_number });
-    std.debug.print("header_checksum: ${X:0>2}\n", .{ self.header.header_checksum });
-    std.debug.print("global_checksum: ${X:0>4}\n", .{ self.header.global_checksum });
-}
-
-
-pub fn createCartridge(rom_data: []u8) !void {
-    const header: *CartridgeHeader = @ptrCast(@alignCast(rom_data[0x0100..0x014F].ptr));
-    header.printDebugCartridgeHeader();
-}
-

@@ -986,3 +986,8 @@ Total time: 180 minutes
 Some more refactoring trying to ensure that Cartridge architecture makes sense
 
 Total time: 30 minutes
+
+# Day 70 - 2026 Aprial 14th 10.25PM
+Got stuck into building zls from source and then having it run via nvim lsp. Just some little refactoring
+
+Total time: 45 minutes
