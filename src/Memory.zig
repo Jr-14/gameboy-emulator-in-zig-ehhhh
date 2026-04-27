@@ -1,5 +1,5 @@
 const Memory = @This();
-const GameboyState = @import("gameboy.zig");
+const GameboyState = @import("Gameboy.zig");
 
 // 65,536 positions inlcuding 0x00 and 0xffff
 pub const ARRAY_SIZE: u32 = 0xFFFF + 1;

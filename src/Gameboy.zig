@@ -44,6 +44,16 @@ pub fn insertCartridge(self: *GameboyState, io: std.Io, allocator: std.mem.Alloc
     cartridge.* = try Cartridge.init(io, allocator, rom_file);
     cartridge.printDebug();
     self.cartridge = cartridge;
+    switch(cartridge.*.header.cartridge_type) {
+        // Depending on the catridge, maybe we can try to map out the catridge contents into memory?
+        .rom_only => {
+            std.debug.print("ROM ONLY cartridge inserted\n", .{});
+            @memmove(self.ram, cartridge.rom_data);
+        },
+        else => {
+            std.debug.print("I guess these other types are not implemented\n", .{});
+        }
+    }
 }
 
 pub fn removeCartridge(self: *GameboyState, allocator: std.mem.Allocator) void {
@@ -69,6 +79,4 @@ test "init" {
 
     var gb = try GameboyState.init(allocator);
     defer gb.deinit();
-
-    std.debug.print("somethign cool\n", .{});
 }

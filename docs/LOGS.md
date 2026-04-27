@@ -987,7 +987,15 @@ Some more refactoring trying to ensure that Cartridge architecture makes sense
 
 Total time: 30 minutes
 
-# Day 70 - 2026 Aprial 14th 10.25PM
+# Day 70 - 2026 April 14th 10.25PM
 Got stuck into building zls from source and then having it run via nvim lsp. Just some little refactoring
 
 Total time: 45 minutes
+
+# Day 71 - 2026 Aprial 27th 9.18PM
+Wow nearly a whole month off, but it's good to be back.
+
+Reading through a couple of blog posts about programming, I understand the importance of speed in-order to learn and do
+something. So let's just try to smash it out and worry about the architecture later.
+
+Learnt about `@memcpy` and `@memmove`.
