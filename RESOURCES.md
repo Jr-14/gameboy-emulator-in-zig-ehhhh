@@ -25,6 +25,7 @@ idea to catalogue them.
 - [How do GPU/PPU timings work on the Gameboy?](https://forums.nesdev.org/viewtopic.php?t=17754)
 - [NES System Timing (CPU + PPU + APU](https://www.emulationonline.com/systems/nes/nes-system-timing/)
 - [Game Boy Test Roms](https://github.com/c-sp/game-boy-test-roms)
+- [Building a gameboy from scratch part 2 the cpu](https://raphaelstaebler.medium.com/building-a-gameboy-from-scratch-part-2-the-cpu-d6986a5c6c74)
 
 # Zig
 - [Payload Captures](https://zig.guide/language-basics/payload-captures/)
