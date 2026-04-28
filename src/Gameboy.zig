@@ -42,7 +42,6 @@ pub fn init(allocator: std.mem.Allocator) !GameboyState {
 pub fn insertCartridge(self: *GameboyState, io: std.Io, allocator: std.mem.Allocator, rom_file: []const u8) !void {
     const cartridge = try allocator.create(Cartridge);
     cartridge.* = try Cartridge.init(io, allocator, rom_file);
-    // cartridge.printDebug();
     self.cartridge = cartridge;
     switch(cartridge.*.header.cartridge_type) {
         // Depending on the catridge, maybe we can try to map out the catridge contents into memory?

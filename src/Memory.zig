@@ -20,18 +20,16 @@ pub inline fn write(m: *Memory, index: u32, value: u8) void {
     m.address[index] = value;
 }
 
-pub fn readByte(gameboy: *GameboyState, address: u16) void {
-    _ = gameboy;
+pub fn readByte(gameboy: *GameboyState, address: u16) !u8 {
     switch (address) {
         // ROM Bank 00
         0x0000...0x3FFF => {
-            // TODO
-            @panic("ROM Bank 00 address not implemented (0x0000...0x3FFF)");
+            return gameboy.ram[address];
         },
         // ROM Bank 01-NN
         0x4000...0x7FFF => {
             // TODO
-            @panic("ROM Bank 01-NN address not implemented (0x4000...0x7FFF)");
+            return gameboy.ram[address];
         },
         // VRAM
         0x8000...0x9FFF => {
@@ -67,18 +65,14 @@ pub fn readByte(gameboy: *GameboyState, address: u16) void {
 }
 
 pub fn writeByte(gameboy: *GameboyState, address: u16, byte: u8) void {
-    _ = gameboy;
-    _ = byte;
     switch (address) {
         // ROM Bank 00
         0x0000...0x3FFF => {
-            // TODO
-            @panic("ROM Bank 00 address not implemented (0x0000...0x3FFF)");
+            gameboy.ram[address] = byte;
         },
         // ROM Bank 01-NN
         0x4000...0x7FFF => {
-            // TODO
-            @panic("ROM Bank 01-NN address not implemented (0x4000...0x7FFF)");
+            gameboy.ram[address] = byte;
         },
         // VRAM
         0x8000...0x9FFF => {
