@@ -1000,5 +1000,9 @@ something. So let's just try to smash it out and worry about the architecture la
 
 Learnt about `@memcpy` and `@memmove`.
 
+Total time: 30 minutes
+
 # Day 72 - 2026 April 28th 9.07PM
 Actually trying to go through the fetch decode and execute cycle running it.
+
+Total time: 45 minutes
