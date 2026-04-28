@@ -209,7 +209,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0x0E => Instruction.bitShift.rotate_right_circular_hl_indirect(proc),
 
         // RRC
-        0x0F => Instruction.bitShift.rotate_right_circular_reg8(proc, &proc.A),
+        0x0F => Instruction.bitShift.rotate_right_circular_reg8(proc, &proc.accumulator),
 
         // RL B
         0x10 => Instruction.bitShift.rotate_left_reg8(proc, proc.B()),
@@ -230,7 +230,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0x15 => Instruction.bitShift.rotate_left_reg8(proc, proc.L()),
 
         // RL (HL)
-        0x16 => Instruction.bitShift.rotate_left_hl_indirect(&proc),
+        0x16 => Instruction.bitShift.rotate_left_hl_indirect(proc),
 
         // RL A
         0x17 => Instruction.bitShift.rotate_left_reg8(proc, &proc.accumulator),
@@ -254,7 +254,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0x1D => Instruction.bitShift.rotate_right_reg8(proc, proc.L()),
 
         // RR (HL)
-        0x1E => Instruction.bitShift.rotate_right_hl_indirect(&proc),
+        0x1E => Instruction.bitShift.rotate_right_hl_indirect(proc),
 
         // RR A
         0x1F => Instruction.bitShift.rotate_right_reg8(proc, &proc.accumulator),
@@ -278,7 +278,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0x25 => Instruction.bitShift.shift_left_arithmetic_reg8(proc, proc.L()),
 
         // SLA (HL)
-        0x26 => Instruction.bitShift.shift_left_arithmetic_hl_indirect(&proc),
+        0x26 => Instruction.bitShift.shift_left_arithmetic_hl_indirect(proc),
 
         // SLA A
         0x27 => Instruction.bitShift.shift_left_arithmetic_reg8(proc, &proc.accumulator),
@@ -302,7 +302,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0x2D => Instruction.bitShift.shift_right_arithmetic_reg8(proc, proc.L()),
 
         // SRA (HL)
-        0x2E => Instruction.bitShift.shift_right_arithmetic_hl_indirect(&proc),
+        0x2E => Instruction.bitShift.shift_right_arithmetic_hl_indirect(proc),
 
         // SRA A
         0x2F => Instruction.bitShift.shift_right_arithmetic_reg8(proc, &proc.accumulator),
@@ -326,7 +326,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0x35 => Instruction.bitShift.swap_reg8(proc, proc.L()),
 
         // SWAP (HL)
-        0x36 => Instruction.bitShift.swap_hl_indirect(&proc),
+        0x36 => Instruction.bitShift.swap_hl_indirect(proc),
 
         // SWAP A
         0x37 => Instruction.bitShift.swap_reg8(proc, &proc.accumulator),
@@ -350,7 +350,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0x3D => Instruction.bitShift.shift_right_logical_reg8(proc, proc.L()),
 
         // SRL (HL)
-        0x3E => Instruction.bitShift.shift_right_logical_hl_indirect(&proc),
+        0x3E => Instruction.bitShift.shift_right_logical_hl_indirect(proc),
 
         // SRL A
         0x3F => Instruction.bitShift.shift_right_logical_reg8(proc, &proc.accumulator),
@@ -548,142 +548,142 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0x7F => Instruction.bitFlag.test_bit_reg8(proc, .seven, &proc.accumulator),
 
         // RES 0, B
-        0x80 => Instruction.bits.reset_bit_reg8(.zero, &proc.B),
+        0x80 => Instruction.bits.reset_bit_reg8(.zero, proc.B()),
 
         // RES 0, C
-        0x81 => Instruction.bits.reset_bit_reg8(.zero, &proc.C),
+        0x81 => Instruction.bits.reset_bit_reg8(.zero, proc.C()),
 
         // RES 0, D
-        0x82 => Instruction.bits.reset_bit_reg8(.zero, &proc.D),
+        0x82 => Instruction.bits.reset_bit_reg8(.zero, proc.D()),
 
         // RES 0, E
-        0x83 => Instruction.bits.reset_bit_reg8(.zero, &proc.E),
+        0x83 => Instruction.bits.reset_bit_reg8(.zero, proc.E()),
 
         // RES 0, H
-        0x84 => Instruction.bits.reset_bit_reg8(.zero, &proc.H),
+        0x84 => Instruction.bits.reset_bit_reg8(.zero, proc.H()),
 
         // RES 0, L
-        0x85 => Instruction.bits.reset_bit_reg8(.zero, &proc.L),
+        0x85 => Instruction.bits.reset_bit_reg8(.zero, proc.L()),
 
         // RES 0, (HL)
         0x86 => Instruction.bits.reset_bit_hl_indirect(proc, .zero),
 
         // RES 0, A
-        0x87 => Instruction.bits.reset_bit_reg8(.zero, &proc.A),
+        0x87 => Instruction.bits.reset_bit_reg8(.zero, &proc.accumulator),
 
         // RES 1, B
-        0x88 => Instruction.bits.reset_bit_reg8(.one, &proc.B),
+        0x88 => Instruction.bits.reset_bit_reg8(.one, proc.B()),
 
         // RES 1, C
-        0x89 => Instruction.bits.reset_bit_reg8(.one, &proc.C),
+        0x89 => Instruction.bits.reset_bit_reg8(.one, proc.C()),
 
         // RES 1, D
-        0x8A => Instruction.bits.reset_bit_reg8(.one, &proc.D),
+        0x8A => Instruction.bits.reset_bit_reg8(.one, proc.D()),
 
         // RES 1, E
-        0x8B => Instruction.bits.reset_bit_reg8(.one, &proc.E),
+        0x8B => Instruction.bits.reset_bit_reg8(.one, proc.E()),
 
         // RES 1, H
-        0x8C => Instruction.bits.reset_bit_reg8(.one, &proc.H),
+        0x8C => Instruction.bits.reset_bit_reg8(.one, proc.H()),
 
         // RES 1, L
-        0x8D => Instruction.bits.reset_bit_reg8(.one, &proc.L),
+        0x8D => Instruction.bits.reset_bit_reg8(.one, proc.L()),
 
         // RES 1, (HL)
         0x8E => Instruction.bits.reset_bit_hl_indirect(proc, .one),
 
         // RES 1, A
-        0x8F => Instruction.bits.reset_bit_reg8(.two, &proc.A),
+        0x8F => Instruction.bits.reset_bit_reg8(.two, &proc.accumulator),
 
         // RES 2, B
-        0x90 => Instruction.bits.reset_bit_reg8(.two, &proc.B),
+        0x90 => Instruction.bits.reset_bit_reg8(.two, proc.B()),
 
         // RES 2, C
-        0x91 => Instruction.bits.reset_bit_reg8(.two, &proc.C),
+        0x91 => Instruction.bits.reset_bit_reg8(.two, proc.C()),
 
         // RES 2, D
-        0x92 => Instruction.bits.reset_bit_reg8(.two, &proc.D),
+        0x92 => Instruction.bits.reset_bit_reg8(.two, proc.D()),
 
         // RES 2, E
-        0x93 => Instruction.bits.reset_bit_reg8(.two, &proc.E),
+        0x93 => Instruction.bits.reset_bit_reg8(.two, proc.E()),
 
         // RES 2, H
-        0x94 => Instruction.bits.reset_bit_reg8(.two, &proc.H),
+        0x94 => Instruction.bits.reset_bit_reg8(.two, proc.H()),
 
         // RES 2, L
-        0x95 => Instruction.bits.reset_bit_reg8(.two, &proc.L),
+        0x95 => Instruction.bits.reset_bit_reg8(.two, proc.L()),
 
         // RES 2, (HL)
         0x96 => Instruction.bits.reset_bit_hl_indirect(proc, .two),
 
         // RES 2, A
-        0x97 => Instruction.bits.reset_bit_reg8(.two, &proc.A),
+        0x97 => Instruction.bits.reset_bit_reg8(.two, &proc.accumulator),
 
         // RES 3, B
-        0x98 => Instruction.bits.reset_bit_reg8(.three, &proc.B),
+        0x98 => Instruction.bits.reset_bit_reg8(.three, proc.B()),
 
         // RES 3, C
-        0x99 => Instruction.bits.reset_bit_reg8(.three, &proc.C),
+        0x99 => Instruction.bits.reset_bit_reg8(.three, proc.C()),
 
         // RES 3, D
-        0x9A => Instruction.bits.reset_bit_reg8(.three, &proc.D),
+        0x9A => Instruction.bits.reset_bit_reg8(.three, proc.D()),
 
         // RES 3, E
-        0x9B => Instruction.bits.reset_bit_reg8(.three, &proc.E),
+        0x9B => Instruction.bits.reset_bit_reg8(.three, proc.E()),
 
         // RES 3, H
-        0x9C => Instruction.bits.reset_bit_reg8(.three, &proc.H),
+        0x9C => Instruction.bits.reset_bit_reg8(.three, proc.H()),
 
         // RES 3, L
-        0x9D => Instruction.bits.reset_bit_reg8(.three, &proc.L),
+        0x9D => Instruction.bits.reset_bit_reg8(.three, proc.L()),
 
         // RES 3, (HL)
         0x9E => Instruction.bits.reset_bit_hl_indirect(proc, .three),
 
         // RES 3, A
-        0x9F => Instruction.bits.reset_bit_reg8(.three, &proc.A),
+        0x9F => Instruction.bits.reset_bit_reg8(.three, &proc.accumulator),
 
         // RES 4, B
-        0xA0 => Instruction.bits.reset_bit_reg8(.four, &proc.B),
+        0xA0 => Instruction.bits.reset_bit_reg8(.four, proc.B()),
 
         // RES 4, C
-        0xA1 => Instruction.bits.reset_bit_reg8(.four, &proc.C),
+        0xA1 => Instruction.bits.reset_bit_reg8(.four, proc.C()),
 
         // RES 4, D
-        0xA2 => Instruction.bits.reset_bit_reg8(.four, &proc.D),
+        0xA2 => Instruction.bits.reset_bit_reg8(.four, proc.D()),
 
         // RES 4, E
-        0xA3 => Instruction.bits.reset_bit_reg8(.four, &proc.E),
+        0xA3 => Instruction.bits.reset_bit_reg8(.four, proc.E()),
 
         // RES 4, H
-        0xA4 => Instruction.bits.reset_bit_reg8(.four, &proc.H),
+        0xA4 => Instruction.bits.reset_bit_reg8(.four, proc.H()),
 
         // RES 4, L
-        0xA5 => Instruction.bits.reset_bit_reg8(.four, &proc.L),
+        0xA5 => Instruction.bits.reset_bit_reg8(.four, proc.L()),
 
         // RES 4, (HL)
         0xA6 => Instruction.bits.reset_bit_hl_indirect(proc, .four),
 
         // RES 4, A
-        0xA7 => Instruction.bits.reset_bit_reg8(.four, &proc.A),
+        0xA7 => Instruction.bits.reset_bit_reg8(.four, &proc.accumulator),
 
         // RES 5, B
-        0xA8 => Instruction.bits.reset_bit_reg8(.five, &proc.B),
+        0xA8 => Instruction.bits.reset_bit_reg8(.five, proc.B()),
 
         // RES 5, C
-        0xA9 => Instruction.bits.reset_bit_reg8(.five, &proc.C),
+        0xA9 => Instruction.bits.reset_bit_reg8(.five, proc.C()),
 
         // RES 5, D
-        0xAA => Instruction.bits.reset_bit_reg8(.five, &proc.D),
+        0xAA => Instruction.bits.reset_bit_reg8(.five, proc.D()),
 
         // RES 5, E
-        0xAB => Instruction.bits.reset_bit_reg8(.five, &proc.E),
+        0xAB => Instruction.bits.reset_bit_reg8(.five, proc.E()),
 
         // RES 5, H
-        0xAC => Instruction.bits.reset_bit_reg8(.five, &proc.H),
+        0xAC => Instruction.bits.reset_bit_reg8(.five, proc.H()),
 
         // RES 5, L
-        0xAD => Instruction.bits.reset_bit_reg8(.five, &proc.L),
+        0xAD => Instruction.bits.reset_bit_reg8(.five, proc.L()),
 
         // RES 5, (HL)
         0xAE => Instruction.bits.reset_bit_hl_indirect(proc, .five),
@@ -782,7 +782,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0xCD => Instruction.bits.set_bit_reg8(.one, proc.L()),
 
         // SET 1, (HL)
-        0xCE => Instruction.bits.set_bit_hl_indirect(&proc, .one),
+        0xCE => Instruction.bits.set_bit_hl_indirect(proc, .one),
 
         // SET 1, A
         0xCF => Instruction.bits.set_bit_reg8(.one, &proc.accumulator),
@@ -830,7 +830,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0xDD => Instruction.bits.set_bit_reg8(.three, proc.L()),
 
         // SET 3, (HL)
-        0xDE => Instruction.bits.set_bit_hl_indirect(&proc, .three),
+        0xDE => Instruction.bits.set_bit_hl_indirect(proc, .three),
 
         // SET 3, A
         0xDF => Instruction.bits.set_bit_reg8(.three, &proc.accumulator),
@@ -878,7 +878,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0xED => Instruction.bits.set_bit_reg8(.five, proc.L()),
 
         // SET 5, (HL)
-        0xEE => Instruction.bits.set_bit_hl_indirect(&proc, .five),
+        0xEE => Instruction.bits.set_bit_hl_indirect(proc, .five),
 
         // SET 5, A
         0xEF => Instruction.bits.set_bit_reg8(.five, &proc.accumulator),
@@ -926,7 +926,7 @@ fn decodeAndExecuteCBPrefix(proc: *Processor) !void {
         0xFD => Instruction.bits.set_bit_reg8(.seven, proc.L()),
 
         // SET 7, (HL)
-        0xFE => Instruction.bits.set_bit_hl_indirect(&proc, .seven),
+        0xFE => Instruction.bits.set_bit_hl_indirect(proc, .seven),
 
         // SET 7, A
         0xFF => Instruction.bits.set_bit_reg8(.seven, &proc.accumulator),
@@ -941,7 +941,8 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
 
     _ = switch (op_code) {
         // NOP (No operation) Only advances the program counter by 1.
-        0x00 => { return 4; },
+        // 0x00 => { return 4; },
+        0x00 => {},
 
         // LD BC, d16
         0x01 => Instruction.load.reg16_imm16(proc, &proc.BC),
@@ -974,7 +975,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x0A => Instruction.load.reg8_reg16_indirect(proc, &proc.accumulator, &proc.BC),
 
         // DEC BC
-        0x0B => Instruction.arithmetic.dec_reg16(proc, &proc.BC.value),
+        0x0B => Instruction.arithmetic.dec_reg16(&proc.BC.value),
 
         // INC C
         0x0C => Instruction.arithmetic.inc_reg8(proc, proc.C()),
@@ -998,7 +999,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x12 => Instruction.load.reg16_indirect_acc8(proc, &proc.DE),
 
         // INC DE
-        0x13 => Instruction.arithmetic.inc_reg16(proc, &proc.DE.value),
+        0x13 => Instruction.arithmetic.inc_reg16(&proc.DE.value),
 
         // INC D
         0x14 => Instruction.arithmetic.inc_reg8(proc, proc.D()),
@@ -1010,7 +1011,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x16 => Instruction.load.reg8_imm8(proc, proc.D()),
 
         // RLA
-        0x17 => Instruction.bitShift.rotate_left_accumulator(&proc),
+        0x17 => Instruction.bitShift.rotate_left_accumulator(proc),
 
         // JR s8
         0x18 => Instruction.controlFlow.jump_rel_imm8(proc),
@@ -1019,7 +1020,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x19 => Instruction.arithmetic.add_reg16_reg16(proc, &proc.HL.value, &proc.DE.value),
 
         // DEC DE
-        0x1B => Instruction.arithmetic.dec_reg16(proc, &proc.DE.value),
+        0x1B => Instruction.arithmetic.dec_reg16(&proc.DE.value),
 
         // INC E
         0x1C => Instruction.arithmetic.inc_reg8(proc, proc.E()),
@@ -1037,7 +1038,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x21 => Instruction.load.reg16_imm16(proc, &proc.HL),
 
         // INC HL
-        0x23 => Instruction.arithmetic.inc_reg16(proc, &proc.HL.value),
+        0x23 => Instruction.arithmetic.inc_reg16(&proc.HL.value),
 
         // INC H
         0x24 => Instruction.arithmetic.inc_reg8(proc, proc.H()),
@@ -1049,13 +1050,13 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x27 => Instruction.misc.decimal_adjust_accumulator(proc),
 
         // JR Z, s8
-        0x28 => Instruction.controlFlow.jump_rel_cc_imm8(proc, &proc.flags.zero, .is_set),
+        0x28 => Instruction.controlFlow.jump_rel_cc_imm8(proc, proc.flags.zero, .is_set),
 
         // ADD HL, HL
         0x29 => Instruction.arithmetic.add_reg16_reg16(proc, &proc.HL.value, &proc.HL.value),
 
         // DEC HL
-        0x2B => Instruction.arithmetic.dec_reg16(proc, &proc.HL.value),
+        0x2B => Instruction.arithmetic.dec_reg16(&proc.HL.value),
 
         // INC L
         0x2C => Instruction.arithmetic.inc_reg8(proc, proc.L()),
@@ -1073,10 +1074,10 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x33 => Instruction.arithmetic.inc_sp(proc),
 
         // INC (HL)
-        0x34 => Instruction.arithmetic.inc_reg16(proc, &proc.HL.value),
+        0x34 => Instruction.arithmetic.inc_reg16(&proc.HL.value),
 
         // DEC (HL)
-        0x35 => Instruction.arithmetic.dec_reg16(proc, &proc.HL.value),
+        0x35 => Instruction.arithmetic.dec_reg16(&proc.HL.value),
 
         // SCF
         0x37 => Instruction.misc.set_carry_flag(proc),
@@ -1250,7 +1251,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x66 => Instruction.load.reg8_reg16_indirect(proc, proc.H(), &proc.HL),
 
         // LD H, A
-        0x67 => Instruction.load.reg8_reg8(proc.H(), &proc.A),
+        0x67 => Instruction.load.reg8_reg8(proc.H(), &proc.accumulator),
 
         // LD L, B
         0x68 => Instruction.load.reg8_reg8(proc.L(), proc.B()),
@@ -1274,7 +1275,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0x6E => Instruction.load.reg8_reg16_indirect(proc, proc.L(), &proc.HL),
 
         // LD L, A
-        0x6F => Instruction.load.reg8_reg8(proc.LI(), &proc.accumulator),
+        0x6F => Instruction.load.reg8_reg8(proc.L(), &proc.accumulator),
 
         // LD (HL), B
         // 0x70 => instructions.load.hl_indirect_reg8(proc, &proc.B),
@@ -1551,7 +1552,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xCA => Instruction.controlFlow.jump_cc_imm16(proc, proc.flags.zero, .is_set),
 
         // CB Prefix
-        0xCB => proc.decodeAndExecuteCBPrefix(),
+        0xCB => try proc.decodeAndExecuteCBPrefix(),
 
         // CALL Z, a16
         0xCC => Instruction.controlFlow.call_cc_imm16(proc, proc.flags.zero, .is_set),
@@ -1626,7 +1627,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xE8 => Instruction.arithmetic.add_sp_offset(proc),
 
         // JP HL
-        0xE9 => Instruction.controlFlow.jump_hl(proc, &proc.HL),
+        0xE9 => Instruction.controlFlow.jump_hl(proc),
 
         // LD (a16), A
         0xEA => Instruction.load.imm16_indirect_reg8(proc, &proc.accumulator),
@@ -1644,13 +1645,13 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xF1 => Instruction.controlFlow.pop_AF(proc),
 
         // LD A, (C)
-        0xF2 => Instruction.load.reg8_reg8_indirect(proc, &proc.A, &proc.C),
+        0xF2 => Instruction.load.reg8_reg8_indirect(proc, &proc.accumulator, proc.C()),
 
         // DI
         0xF3 => { proc.IME = false; },
 
         // PUSH AF
-        0xF5 => Instruction.controlFlow.push_AF(),
+        0xF5 => Instruction.controlFlow.push_AF(proc),
 
         // OR d8
         0xF6 => Instruction.arithmetic.or_imm8(proc),
@@ -1662,7 +1663,7 @@ pub fn decodeAndExecute(proc: *Processor, op_code: u8) !void {
         0xF8 => Instruction.load.hl_sp_imm8(proc),
 
         // LD SP, HL
-        0xF9 => Instruction.load.spr_reg16(proc, &proc.SP, &proc.HL),
+        0xF9 => Instruction.load.spr_reg16(&proc.SP, &proc.HL),
 
         // LD A, (a16)
         0xFA => Instruction.load.reg8_imm16_indirect(proc, &proc.accumulator),

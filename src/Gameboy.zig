@@ -40,9 +40,9 @@ pub fn init(allocator: std.mem.Allocator) !GameboyState {
 }
 
 pub fn insertCartridge(self: *GameboyState, io: std.Io, allocator: std.mem.Allocator, rom_file: []const u8) !void {
-    var cartridge = try allocator.create(Cartridge);
+    const cartridge = try allocator.create(Cartridge);
     cartridge.* = try Cartridge.init(io, allocator, rom_file);
-    cartridge.printDebug();
+    // cartridge.printDebug();
     self.cartridge = cartridge;
     switch(cartridge.*.header.cartridge_type) {
         // Depending on the catridge, maybe we can try to map out the catridge contents into memory?
@@ -68,6 +68,18 @@ pub fn deinit(self: *GameboyState) void {
     self.allocator.destroy(self.processor);
     if (self.cartridge) |cart| {
         self.allocator.destroy(cart);
+    }
+}
+
+pub fn run(self: *GameboyState) !void {
+    self.processor.PC = 0x0100;
+    while(true) {
+        const instruction = self.processor.fetch();
+        std.debug.print("instruction: 0x{x}\n", .{ instruction });
+        self.processor.decodeAndExecute(instruction) catch |err| {
+            std.debug.print("Failed to decode and execute instruction \n", .{});
+            std.debug.print("{any}\n", .{ err });
+        };
     }
 }
 

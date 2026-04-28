@@ -992,10 +992,13 @@ Got stuck into building zls from source and then having it run via nvim lsp. Jus
 
 Total time: 45 minutes
 
-# Day 71 - 2026 Aprial 27th 9.18PM
+# Day 71 - 2026 April 27th 9.18PM
 Wow nearly a whole month off, but it's good to be back.
 
 Reading through a couple of blog posts about programming, I understand the importance of speed in-order to learn and do
 something. So let's just try to smash it out and worry about the architecture later.
 
 Learnt about `@memcpy` and `@memmove`.
+
+# Day 72 - 2026 April 28th 9.07PM
+Actually trying to go through the fetch decode and execute cycle running it.

@@ -414,7 +414,7 @@ fn sub_aux(proc: *Processor, values: struct{
     proc.accumulator = remainder.value;
 
     proc.flags.negative = 1;
-    proc.flags.zero = @intFromBool(remainder.value);
+    proc.flags.zero = @intFromBool(remainder.value == 0);
     proc.flags.half_carry = remainder.half_carry;
     proc.flags.carry = remainder.carry;
 }
@@ -543,7 +543,10 @@ pub fn xor_hl_indirect(proc: *Processor) void {
 
 /// TODO: Add tests
 fn compare_aux(proc: *Processor, value: u8) void {
-    const remainder = utils.Arithmetic(u8).add(proc.A.value, value);
+    const remainder = utils.Arithmetic(u8).add(.{
+        .a = proc.accumulator,
+        .b = value
+    });
 
     proc.flags.zero = @intFromBool(remainder.value == 0);
     proc.flags.negative = 0;

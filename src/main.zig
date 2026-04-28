@@ -15,4 +15,6 @@ pub fn main(init: std.process.Init) !void {
         std.debug.print("Failed to insert rom: {s}\n", .{ rom_path });
         std.debug.print("{}\n", .{ err });
     };
+
+    try gb.run();
 }
