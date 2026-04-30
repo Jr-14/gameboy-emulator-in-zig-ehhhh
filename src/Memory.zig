@@ -52,15 +52,22 @@ pub fn readByte(gameboy: *GameboyState, address: u16) !u8 {
         0xE000...0xFDFF => unreachable,
         // Object attribute memory
         0xFE00...0xFE9F => {
+            @panic("OAM address not implemented (0xFE00...0xFE9F)");
         },
         // Not Usable - Nintendo says use of this area is prohibited
         0xFEA0...0xFEFF => unreachable,
         // I/O Registers
-        0xFF00...0xFF7F => {},
+        0xFF00...0xFF7F => {
+            @panic("Registers address not implemented (0xFF00...0xFF7F)");
+        },
         // High RAM (HRAM)
-        0xFF80...0xFFFE => {},
+        0xFF80...0xFFFE => {
+            @panic("HRAM address not implemented (0xFF80...0xFFFE)");
+        },
         // Interrupt Enable Register (IE)
-        0xFFFF...0xFFFF => {},
+        0xFFFF...0xFFFF => {
+            @panic("IE address not implemented (0xFFFF...0xFFFF)");
+        },
     }
 }
 
