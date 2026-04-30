@@ -1006,3 +1006,11 @@ Total time: 30 minutes
 Actually trying to go through the fetch decode and execute cycle running it.
 
 Total time: 45 minutes
+
+# Day 73 - 2026 May 1st 8.14AM
+I'm looking through my zig code and trying to understand how I architected things. Althought I don't try to particularly
+align with the dogmatic OOP style of programming, I feel like how I should have been encapsulating and segregating how
+they are used in of particular importance. Take for example the current state with Gameboy struct and the Memroy struct,
+I am currently allocating the `ram` and `vram` into the GameboyState. This means that for instructions, they would need
+to be passed into their parameters either the GameboyState, or the ram/vram. It would be easier if I coupled creation
+and of ram/vram into Memory and let the Memory struct own the ram/vram.
