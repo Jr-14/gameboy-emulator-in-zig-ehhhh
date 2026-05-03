@@ -44,6 +44,10 @@ pub const CartridgeType = enum(u8) {
 /// 
 /// Each cartridge contains a header, located at the address range $0100 - $014F. The cartridge header provides the
 /// following information about the game itself and the hardware it expects to run on
+///
+/// We use an extern struct as we want a defined layout for the fields of the struct as the compiler does not guarantee
+/// struct layout fields to be defined/well-ordered as the compiler optimises how the struct is laid out. This allows
+/// the struct to match the layout of structs in the C ABI.
 pub const CartridgeHeader = extern struct {
     /// [Entry point](https://gbdev.io/pandocs/The_Cartridge_Header.html#0100-0103--entry-point)
     _entry_point: [entry_point_size]u8,
