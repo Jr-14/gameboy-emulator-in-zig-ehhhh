@@ -50,7 +50,8 @@ pub fn insertCartridge(self: *GameboyState, io: std.Io, allocator: std.mem.Alloc
             @memmove(self.ram, cartridge.rom_data);
         },
         else => {
-            std.debug.print("I guess these other types are not implemented\n", .{});
+            const message = "I guess these other types are not implemented\n";
+            @compileError(message);
         }
     }
 }
